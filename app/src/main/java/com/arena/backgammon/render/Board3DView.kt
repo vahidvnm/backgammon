@@ -19,7 +19,7 @@ class Board3DView(context: Context) : GLSurfaceView(context) {
         preserveEGLContextOnPause = true
     }
     fun update(position:Position, dice:List<Int>, selected:Int?, legal:List<Move>, theme:BoardTheme, pieces:PieceStyle, diceStyle:DiceStyle, rolling:Boolean) {
-        boardRenderer.snapshot = RenderSnapshot(position.copyDeep(),dice,selected,legal,theme,pieces,diceStyle,rolling)
+        boardRenderer.update(RenderSnapshot(position.copyDeep(),dice,selected,legal,theme,pieces,diceStyle,rolling))
     }
     override fun onTouchEvent(e: MotionEvent): Boolean {
         if (e.action != MotionEvent.ACTION_UP) return true

@@ -12,7 +12,18 @@ import kotlin.math.*
 
 class BoardRenderer : GLSurfaceView.Renderer {
     @Volatile var snapshot=RenderSnapshot()
+    @Volatile private var transition:PieceTransition?=null
     private var program=0;private var width=1;private var height=1
+    fun update(next:RenderSnapshot){
+        val old=snapshot
+        if(old.position.turn==next.position.turn && !old.position.points.contentEquals(next.position.points)){
+            val sign=next.position.turn.sign
+            val from=(0..23).firstOrNull{old.position.points[it]*sign>next.position.points[it]*sign}
+            val to=(0..23).firstOrNull{next.position.points[it]*sign>old.position.points[it]*sign}
+            if(from!=null) transition=PieceTransition(from,to,sign,System.nanoTime())
+        }
+        snapshot=next
+    }
     private val projection=FloatArray(16);private val view=FloatArray(16);private val vp=FloatArray(16)
     private val cube=Mesh.cube();private val cylinder=Mesh.cylinder(28);private val triangle=Mesh.triangle()
     private var start=System.nanoTime()
@@ -34,12 +45,23 @@ class BoardRenderer : GLSurfaceView.Renderer {
         // hinges and gold detailing
         draw(cube,0f,.78f,-2.0f,.88f,.14f,.58f,c.metal,0f);draw(cube,0f,.78f,2.0f,.88f,.14f,.58f,c.metal,0f)
         val p=s.position
-        for(point in 0..23){val count=abs(p.points[point]);for(i in 0 until count){val pos=checkerPosition(point,i,count);val selected=s.selected==point&&i==count-1;val lift=if(selected).28f+.05f*sin(t*5) else 0f;draw(cylinder,pos.first,.74f+lift,pos.second,.78f,.22f,.78f,pieceColor(p.points[point]>0,s.pieces,c),0f,if(selected)c.glow else null)}}
+        val active=transition?.takeIf{(System.nanoTime()-it.started)/1e9f<.48f}
+        if(active==null)transition=null
+        for(point in 0..23){val count=abs(p.points[point]);for(i in 0 until count){
+            if(active?.to==point && i==count-1)continue // moving piece is rendered on its eased flight path
+            val pos=checkerPosition(point,i,count);val selected=s.selected==point&&i==count-1;val lift=if(selected).28f+.05f*sin(t*5) else 0f;draw(cylinder,pos.first,.74f+lift,pos.second,.78f,.22f,.78f,pieceColor(p.points[point]>0,s.pieces,c),0f,if(selected)c.glow else null)
+        }}
+        active?.let{a->
+            val progress=((System.nanoTime()-a.started)/1e9f/.48f).coerceIn(0f,1f);val ease=progress*progress*(3-2*progress)
+            val from=checkerPosition(a.from,abs(p.points[a.from])+1,6);val to=checkerPosition(a.to?:a.from,abs(p.points[a.to?:a.from]).coerceAtLeast(1)-1,6)
+            val x=from.first+(to.first-from.first)*ease;val z=from.second+(to.second-from.second)*ease;val lift=.35f+sin(progress*PI).toFloat()*1.25f
+            draw(cylinder,x,.74f+lift,z,.78f,.22f,.78f,pieceColor(a.sign>0,s.pieces,c),0f,c.glow)
+        }
         if(p.barWhite>0)draw(cylinder,-.02f,.9f,.72f,.76f,.22f,.76f,pieceColor(true,s.pieces,c),0f,if(s.selected==Move.BAR)c.glow else null)
         if(p.barBlack>0)draw(cylinder,.02f,.9f,-.72f,.76f,.22f,.76f,pieceColor(false,s.pieces,c),0f,if(s.selected==Move.BAR)c.glow else null)
         // legal landing halos
         s.legal.filter{it.from==s.selected}.forEach{m->val q=if(m.to==Move.OFF)6.98f to 0f else checkerPosition(m.to,abs(p.points[m.to]).coerceAtMost(5),6);draw(cylinder,q.first,.66f,q.second,.88f,.025f,.88f,c.glow.copyOf().apply{this[3]=.48f},0f)}
-        s.dice.take(2).forEachIndexed{i,d->val rolling=s.rolling;val angle=if(rolling)t*420f+i*71 else dieAngle(d);drawDie(if(i==0)-1.05f else 1.05f,1.05f,0f,d,angle,c,s.diceStyle)}
+        (if(s.rolling) listOf(1+(t*9).toInt()%6,1+(t*13).toInt()%6) else s.dice.take(2)).forEachIndexed{i,d->val angle=if(s.rolling)t*420f+i*71 else dieAngle(d);drawDie(if(i==0)-1.05f else 1.05f,1.05f,0f,d,angle,c,s.diceStyle)}
     }
     fun pointAt(x:Float,z:Float):Int{val col=(0..11).minBy{abs(columnX(it)-x)};return if(z<0)11-col else 12+col}
     fun boardHit(px:Float,py:Float):Pair<Float,Float>?{
@@ -70,6 +92,8 @@ class BoardRenderer : GLSurfaceView.Renderer {
     }
     companion object {const val VERTEX="attribute vec3 aPos;attribute vec3 aNormal;uniform mat4 uM;uniform mat4 uMvp;varying vec3 n;varying vec3 world;void main(){world=(uM*vec4(aPos,1.)).xyz;n=normalize(mat3(uM)*aNormal);gl_Position=uMvp*vec4(aPos,1.);}";const val FRAGMENT="precision mediump float;uniform vec4 uColor;uniform vec4 uEmission;varying vec3 n;varying vec3 world;void main(){vec3 l=normalize(vec3(-.4,1.,.55));float d=max(dot(normalize(n),l),0.);float rim=pow(1.-max(dot(normalize(n),normalize(vec3(0.,1.,1.))),0.),3.);vec3 col=uColor.rgb*(.30+d*.70)+uEmission.rgb*rim*.16;gl_FragColor=vec4(col,uColor.a);}"}
 }
+
+private data class PieceTransition(val from:Int,val to:Int?,val sign:Int,val started:Long)
 
 class Mesh(private val vertices:FloatArray){private val buffer=ByteBuffer.allocateDirect(vertices.size*4).order(ByteOrder.nativeOrder()).asFloatBuffer().apply{put(vertices);position(0)};fun draw(program:Int,m:FloatArray,mvp:FloatArray,emission:FloatArray,color:FloatArray){val pos=GLES20.glGetAttribLocation(program,"aPos");val normal=GLES20.glGetAttribLocation(program,"aNormal");buffer.position(0);GLES20.glVertexAttribPointer(pos,3,GLES20.GL_FLOAT,false,24,buffer);buffer.position(3);GLES20.glVertexAttribPointer(normal,3,GLES20.GL_FLOAT,false,24,buffer);GLES20.glEnableVertexAttribArray(pos);GLES20.glEnableVertexAttribArray(normal);GLES20.glUniformMatrix4fv(GLES20.glGetUniformLocation(program,"uM"),1,false,m,0);GLES20.glUniformMatrix4fv(GLES20.glGetUniformLocation(program,"uMvp"),1,false,mvp,0);GLES20.glUniform4fv(GLES20.glGetUniformLocation(program,"uColor"),1,color,0);GLES20.glUniform4fv(GLES20.glGetUniformLocation(program,"uEmission"),1,emission,0);GLES20.glDrawArrays(GLES20.GL_TRIANGLES,0,vertices.size/6)}
  companion object {fun cube():Mesh{val v=mutableListOf<Float>();fun face(a:FloatArray,b:FloatArray,c:FloatArray,d:FloatArray,n:FloatArray){listOf(a,b,c,a,c,d).forEach{v+=it.toList();v+=n.toList()}};face(floatArrayOf(-.5f,.5f,-.5f),floatArrayOf(.5f,.5f,-.5f),floatArrayOf(.5f,.5f,.5f),floatArrayOf(-.5f,.5f,.5f),floatArrayOf(0f,1f,0f));face(floatArrayOf(-.5f,-.5f,.5f),floatArrayOf(.5f,-.5f,.5f),floatArrayOf(.5f,-.5f,-.5f),floatArrayOf(-.5f,-.5f,-.5f),floatArrayOf(0f,-1f,0f));face(floatArrayOf(-.5f,-.5f,.5f),floatArrayOf(-.5f,.5f,.5f),floatArrayOf(.5f,.5f,.5f),floatArrayOf(.5f,-.5f,.5f),floatArrayOf(0f,0f,1f));face(floatArrayOf(.5f,-.5f,-.5f),floatArrayOf(.5f,.5f,-.5f),floatArrayOf(-.5f,.5f,-.5f),floatArrayOf(-.5f,-.5f,-.5f),floatArrayOf(0f,0f,-1f));face(floatArrayOf(-.5f,-.5f,-.5f),floatArrayOf(-.5f,.5f,-.5f),floatArrayOf(-.5f,.5f,.5f),floatArrayOf(-.5f,-.5f,.5f),floatArrayOf(-1f,0f,0f));face(floatArrayOf(.5f,-.5f,.5f),floatArrayOf(.5f,.5f,.5f),floatArrayOf(.5f,.5f,-.5f),floatArrayOf(.5f,-.5f,-.5f),floatArrayOf(1f,0f,0f));return Mesh(v.toFloatArray())}

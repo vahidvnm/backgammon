@@ -5,9 +5,11 @@ A polished, completely offline Backgammon game built with native Kotlin and Jetp
 ## Features
 - Complete standard move rules: bar entry, hits, doubles, forced maximum dice usage, higher-die priority, bearing off, and wins
 - Local pass-and-play and five-level on-device AI
-- Five responsive board themes, three checker styles, and three dice styles
-- Animated dice, forgiving touch targets, legal destination hints, sound and haptic feedback
-- Persistent preferences and a portrait-first glass interface
+- Hardware-accelerated OpenGL ES 3D board, checkers, dice, lighting, shadows, depth, and ray-cast touch picking
+- Six coherent premium themes, three checker styles, and three dice styles
+- Deterministic animated dice plus lift–travel–land checker motion and legal destination halos
+- Match scoring, doubling cube, gammon/backgammon results, sound and haptic feedback
+- Persistent preferences and a responsive landscape-first glass interface
 
 ## Build
 Requires JDK 17 and Android SDK 35.
