@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -21,7 +22,14 @@ import com.arena.backgammon.data.*
 import com.arena.backgammon.render.Board3DView
 
 private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
-@Composable fun BackgammonApp(vm:GameViewModel=viewModel()){val screen by vm.screen.collectAsState();MaterialTheme(colorScheme=darkColorScheme(primary=Gold,surface=Color(0xff11151b))){Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(Color(0xff253026),Color(0xff07090c)))){AnimatedContent(screen,label="navigation"){if(it==Screen.MENU)MainMenu(vm)else GameScreen(vm)}}}}
+@Composable fun BackgammonApp(vm:GameViewModel=viewModel()){
+ val screen by vm.screen.collectAsState()
+ MaterialTheme(colorScheme=darkColorScheme(primary=Gold,surface=Color(0xff11151b))){
+  Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(Color(0xff253026),Color(0xff07090c))))){
+   AnimatedContent(screen,label="navigation"){if(it==Screen.MENU)MainMenu(vm)else GameScreen(vm)}
+  }
+ }
+}
 @Composable private fun Panel(modifier:Modifier=Modifier,content:@Composable ColumnScope.()->Unit)=Column(modifier.clip(RoundedCornerShape(24.dp)).background(Glass).border(1.dp,Color.White.copy(.14f),RoundedCornerShape(24.dp)).padding(18.dp),content=content)
 @Composable private fun MainMenu(vm:GameViewModel){val s by vm.settings.collectAsState();var dialog by remember{mutableStateOf("")};Row(Modifier.fillMaxSize().systemBarsPadding().padding(32.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1.15f)){Text("BACKGAMMON",fontSize=42.sp,fontWeight=FontWeight.Black,letterSpacing=5.sp,color=Gold);Text("THE GRAND BOARD",fontSize=16.sp,letterSpacing=4.sp,color=Color.White.copy(.65f));Spacer(Modifier.height(20.dp));Text("Strategy, beautifully crafted.",fontSize=20.sp,color=Color.White.copy(.8f));Text("A premium three-dimensional board experience.",color=Color.White.copy(.52f))};Panel(Modifier.widthIn(320.dp,440.dp)){MenuAction("PLAY VS AI","Five strategic difficulty levels"){dialog="ai"};MenuAction("LOCAL MATCH","Pass-and-play on one device"){vm.start(Mode.LOCAL)};Row{SmallAction("THEMES",Modifier.weight(1f)){dialog="themes"};Spacer(Modifier.width(10.dp));SmallAction("SETTINGS",Modifier.weight(1f)){dialog="settings"}};Row{SmallAction("STATISTICS",Modifier.weight(1f)){dialog="stats"};Spacer(Modifier.width(10.dp));SmallAction("ABOUT",Modifier.weight(1f)){dialog="about"}}}};if(dialog.isNotEmpty())Dialog(dialog,s,vm,{dialog=""})}
 @Composable private fun MenuAction(title:String,sub:String,go:()->Unit){Button(go,Modifier.fillMaxWidth().height(66.dp),shape=RoundedCornerShape(16.dp),colors=ButtonDefaults.buttonColors(Color.White.copy(.1f)),border=BorderStroke(1.dp,Color.White.copy(.1f))){Column(Modifier.fillMaxWidth()){Text(title,fontWeight=FontWeight.Bold,letterSpacing=1.sp);Text(sub,fontSize=11.sp,color=Color.White.copy(.55f))}};Spacer(Modifier.height(10.dp))}

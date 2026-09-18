@@ -55,7 +55,19 @@ class BoardRenderer : GLSurfaceView.Renderer {
     private fun pipLayout(v:Int)=when(v){1->listOf(0f to 0f);2->listOf(-.45f to -.45f,.45f to .45f);3->listOf(-.48f to -.48f,0f to 0f,.48f to .48f);4->listOf(-.45f to -.45f,.45f to -.45f,-.45f to .45f,.45f to .45f);5->listOf(-.48f to -.48f,.48f to -.48f,0f to 0f,-.48f to .48f,.48f to .48f);else->listOf(-.45f to -.55f,.45f to -.55f,-.45f to 0f,.45f to 0f,-.45f to .55f,.45f to .55f)}
     private fun dieAngle(v:Int)=floatArrayOf(0f,90f,180f,270f,45f,135f)[v-1]
     private fun draw(mesh:Mesh,x:Float,y:Float,z:Float,sx:Float,sy:Float,sz:Float,color:FloatArray,rotation:Float,emission:FloatArray?=null){val m=FloatArray(16);val mvp=FloatArray(16);Matrix.setIdentityM(m,0);Matrix.translateM(m,0,x,y,z);Matrix.rotateM(m,0,rotation,1f,1f,0f);Matrix.scaleM(m,0,sx,sy,sz);Matrix.multiplyMM(mvp,0,vp,0,m,0);mesh.draw(program,m,mvp,emission?:color,color)}
-    private fun shader(v:String,f:String):Int{fun compile(type:Int,s:String)=GLES20.glCreateShader(type).also{GLES20.glShaderSource(it,s);GLES20.glCompileShader(it)};return GLES20.glCreateProgram().also{GLES20.glAttachShader(it,compile(GLES20.GL_VERTEX_SHADER,v));GLES20.glAttachShader(it,compile(GLES20.GL_FRAGMENT_SHADER,f));GLES20.glLinkProgram(it)}}
+    private fun shader(v:String,f:String):Int{
+        fun compile(type:Int,source:String):Int {
+            val id=GLES20.glCreateShader(type)
+            GLES20.glShaderSource(id,source)
+            GLES20.glCompileShader(id)
+            return id
+        }
+        val id=GLES20.glCreateProgram()
+        GLES20.glAttachShader(id,compile(GLES20.GL_VERTEX_SHADER,v))
+        GLES20.glAttachShader(id,compile(GLES20.GL_FRAGMENT_SHADER,f))
+        GLES20.glLinkProgram(id)
+        return id
+    }
     companion object {const val VERTEX="attribute vec3 aPos;attribute vec3 aNormal;uniform mat4 uM;uniform mat4 uMvp;varying vec3 n;varying vec3 world;void main(){world=(uM*vec4(aPos,1.)).xyz;n=normalize(mat3(uM)*aNormal);gl_Position=uMvp*vec4(aPos,1.);}";const val FRAGMENT="precision mediump float;uniform vec4 uColor;uniform vec4 uEmission;varying vec3 n;varying vec3 world;void main(){vec3 l=normalize(vec3(-.4,1.,.55));float d=max(dot(normalize(n),l),0.);float rim=pow(1.-max(dot(normalize(n),normalize(vec3(0.,1.,1.))),0.),3.);vec3 col=uColor.rgb*(.30+d*.70)+uEmission.rgb*rim*.16;gl_FragColor=vec4(col,uColor.a);}"}
 }
 
