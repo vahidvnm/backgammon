@@ -39,7 +39,7 @@ jobs:
           grep -E "(^e: | error: |FAILURE:|What went wrong|Compilation error)" build.log | head -40 | while IFS= read -r line; do
             echo "::error::$line"
           done || true
-          echo "::error::BUILD_LOG_BASE64=$(tail -20 build.log | base64 -w0)"
+          echo "::error::BUILD_LOG_BASE64=$(awk '/FAILURE:/{show=1} show{print} /Try:/{exit}' build.log | head -30 | base64 -w0)"
       - name: Upload build diagnostics
         if: always()
         uses: actions/upload-artifact@v4
