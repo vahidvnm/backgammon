@@ -30,9 +30,13 @@ jobs:
       - name: Surface compiler diagnostics
         if: failure()
         run: |
+          echo '### Build diagnostics' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          tail -100 build.log >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
           grep -E "(^e: | error: |FAILURE:|What went wrong|Compilation error)" build.log | head -40 | while IFS= read -r line; do
             echo "::error::$line"
-          done
+          done || true
       - name: Upload build diagnostics
         if: always()
         uses: actions/upload-artifact@v4
