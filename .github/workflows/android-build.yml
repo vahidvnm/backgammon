@@ -2,7 +2,7 @@ name: Android APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, arena/01a0b377-backgammon]
   workflow_dispatch:
 
 permissions:
