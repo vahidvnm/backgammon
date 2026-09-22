@@ -112,7 +112,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
  LaunchedEffect(rolling){
   if(rolling){
    val released=throwVector;x1.snapTo(x1.value+released.x);x2.snapTo(x2.value+released.x);y1.snapTo(y1.value+released.y);y2.snapTo(y2.value+released.y);drag=Offset.Zero
-   val tx1=(x1.value+(-14..14).random()).coerceIn(-150f,-34f);val tx2=(x2.value+(-14..14).random()).coerceIn(34f,150f);val ty1=(y1.value+(-10..10).random()).coerceIn(-64f,58f);val ty2=(y2.value+(-10..10).random()).coerceIn(-58f,64f)
+   val tx1=(-82..-64).random().toFloat();val tx2=(64..82).random().toFloat();val commonY=(released.y*.12f).coerceIn(-18f,18f);val ty1=commonY+(-7..7).random();val ty2=commonY+(-7..7).random()
    kotlinx.coroutines.coroutineScope{
     launch{while(rolling){face1=(1..6).random();face2=(1..6).random();kotlinx.coroutines.delay(110)}}
     launch{x1.animateTo(tx1,tween(1250,easing=FastOutSlowInEasing))};launch{x2.animateTo(tx2,tween(1280,easing=FastOutSlowInEasing))}
@@ -120,7 +120,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
     launch{y2.animateTo(ty2,keyframes{durationMillis=1280;y2.value at 0;(ty2-38f) at 470;(ty2+8f) at 920;ty2 at 1280})}
     launch{r1.animateTo(r1.value+540f,tween(1280,easing=LinearOutSlowInEasing))};launch{r2.animateTo(r2.value-630f,tween(1280,easing=LinearOutSlowInEasing))}
    }
-  } else {face1=finalDice.getOrElse(0){face1};face2=finalDice.getOrElse(1){face2}}
+  } else {face1=finalDice.getOrElse(0){face1};face2=finalDice.getOrElse(1){face2};r1.snapTo(0f);r2.snapTo(0f);drag=Offset.Zero}
  }
  Box(modifier.size(230.dp,140.dp).graphicsLayer{translationX=drag.x;translationY=drag.y}.pointerInput(rolling,finalDice){if(!rolling&&finalDice.isEmpty())detectDragGestures(onDragEnd={if(drag.getDistance()>24f){throwVector=drag;onThrow()}else drag=Offset.Zero},onDragCancel={drag=Offset.Zero}){change,amount->change.consume();drag+=amount}}){DieFace(if(rolling)face1 else finalDice.getOrElse(0){face1},style,rolling,Modifier.align(Alignment.Center).offset{x1.value.roundToInt().let{androidx.compose.ui.unit.IntOffset(it,y1.value.roundToInt())}}.rotate(r1.value));DieFace(if(rolling)face2 else finalDice.getOrElse(1){face2},style,rolling,Modifier.align(Alignment.Center).offset{x2.value.roundToInt().let{androidx.compose.ui.unit.IntOffset(it,y2.value.roundToInt())}}.rotate(r2.value))}
 }
