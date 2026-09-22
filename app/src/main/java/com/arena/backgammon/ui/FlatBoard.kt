@@ -14,6 +14,7 @@ import com.arena.backgammon.core.*
 import com.arena.backgammon.data.*
 import kotlin.math.*
 
+private data class CheckerMotion(val from:Int,val to:Int,val white:Boolean)
 data class BoardPalette(val frame:Color,val frameDark:Color,val field:Color,val pointA:Color,val pointB:Color,val light:Color,val dark:Color,val accent:Color)
 fun boardPalette(t:BoardTheme)=when(t){
  BoardTheme.CLASSIC_WOOD->BoardPalette(Color(0xff875332),Color(0xff3d2115),Color(0xffa8754f),Color(0xffe4dfc5),Color(0xff253b50),Color(0xffffd27f),Color(0xff51291d),Color(0xffffd35c))
@@ -30,6 +31,16 @@ fun boardPalette(t:BoardTheme)=when(t){
 /** Precise top-down board inspired by classic mobile layouts, drawn entirely with original vector assets. */
 @Composable fun FlatBoard(state:TurnState,theme:BoardTheme,pieces:PieceStyle,selected:Int?,legal:List<Move>,select:(Int)->Unit,move:(Move)->Unit,modifier:Modifier=Modifier){
  val p=boardPalette(theme);val pulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse")
+ var previous by remember{mutableStateOf(state.position.copyDeep())};var motion by remember{mutableStateOf<CheckerMotion?>(null)};val travel=remember{Animatable(1f)}
+ LaunchedEffect(state.position){
+  val now=state.position;val sign=now.turn.sign
+  if(!previous.points.contentEquals(now.points)||previous.bar(now.turn)!=now.bar(now.turn)||previous.off(now.turn)!=now.off(now.turn)){
+   val from=(0..23).firstOrNull{previous.points[it]*sign>now.points[it]*sign}?:if(previous.bar(now.turn)>now.bar(now.turn))Move.BAR else null
+   val to=(0..23).firstOrNull{now.points[it]*sign>previous.points[it]*sign}?:if(now.off(now.turn)>previous.off(now.turn))Move.OFF else null
+   if(from!=null&&to!=null){motion=CheckerMotion(from,to,now.turn==Player.WHITE);travel.snapTo(0f);travel.animateTo(1f,tween(560,easing=FastOutSlowInEasing));motion=null}
+  }
+  previous=now.copyDeep()
+ }
  Canvas(modifier.aspectRatio(1.72f).pointerInput(state,selected){detectTapGestures{tap->
   val rail=size.width*.055f;val barW=size.width*.075f;val playLeft=rail;val playRight=size.width-rail*1.8f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half
   val bar=tap.x in barLeft..barLeft+barW;val off=tap.x>playRight;val local=if(tap.x<barLeft)tap.x-playLeft else tap.x-(barLeft+barW)+half
@@ -44,8 +55,13 @@ fun boardPalette(t:BoardTheme)=when(t){
   for(c in 0..11){val x=if(c<6)playLeft+c*cw else barLeft+barW+(c-6)*cw;val color=if(c%2==0)p.pointA else p.pointB;val top=Path().apply{moveTo(x+2,rail);lineTo(x+cw-2,rail);lineTo(x+cw/2,size.height*.43f);close()};val bottom=Path().apply{moveTo(x+2,size.height-rail);lineTo(x+cw-2,size.height-rail);lineTo(x+cw/2,size.height*.57f);close()};drawPath(top,color);drawPath(bottom,if(c%2==0)p.pointB else p.pointA)}
   fun center(point:Int,index:Int):Offset{val col=if(point<12)11-point else point-12;val x=if(col<6)playLeft+(col+.5f)*cw else barLeft+barW+(col-5.5f)*cw;val r=cw*.39f;val gap=min(r*1.62f,(size.height*.37f)/5);return Offset(x,if(point>=12)rail+r+index.coerceAtMost(4)*gap else size.height-rail-r-index.coerceAtMost(4)*gap)}
   fun DrawScope.piece(c:Offset,r:Float,white:Boolean,on:Boolean=false){val base=when(pieces){PieceStyle.IVORY->if(white)p.light else p.dark;PieceStyle.MARBLE->if(white)Color(0xffe5edf1)else Color(0xff26394c);PieceStyle.NEON->if(white)Color(0xff66e5ff)else Color(0xffff496a)};drawCircle(Color.Black.copy(.38f),r,Offset(c.x,c.y+r*.14f));drawCircle(Brush.radialGradient(listOf(Color.White.copy(.45f),base,base.copy(.8f)),c-Offset(r*.25f,r*.3f),r*1.4f),r,c);drawCircle(if(on)p.accent else Color.White.copy(.48f),r,c,style=Stroke(if(on)4f else 2.4f));drawCircle(Color.Black.copy(.30f),r*.82f,c,style=Stroke(r*.09f));drawCircle(Color.White.copy(.20f),r*.66f,c,style=Stroke(2f));drawCircle(Color.White.copy(.32f),r*.13f,Offset(c.x-r*.28f,c.y-r*.30f))}
-  for(pt in 0..23){val n=abs(state.position.points[pt]);for(i in 0 until min(n,5))piece(center(pt,i),cw*.39f,state.position.points[pt]>0,selected==pt&&i==min(n,5)-1);if(n>5)drawCircle(p.accent,cw*.18f,center(pt,4))}
-  if(state.position.barWhite>0)piece(Offset(barLeft+barW/2,size.height*.62f),cw*.39f,true,selected==Move.BAR);if(state.position.barBlack>0)piece(Offset(barLeft+barW/2,size.height*.38f),cw*.39f,false,selected==Move.BAR)
+  val active=motion
+  for(pt in 0..23){val n=abs(state.position.points[pt]);for(i in 0 until min(n,5)){if(active?.to==pt&&i==min(n,5)-1)continue;piece(center(pt,i),cw*.39f,state.position.points[pt]>0,selected==pt&&i==min(n,5)-1)};if(n>5)drawCircle(p.accent,cw*.18f,center(pt,4))}
+  if(state.position.barWhite>0&&active?.to!=Move.BAR)piece(Offset(barLeft+barW/2,size.height*.62f),cw*.39f,true,selected==Move.BAR);if(state.position.barBlack>0&&active?.to!=Move.BAR)piece(Offset(barLeft+barW/2,size.height*.38f),cw*.39f,false,selected==Move.BAR)
+  active?.let{m->
+   fun endpoint(point:Int,start:Boolean):Offset=when(point){Move.BAR->Offset(barLeft+barW/2,if(m.white)size.height*.62f else size.height*.38f);Move.OFF->Offset(playRight+(size.width-playRight)/2,if(m.white)size.height*.68f else size.height*.32f);else->{val count=abs(state.position.points[point]);center(point,if(start)count else (count-1).coerceAtLeast(0))}}
+   val a=endpoint(m.from,true);val b=endpoint(m.to,false);val q=travel.value*travel.value*(3f-2f*travel.value);val ground=Offset(a.x+(b.x-a.x)*q,a.y+(b.y-a.y)*q);val flying=Offset(ground.x,ground.y-sin(q*PI).toFloat()*size.height*.10f);drawOval(Color.Black.copy(.22f*(1f-sin(q*PI).toFloat()*.55f)),Offset(ground.x-cw*.32f,ground.y+cw*.24f),Size(cw*.64f,cw*.22f));piece(flying,cw*.41f,m.white,true)
+  }
   legal.filter{it.from==selected}.forEach{m->val c=if(m.to==Move.OFF)Offset(playRight+(size.width-playRight)/2,size.height/2)else center(m.to,abs(state.position.points[m.to]).coerceAtMost(4));drawCircle(p.accent.copy(pulse*.35f),cw*.46f,c);drawCircle(p.accent,cw*.12f,c)}
   drawLine(Color.White.copy(.2f),Offset(rail,size.height/2),Offset(playRight,size.height/2),2f)
  }
