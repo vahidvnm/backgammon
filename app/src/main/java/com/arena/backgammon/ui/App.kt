@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -65,7 +66,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
  fun haptic(){if(settings.vibration){val v=context.getSystemService(android.os.Vibrator::class.java);if(Build.VERSION.SDK_INT>=26)v?.vibrate(VibrationEffect.createOneShot(22,70))else @Suppress("DEPRECATION")v?.vibrate(22)}}
  val palette=boardPalette(settings.theme)
  Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(palette.field.copy(.72f),palette.frameDark,Color(0xff060806))))){
-  Box(Modifier.align(Alignment.Center).fillMaxWidth(.88f).fillMaxHeight(.80f).padding(top=8.dp)){
+  Box(Modifier.align(Alignment.Center).fillMaxWidth(.78f).fillMaxHeight(.72f).graphicsLayer{shadowElevation=24.dp.toPx();shape=RoundedCornerShape(18.dp);clip=false}.padding(top=8.dp)){
    FlatBoard(game,settings.theme,settings.pieces,selected,legal,{selected=it;haptic()},{vm.move(it);selected=null;haptic()},Modifier.fillMaxSize())
   }
   if(game.dice.isNotEmpty()||rolling) AnimatedDice(game.dice,settings.dice,rolling,Modifier.align(Alignment.Center))
@@ -85,7 +86,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
  var face1 by remember{mutableIntStateOf(1)};var face2 by remember{mutableIntStateOf(6)}
  LaunchedEffect(rolling){
   if(rolling){
-   val tx1=(-72..-20).random().toFloat();val tx2=(20..72).random().toFloat();val ty1=(-24..35).random().toFloat();val ty2=(-24..35).random().toFloat()
+   val tx1=(-100..-62).random().toFloat();val tx2=(62..100).random().toFloat();val ty1=(-34..28).random().toFloat();val ty2=(-28..34).random().toFloat()
    kotlinx.coroutines.coroutineScope{
     launch{while(rolling){face1=(1..6).random();face2=(1..6).random();kotlinx.coroutines.delay(65)}}
     launch{x1.animateTo(tx1,tween(820,easing=FastOutSlowInEasing))};launch{x2.animateTo(tx2,tween(850,easing=FastOutSlowInEasing))}
@@ -106,7 +107,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
   val side=Path().apply{moveTo(50*u,12*u);lineTo(58*u,3*u);lineTo(58*u,45*u);lineTo(50*u,55*u);close()};drawPath(side,base.copy(.58f))
   drawRoundRect(Brush.linearGradient(listOf(Color.White.copy(.48f),base,base.copy(.72f))),Offset(7*u,12*u),Size(43*u,43*u),CornerRadius(7*u));drawRoundRect(Color.White.copy(.5f),Offset(7*u,12*u),Size(43*u,43*u),CornerRadius(7*u),style=Stroke(1.5f*u))
   val spots=when(value){1->listOf(.5f to .5f);2->listOf(.28f to .28f,.72f to .72f);3->listOf(.27f to .27f,.5f to .5f,.73f to .73f);4->listOf(.28f to .28f,.72f to .28f,.28f to .72f,.72f to .72f);5->listOf(.27f to .27f,.73f to .27f,.5f to .5f,.27f to .73f,.73f to .73f);else->listOf(.28f to .23f,.72f to .23f,.28f to .5f,.72f to .5f,.28f to .77f,.72f to .77f)}
-  spots.forEach{drawCircle(ink,3.2f*u,Offset((7+43*it.first)*u,(12+43*it.second)*u));drawCircle(Color.Black.copy(.2f),1.2f*u,Offset((6.3f+43*it.first)*u,(11.3f+43*it.second)*u))}
+  spots.forEach{drawCircle(Color.Black.copy(.22f),3.8f*u,Offset((7+43*it.first)*u,(12+43*it.second)*u));drawCircle(ink,3.1f*u,Offset((7+43*it.first)*u,(12+43*it.second)*u));drawCircle(Color.White.copy(.18f),.9f*u,Offset((6.2f+43*it.first)*u,(11.2f+43*it.second)*u))};listOf(15f to 20f,42f to 18f,25f to 48f,45f to 40f).forEach{drawCircle(Color(0xff8e7253).copy(.10f),.7f*u,Offset(it.first*u,it.second*u))}
  }
 }
 @Composable private fun RoundAction(t:String,go:()->Unit){FilledTonalButton(go,contentPadding=PaddingValues(0.dp),modifier=Modifier.size(46.dp),shape=androidx.compose.foundation.shape.CircleShape){Text(t,fontWeight=FontWeight.Bold)}}
