@@ -5,6 +5,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -48,11 +49,12 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
  Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(p.field.copy(.9f),p.frameDark,Color(0xff14271e))))){
   Text("BACKGAMMON",Modifier.align(Alignment.TopCenter).padding(top=12.dp),fontSize=42.sp,fontWeight=FontWeight.Black,letterSpacing=3.sp,color=Color(0xffffdf8b),style=androidx.compose.ui.text.TextStyle(shadow=androidx.compose.ui.graphics.Shadow(Color.Black,Offset(3f,4f),6f)))
   Box(Modifier.align(Alignment.Center).fillMaxWidth(.56f).fillMaxHeight(.60f)){FlatBoard(TurnState(),s.theme,s.pieces,null,emptyList(),{}, {},Modifier.fillMaxSize())}
-  Button({vm.setup()},Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom=18.dp).width(230.dp).height(62.dp),shape=RoundedCornerShape(12.dp),colors=ButtonDefaults.buttonColors(containerColor=Color(0xffffd77b),contentColor=Color(0xff351c16)),border=BorderStroke(2.dp,Color(0xff6d321f))){Text("PLAY",fontSize=26.sp,fontWeight=FontWeight.Black,letterSpacing=3.sp)}
-  Row(Modifier.align(Alignment.BottomEnd).navigationBarsPadding().padding(20.dp),verticalAlignment=Alignment.CenterVertically){Text("SOUND",color=Color.White,fontWeight=FontWeight.Bold);Switch(s.sound,{vm.update(s.copy(sound=it))});Spacer(Modifier.width(12.dp));FilledTonalButton({dialog="settings"}){Text("⚙  OPTIONS",color=Color.White)}}
+  Button({vm.start(Mode.AI)},Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom=18.dp).width(230.dp).height(62.dp),shape=RoundedCornerShape(12.dp),colors=ButtonDefaults.buttonColors(containerColor=Color(0xffffd77b),contentColor=Color(0xff351c16)),border=BorderStroke(2.dp,Color(0xff6d321f))){Text("PLAY",fontSize=26.sp,fontWeight=FontWeight.Black,letterSpacing=3.sp)}
+  Row(Modifier.align(Alignment.BottomEnd).navigationBarsPadding().padding(20.dp),verticalAlignment=Alignment.CenterVertically){HomeIcon(if(s.sound)"🔊" else "🔇"){vm.update(s.copy(sound=!s.sound))};Spacer(Modifier.width(12.dp));HomeIcon("⚙"){dialog="settings"}}
  }
  if(dialog.isNotEmpty())Dialog(dialog,s,vm){dialog=""}
 }
+@Composable private fun HomeIcon(icon:String,go:()->Unit){FilledTonalButton(go,contentPadding=PaddingValues(0.dp),modifier=Modifier.size(54.dp),shape=androidx.compose.foundation.shape.CircleShape,colors=ButtonDefaults.filledTonalButtonColors(containerColor=Color(0xdd2b332e),contentColor=Color.White)){Text(icon,fontSize=23.sp)}}
 @Composable private fun SetupMenu(vm:GameViewModel){
  val s by vm.settings.collectAsState();var dialog by remember{mutableStateOf("")};val p=boardPalette(s.theme)
  Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(p.field,p.frameDark,Color(0xff13231c)))).pointerInput(Unit){var drag=0f;detectHorizontalDragGestures(onDragEnd={if(drag>120f)vm.menu();drag=0f},onHorizontalDrag={_,amount->drag+=amount})}){
@@ -74,9 +76,9 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
   Box(Modifier.align(Alignment.Center).fillMaxWidth(.78f).fillMaxHeight(.72f).graphicsLayer{shadowElevation=24.dp.toPx();shape=RoundedCornerShape(18.dp);clip=false}.padding(top=8.dp)){
    FlatBoard(game,settings.theme,settings.pieces,selected,legal,{selected=it;haptic()},{vm.move(it);selected=null;haptic()},Modifier.fillMaxSize())
   }
-  if(game.dice.isNotEmpty()||rolling) AnimatedDice(game.dice,settings.dice,rolling,Modifier.align(Alignment.Center))
+  if(game.dice.isNotEmpty()||rolling||(!game.rolled&&!(vm.mode==Mode.AI&&game.position.turn==Player.BLACK))) AnimatedDice(game.dice,settings.dice,rolling,{vm.roll();haptic()},Modifier.align(Alignment.Center))
   Row(Modifier.align(Alignment.TopCenter).fillMaxWidth().systemBarsPadding().padding(12.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){PlayerCard("YOU",match.whiteScore,game.position.turn==Player.WHITE,true);StatusPill(if(match.thinking)"OPPONENT THINKING" else if(rolling)"ROLLING DICE" else if(game.rolled)"${game.dice.size} MOVES REMAIN" else "${if(game.position.turn==Player.WHITE)"YOUR" else "OPPONENT"} TURN");PlayerCard(if(vm.mode==Mode.AI)settings.difficulty.name else "PLAYER TWO",match.blackScore,game.position.turn==Player.BLACK,false)}
-  Column(Modifier.align(Alignment.CenterEnd).navigationBarsPadding().padding(14.dp),horizontalAlignment=Alignment.CenterHorizontally){RoundAction("☰"){pause=true};Spacer(Modifier.height(8.dp));RoundAction("⚙"){gameSettings=true};Spacer(Modifier.height(8.dp));if(vm.mode==Mode.LOCAL){RoundAction("↶"){vm.undo()};Spacer(Modifier.height(8.dp))};RoundAction("${match.cube}×"){vm.offerDouble()}}
+  Column(Modifier.align(Alignment.CenterEnd).navigationBarsPadding().padding(14.dp),horizontalAlignment=Alignment.CenterHorizontally){RoundAction("☰"){pause=true};Spacer(Modifier.height(8.dp));RoundAction("⚙"){gameSettings=true};Spacer(Modifier.height(8.dp));RoundAction("↶"){vm.undo()};Spacer(Modifier.height(8.dp));RoundAction("${match.cube}×"){vm.offerDouble()}}
   Button({vm.roll();haptic()},enabled=!game.rolled&&!rolling&&game.winner==null&&!(vm.mode==Mode.AI&&game.position.turn==Player.BLACK),modifier=Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(16.dp).width(190.dp).height(52.dp),shape=RoundedCornerShape(18.dp)){Text(if(rolling)"ROLLING…" else "ROLL DICE",fontWeight=FontWeight.Black,letterSpacing=1.sp)}
  }
  if(gameSettings)Dialog("settings",settings,vm){gameSettings=false}
@@ -85,13 +87,14 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
 }
 @Composable private fun PlayerCard(name:String,score:Int,active:Boolean,light:Boolean){Row(Modifier.clip(RoundedCornerShape(18.dp)).background(if(active)Glass else Glass.copy(.58f)).border(if(active)1.dp else 0.dp,if(active)Gold else Color.Transparent,RoundedCornerShape(18.dp)).padding(horizontal=14.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(32.dp).clip(androidx.compose.foundation.shape.CircleShape).background(if(light)Color(0xffffe7bd)else Color(0xff1d2028)));Spacer(Modifier.width(9.dp));Column{Text(name,fontSize=11.sp,fontWeight=FontWeight.Bold,color=Color.White);Text("SCORE  $score",fontSize=10.sp,color=Color.White.copy(.6f))}}}
 @Composable private fun StatusPill(t:String){Text(t,Modifier.clip(RoundedCornerShape(50)).background(Glass).border(1.dp,Color.White.copy(.12f),RoundedCornerShape(50)).padding(horizontal=20.dp,vertical=9.dp),fontSize=11.sp,fontWeight=FontWeight.Bold,letterSpacing=1.sp,color=Color.White)}
-@Composable private fun AnimatedDice(finalDice:List<Int>,style:DiceStyle,rolling:Boolean,modifier:Modifier=Modifier){
+@Composable private fun AnimatedDice(finalDice:List<Int>,style:DiceStyle,rolling:Boolean,onThrow:()->Unit,modifier:Modifier=Modifier){
+ var drag by remember{mutableStateOf(Offset.Zero)};var throwVector by remember{mutableStateOf(Offset.Zero)}
  val x1=remember{Animatable(-90f)};val y1=remember{Animatable(-45f)};val r1=remember{Animatable(0f)}
  val x2=remember{Animatable(90f)};val y2=remember{Animatable(-35f)};val r2=remember{Animatable(0f)}
  var face1 by remember{mutableIntStateOf(1)};var face2 by remember{mutableIntStateOf(6)}
  LaunchedEffect(rolling){
   if(rolling){
-   val tx1=(-100..-62).random().toFloat();val tx2=(62..100).random().toFloat();val ty1=(-34..28).random().toFloat();val ty2=(-28..34).random().toFloat()
+   val influenceX=(throwVector.x*.18f).coerceIn(-35f,35f);val influenceY=(throwVector.y*.14f).coerceIn(-30f,30f);val tx1=((-100..-62).random()+influenceX).coerceIn(-125f,-58f);val tx2=((62..100).random()+influenceX).coerceIn(58f,125f);val ty1=((-34..28).random()+influenceY).coerceIn(-55f,50f);val ty2=((-28..34).random()+influenceY).coerceIn(-50f,55f)
    kotlinx.coroutines.coroutineScope{
     launch{while(rolling){face1=(1..6).random();face2=(1..6).random();kotlinx.coroutines.delay(65)}}
     launch{x1.animateTo(tx1,tween(820,easing=FastOutSlowInEasing))};launch{x2.animateTo(tx2,tween(850,easing=FastOutSlowInEasing))}
@@ -101,7 +104,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
    }
   } else {face1=finalDice.getOrElse(0){face1};face2=finalDice.getOrElse(1){face2}}
  }
- Box(modifier.size(210.dp,120.dp)){DieFace(if(rolling)face1 else finalDice.getOrElse(0){face1},style,rolling,Modifier.align(Alignment.Center).offset{x1.value.roundToInt().let{androidx.compose.ui.unit.IntOffset(it,y1.value.roundToInt())}}.rotate(r1.value));DieFace(if(rolling)face2 else finalDice.getOrElse(1){face2},style,rolling,Modifier.align(Alignment.Center).offset{x2.value.roundToInt().let{androidx.compose.ui.unit.IntOffset(it,y2.value.roundToInt())}}.rotate(r2.value))}
+ Box(modifier.size(230.dp,140.dp).graphicsLayer{translationX=drag.x;translationY=drag.y}.pointerInput(rolling,finalDice){if(!rolling&&finalDice.isEmpty())detectDragGestures(onDragEnd={if(drag.getDistance()>24f){throwVector=drag;drag=Offset.Zero;onThrow()}else drag=Offset.Zero},onDragCancel={drag=Offset.Zero}){change,amount->change.consume();drag+=amount}}){DieFace(if(rolling)face1 else finalDice.getOrElse(0){face1},style,rolling,Modifier.align(Alignment.Center).offset{x1.value.roundToInt().let{androidx.compose.ui.unit.IntOffset(it,y1.value.roundToInt())}}.rotate(r1.value));DieFace(if(rolling)face2 else finalDice.getOrElse(1){face2},style,rolling,Modifier.align(Alignment.Center).offset{x2.value.roundToInt().let{androidx.compose.ui.unit.IntOffset(it,y2.value.roundToInt())}}.rotate(r2.value))}
 }
 @Composable private fun DieFace(value:Int,style:DiceStyle,rolling:Boolean,modifier:Modifier=Modifier){
  val base=when(style){DiceStyle.CLASSIC->Color(0xffffedc5);DiceStyle.ONYX->Color(0xff252731);DiceStyle.CRYSTAL->Color(0xff65cce8)};val ink=if(style==DiceStyle.CLASSIC)Color(0xff49382c)else Color.White
