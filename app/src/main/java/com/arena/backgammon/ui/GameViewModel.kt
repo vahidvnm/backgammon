@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlin.random.Random
 
-enum class Screen { MENU, GAME }
+enum class Screen { MENU, SETUP, GAME }
 enum class Mode { AI, LOCAL }
 data class MatchInfo(val whiteScore:Int=0,val blackScore:Int=0,val target:Int=5,val cube:Int=1,val cubeOwner:Player?=null,val thinking:Boolean=false)
 class GameViewModel(app:Application):AndroidViewModel(app) {
@@ -21,6 +21,7 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
  private val _settings=MutableStateFlow(prefs.load());val settings=_settings.asStateFlow();private val _screen=MutableStateFlow(Screen.MENU);val screen=_screen.asStateFlow();private val _game=MutableStateFlow(TurnState());val game=_game.asStateFlow();private val _rolling=MutableStateFlow(false);val rolling=_rolling.asStateFlow();private val _match=MutableStateFlow(MatchInfo());val match=_match.asStateFlow()
  private val history=ArrayDeque<TurnState>()
  var mode=Mode.AI;private set
+ fun setup(){_screen.value=Screen.SETUP}
  fun start(m:Mode){mode=m;history.clear();_match.value=MatchInfo();_game.value=TurnState();_screen.value=Screen.GAME}
  fun menu(){_screen.value=Screen.MENU};fun restart(){history.clear();_game.value=TurnState()};fun update(s:Settings){_settings.value=s;prefs.save(s)}
  fun undo(){if(mode==Mode.LOCAL&&!_rolling.value&&history.isNotEmpty())_game.value=history.removeLast()}
