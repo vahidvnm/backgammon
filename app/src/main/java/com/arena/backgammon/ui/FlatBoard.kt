@@ -9,7 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.*
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.input.pointer.pointerInput
+import com.arena.backgammon.R
 import com.arena.backgammon.core.*
 import com.arena.backgammon.data.*
 import kotlin.math.*
@@ -24,7 +26,7 @@ fun boardPalette(t:BoardTheme)=when(t){
 
 /** Precise top-down board inspired by classic mobile layouts, drawn entirely with original vector assets. */
 @Composable fun FlatBoard(state:TurnState,theme:BoardTheme,pieces:PieceStyle,selected:Int?,legal:List<Move>,select:(Int)->Unit,move:(Move)->Unit,modifier:Modifier=Modifier){
- val p=boardPalette(theme);val pulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse")
+ val p=boardPalette(theme);val texture=ImageBitmap.imageResource(when(theme){BoardTheme.PREMIUM_WOOD->R.drawable.premium_walnut_texture;BoardTheme.MARBLE_STONE->R.drawable.ivory_marble_texture;BoardTheme.SMOKED_GLASS->R.drawable.smoked_glass_texture});val materialBrush=remember(texture){ShaderBrush(ImageShader(texture,TileMode.Mirror,TileMode.Mirror))};val pulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse")
  var previous by remember{mutableStateOf(state.position.copyDeep())};var motion by remember{mutableStateOf<CheckerMotion?>(null)};val travel=remember{Animatable(1f)}
  LaunchedEffect(state.position){
   val now=state.position;val sign=now.turn.sign
@@ -41,7 +43,7 @@ fun boardPalette(t:BoardTheme)=when(t){
   val col=(local/(half/6)).toInt().coerceIn(0,11);val point=if(tap.y<size.height/2)12+col else 11-col;val target=when{off->Move.OFF;bar->Move.BAR;else->point};val choices=legal.filter{it.from==selected&&it.to==target};if(choices.isNotEmpty())move(choices.maxBy{it.die})else {val owns=target==Move.BAR&&state.position.bar(state.position.turn)>0||target in 0..23&&state.position.points[target]*state.position.turn.sign>0;if(owns)select(target)}
  }}){
   val rail=size.width*.055f;val barW=size.width*.075f;val playLeft=rail;val playRight=size.width-rail*1.8f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half;val cw=half/6
-  drawRoundRect(Brush.verticalGradient(listOf(p.frame,p.frameDark)),cornerRadius=CornerRadius(18f));drawRoundRect(Color.Black.copy(.3f),Offset(rail*.45f,rail*.35f),Size(size.width-rail*1.25f,size.height-rail*.7f),CornerRadius(12f));drawRect(p.field,Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2));drawRect(Brush.horizontalGradient(listOf(p.frameDark,p.frame,p.frameDark)),Offset(barLeft,rail),Size(barW,size.height-rail*2));drawRect(p.frameDark,Offset(playRight,rail),Size(size.width-playRight-rail*.25f,size.height-rail*2))
+  drawRoundRect(materialBrush,cornerRadius=CornerRadius(18f));drawRoundRect(Brush.verticalGradient(listOf(Color.White.copy(.18f),p.frame.copy(.16f),p.frameDark.copy(.30f))),cornerRadius=CornerRadius(18f));drawRoundRect(Color.Black.copy(.38f),Offset(rail*.42f,rail*.32f),Size(size.width-rail*1.18f,size.height-rail*.64f),CornerRadius(12f));drawRect(materialBrush,Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2));drawRect(p.field.copy(if(theme==BoardTheme.SMOKED_GLASS).55f else .34f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2));drawRect(Brush.horizontalGradient(listOf(p.frameDark.copy(.92f),p.frame.copy(.68f),p.frameDark.copy(.92f))),Offset(barLeft,rail),Size(barW,size.height-rail*2));drawRect(Brush.horizontalGradient(listOf(p.frameDark,p.frame.copy(.72f),p.frameDark)),Offset(playRight,rail),Size(size.width-playRight-rail*.25f,size.height-rail*2))
   // Layered bevels and deterministic grain give the frame and playing bed physical depth.
   drawRoundRect(Color.White.copy(.16f),Offset(3f,3f),Size(size.width-6f,size.height-6f),CornerRadius(17f),style=Stroke(3f));drawRoundRect(Color.Black.copy(.38f),Offset(rail*.28f,rail*.28f),Size(size.width-rail*.85f,size.height-rail*.56f),CornerRadius(10f),style=Stroke(5f))
   when(theme){
