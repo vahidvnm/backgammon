@@ -100,7 +100,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
  Box(Modifier.fillMaxSize().background(Color(0xff130a06).copy(.62f)).clickable(onClick=close)){
   Row(Modifier.fillMaxHeight().widthIn(370.dp,510.dp).clip(RoundedCornerShape(topEnd=18.dp,bottomEnd=18.dp)).background(Brush.verticalGradient(listOf(Color(0xfffffbef),Color(0xffead9ba),Color(0xfff7ecd7)))).border(2.dp,brass.copy(.72f),RoundedCornerShape(topEnd=18.dp,bottomEnd=18.dp)).clickable(enabled=false){}){
    Column(Modifier.width(82.dp).fillMaxHeight().background(Brush.verticalGradient(listOf(Color(0xff683a25),Color(0xff32170e)))).border(1.dp,Color.White.copy(.12f)).padding(10.dp),horizontalAlignment=Alignment.CenterHorizontally){Text("BG",color=Color(0xffffd28a),fontWeight=FontWeight.Black,fontSize=20.sp);Spacer(Modifier.height(28.dp));DrawerTab("☰",kind=="menu"){switch("menu")};Spacer(Modifier.height(12.dp));DrawerTab("⚙",kind!="menu"){switch("settings")};Spacer(Modifier.weight(1f));DrawerTab("‹",false,close)}
-   AnimatedContent(kind,modifier=Modifier.weight(1f).fillMaxHeight(),transitionSpec={slideInHorizontally(tween(300)){it/3}+fadeIn() togetherWith slideOutHorizontally(tween(240)){-it/3}+fadeOut()},label="drawerPage"){page->
+   AnimatedContent(kind,modifier=Modifier.weight(1f).fillMaxHeight(),transitionSpec={slideInHorizontally(tween(330)){it}+fadeIn() togetherWith slideOutHorizontally(tween(260)){-it}+fadeOut()},label="drawerPage"){page->
     Column(Modifier.fillMaxSize().padding(22.dp).verticalScroll(rememberScrollState())){
      val nested=page in listOf("themes","difficulty","sound")
      if(nested)TextButton({switch("settings")},contentPadding=PaddingValues(0.dp)){Text("‹  SETTINGS",color=wood,fontWeight=FontWeight.Bold)}
