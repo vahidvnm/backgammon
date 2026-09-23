@@ -80,7 +80,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
   Image(painterResource(background),null,Modifier.fillMaxSize(),contentScale=ContentScale.Crop);Box(Modifier.fillMaxSize().background(Color.Black.copy(.06f)))
   Box(Modifier.align(Alignment.Center).fillMaxWidth(.80f).fillMaxHeight(.88f).absoluteOffset(y=13.dp).clip(RoundedCornerShape(22.dp)).background(Color(0xff160806)).border(2.dp,Color.Black.copy(.75f),RoundedCornerShape(22.dp)))
   Box(Modifier.align(Alignment.Center).fillMaxWidth(.80f).fillMaxHeight(.88f).absoluteOffset(y=7.dp).clip(RoundedCornerShape(21.dp)).background(Brush.verticalGradient(listOf(Color(0xff5b2a18),Color(0xff230d07)))).border(1.dp,Color(0xffb57549).copy(.55f),RoundedCornerShape(21.dp)))
-  Box(Modifier.align(Alignment.Center).fillMaxWidth(.80f).fillMaxHeight(.88f).graphicsLayer{shadowElevation=34.dp.toPx();shape=RoundedCornerShape(20.dp);clip=false}.clip(RoundedCornerShape(20.dp)).background(Brush.verticalGradient(listOf(Color(0xff8d5433),Color(0xff3b190f)))).border(1.dp,Color(0xffe3a875).copy(.55f),RoundedCornerShape(20.dp))){
+  Box(Modifier.align(Alignment.Center).fillMaxWidth(.80f).fillMaxHeight(.88f).graphicsLayer{shadowElevation=34.dp.toPx();shape=RoundedCornerShape(20.dp);clip=false}.clip(RoundedCornerShape(20.dp)).background(Brush.verticalGradient(listOf(Color(0xffa56d45),Color(0xff542a18)))).border(1.dp,Color(0xffe3a875).copy(.55f),RoundedCornerShape(20.dp))){
    FlatBoard(game,settings.theme,settings.pieces,selected,legal,{selected=it;haptic()},{vm.move(it);selected=null;haptic()},Modifier.fillMaxSize().padding(top=34.dp,start=3.dp,end=3.dp,bottom=3.dp))
    TopGameBar(settings.difficulty,match,if(match.thinking)"AI THINKING" else if(rolling)"ROLLING" else if(game.position.turn==Player.WHITE)"YOUR TURN" else "AI TURN",{panel="menu"},{panel="settings"},Modifier.align(Alignment.TopCenter))
    InlayButton("UNDO",Modifier.align(Alignment.BottomCenter).padding(bottom=7.dp)){vm.undo()}
@@ -141,12 +141,11 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
  val base=when(style){DiceStyle.CLASSIC->Color(0xffffedc5);DiceStyle.ONYX->Color(0xff252731);DiceStyle.CRYSTAL->Color(0xff65cce8)};val ink=if(style==DiceStyle.CLASSIC)Color(0xff49382c)else Color.White
  Canvas(modifier.size(46.dp)){
   val u=size.minDimension/62f
-  drawRoundRect(Color.Black.copy(.35f),Offset(9*u,13*u),Size(48*u,47*u),CornerRadius(8*u))
-  val top=Path().apply{moveTo(7*u,12*u);lineTo(17*u,3*u);lineTo(58*u,3*u);lineTo(50*u,12*u);close()};drawPath(top,base.copy(.9f))
-  val side=Path().apply{moveTo(50*u,12*u);lineTo(58*u,3*u);lineTo(58*u,45*u);lineTo(50*u,55*u);close()};drawPath(side,base.copy(.58f))
-  drawRoundRect(Brush.linearGradient(listOf(Color.White.copy(.48f),base,base.copy(.72f))),Offset(7*u,12*u),Size(43*u,43*u),CornerRadius(7*u));drawRoundRect(Color.White.copy(.5f),Offset(7*u,12*u),Size(43*u,43*u),CornerRadius(7*u),style=Stroke(1.5f*u))
+  drawRoundRect(Color.Black.copy(.34f),Offset(9*u,11*u),Size(46*u,47*u),CornerRadius(14*u))
+  drawRoundRect(Color(0xff6f5136).copy(.44f),Offset(6*u,6*u),Size(46*u,46*u),CornerRadius(13*u),style=Stroke(2.4f*u))
+  drawRoundRect(Brush.linearGradient(listOf(Color.White.copy(.58f),base,base.copy(.74f))),Offset(7*u,7*u),Size(44*u,44*u),CornerRadius(12*u));drawRoundRect(Color(0xff765a40).copy(.72f),Offset(7*u,7*u),Size(44*u,44*u),CornerRadius(12*u),style=Stroke(1.5f*u));drawRoundRect(Color.White.copy(.54f),Offset(9*u,9*u),Size(40*u,40*u),CornerRadius(10*u),style=Stroke(1.2f*u))
   val spots=when(value){1->listOf(.5f to .5f);2->listOf(.28f to .28f,.72f to .72f);3->listOf(.27f to .27f,.5f to .5f,.73f to .73f);4->listOf(.28f to .28f,.72f to .28f,.28f to .72f,.72f to .72f);5->listOf(.27f to .27f,.73f to .27f,.5f to .5f,.27f to .73f,.73f to .73f);else->listOf(.28f to .23f,.72f to .23f,.28f to .5f,.72f to .5f,.28f to .77f,.72f to .77f)}
-  spots.forEach{drawCircle(Color.Black.copy(.22f),3.8f*u,Offset((7+43*it.first)*u,(12+43*it.second)*u));drawCircle(ink,3.1f*u,Offset((7+43*it.first)*u,(12+43*it.second)*u));drawCircle(Color.White.copy(.18f),.9f*u,Offset((6.2f+43*it.first)*u,(11.2f+43*it.second)*u))};listOf(15f to 20f,42f to 18f,25f to 48f,45f to 40f).forEach{drawCircle(Color(0xff8e7253).copy(.10f),.7f*u,Offset(it.first*u,it.second*u))}
+  spots.forEach{drawCircle(Color.Black.copy(.42f),4.2f*u,Offset((7+44*it.first)*u,(7+44*it.second)*u));drawCircle(ink,3.55f*u,Offset((7+44*it.first)*u,(7+44*it.second)*u));drawCircle(Color.White.copy(.22f),.9f*u,Offset((6.2f+44*it.first)*u,(6.2f+44*it.second)*u))};listOf(15f to 20f,42f to 18f,25f to 48f,45f to 40f).forEach{drawCircle(Color(0xff8e7253).copy(.10f),.7f*u,Offset(it.first*u,it.second*u))}
  }
 }
 @Composable private fun RoundAction(t:String,go:()->Unit){FilledTonalButton(go,contentPadding=PaddingValues(0.dp),modifier=Modifier.size(46.dp),shape=androidx.compose.foundation.shape.CircleShape){Text(t,fontWeight=FontWeight.Bold)}}
