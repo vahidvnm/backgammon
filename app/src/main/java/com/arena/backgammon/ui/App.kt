@@ -77,7 +77,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
  val palette=boardPalette(settings.theme)
  Box(Modifier.fillMaxSize()){
   Image(painterResource(R.drawable.game_table_background),null,Modifier.fillMaxSize(),contentScale=ContentScale.Crop);Box(Modifier.fillMaxSize().background(Color(0xff0b1511).copy(.32f)))
-  Box(Modifier.align(Alignment.Center).fillMaxWidth(.72f).fillMaxHeight(.66f).graphicsLayer{shadowElevation=34.dp.toPx();shape=RoundedCornerShape(20.dp);clip=false}.clip(RoundedCornerShape(20.dp)).background(Brush.verticalGradient(listOf(Color(0xff8d5433),Color(0xff3b190f))).border(1.dp,Color(0xffe3a875).copy(.55f),RoundedCornerShape(20.dp))){
+  Box(Modifier.align(Alignment.Center).fillMaxWidth(.72f).fillMaxHeight(.66f).graphicsLayer{shadowElevation=34.dp.toPx();shape=RoundedCornerShape(20.dp);clip=false}.clip(RoundedCornerShape(20.dp)).background(Brush.verticalGradient(listOf(Color(0xff8d5433),Color(0xff3b190f)))).border(1.dp,Color(0xffe3a875).copy(.55f),RoundedCornerShape(20.dp))){
    FlatBoard(game,settings.theme,settings.pieces,selected,legal,{selected=it;haptic()},{vm.move(it);selected=null;haptic()},Modifier.fillMaxSize().padding(top=34.dp,start=3.dp,end=3.dp,bottom=3.dp))
    TopGameBar(settings.difficulty,match,if(match.thinking)"AI THINKING" else if(rolling)"ROLLING" else if(game.position.turn==Player.WHITE)"YOUR TURN" else "AI TURN",{panel="menu"},{panel="settings"},Modifier.align(Alignment.TopCenter))
    MiniWoodButton("↶",Modifier.align(Alignment.BottomStart).padding(17.dp)){vm.undo()}
