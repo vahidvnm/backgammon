@@ -33,7 +33,7 @@ fun boardPalette(t:BoardTheme)=when(t){
   if(!previous.points.contentEquals(now.points)||previous.bar(now.turn)!=now.bar(now.turn)||previous.off(now.turn)!=now.off(now.turn)){
    val from=(0..23).firstOrNull{previous.points[it]*sign>now.points[it]*sign}?:if(previous.bar(now.turn)>now.bar(now.turn))Move.BAR else null
    val to=(0..23).firstOrNull{now.points[it]*sign>previous.points[it]*sign}?:if(now.off(now.turn)>previous.off(now.turn))Move.OFF else null
-   if(from!=null&&to!=null){motion=CheckerMotion(from,to,now.turn==Player.WHITE);travel.snapTo(0f);travel.animateTo(1f,tween(780,easing=FastOutSlowInEasing));motion=null}
+   if(from!=null&&to!=null){motion=CheckerMotion(from,to,now.turn==Player.WHITE);travel.snapTo(0f);travel.animateTo(1f,tween(1080,easing=FastOutSlowInEasing));motion=null}
   }
   previous=now.copyDeep()
  }
@@ -78,7 +78,7 @@ fun boardPalette(t:BoardTheme)=when(t){
   val offR=min(cw*.27f,trayW*.34f);for(i in 0 until min(state.position.offBlack,7))piece(Offset(trayX+trayW/2,rail*2.2f+offR*1.35f+i*offR*.82f),offR,false);for(i in 0 until min(state.position.offWhite,7))piece(Offset(trayX+trayW/2,size.height-rail*2.2f-offR*1.35f-i*offR*.82f),offR,true)
   active?.let{m->
    fun endpoint(point:Int,start:Boolean):Offset=when(point){Move.BAR->Offset(barLeft+barW/2,if(m.white)size.height*.62f else size.height*.38f);Move.OFF->Offset(playRight+(size.width-playRight)/2,if(m.white)size.height*.68f else size.height*.32f);else->{val count=abs(state.position.points[point]);center(point,if(start)count else (count-1).coerceAtLeast(0))}}
-   val a=endpoint(m.from,true);val b=endpoint(m.to,false);val q=travel.value*travel.value*(3f-2f*travel.value);val moving=Offset(a.x+(b.x-a.x)*q,a.y+(b.y-a.y)*q);drawOval(Color.Black.copy(.24f),Offset(moving.x-cw*.25f,moving.y+cw*.19f),Size(cw*.50f,cw*.15f));piece(moving,cw*.34f,m.white,true)
+   val a=endpoint(m.from,true);val b=endpoint(m.to,false);val q=travel.value*travel.value*(3f-2f*travel.value);val moving=Offset(a.x+(b.x-a.x)*q,a.y+(b.y-a.y)*q);val lift=sin(Math.PI.toFloat()*q);drawOval(Color.Black.copy(.25f-.11f*lift),Offset(moving.x-cw*(.25f+.04f*lift),moving.y+cw*(.19f+.07f*lift)),Size(cw*(.50f+.08f*lift),cw*(.15f+.03f*lift)));piece(moving,cw*(.34f+.018f*lift),m.white,true)
   }
   legal.filter{it.from==selected}.forEach{m->val c=if(m.to==Move.OFF)Offset(playRight+(size.width-playRight)/2,size.height/2)else center(m.to,abs(state.position.points[m.to]).coerceAtMost(4));val arrow=Path().apply{moveTo(c.x,c.y-cw*.32f);lineTo(c.x+cw*.30f,c.y+cw*.25f);lineTo(c.x+cw*.10f,c.y+cw*.19f);lineTo(c.x,c.y+cw*.38f);lineTo(c.x-cw*.10f,c.y+cw*.19f);lineTo(c.x-cw*.30f,c.y+cw*.25f);close()};drawPath(arrow,Color(0xffffd43b).copy(.68f+.28f*pulse));drawPath(arrow,Color(0xff4a2b00),style=Stroke(2.2f))}
   drawLine(Color.White.copy(.2f),Offset(rail,size.height/2),Offset(playRight,size.height/2),2f)
