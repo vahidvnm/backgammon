@@ -76,7 +76,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
  fun haptic(){if(settings.vibration){val v=context.getSystemService(android.os.Vibrator::class.java);if(Build.VERSION.SDK_INT>=26)v?.vibrate(VibrationEffect.createOneShot(22,70))else @Suppress("DEPRECATION")v?.vibrate(22)}}
  val palette=boardPalette(settings.theme)
  Box(Modifier.fillMaxSize()){
-  Image(painterResource(R.drawable.game_table_background),null,Modifier.fillMaxSize(),contentScale=ContentScale.Crop);Box(Modifier.fillMaxSize().background(Color(0xff0b1511).copy(.32f)))
+  Image(painterResource(R.drawable.stone_table_background),null,Modifier.fillMaxSize(),contentScale=ContentScale.Crop);Box(Modifier.fillMaxSize().background(Color(0xff080b0d).copy(.16f)))
   Box(Modifier.align(Alignment.Center).fillMaxWidth(.80f).fillMaxHeight(.88f).absoluteOffset(y=13.dp).clip(RoundedCornerShape(22.dp)).background(Color(0xff160806)).border(2.dp,Color.Black.copy(.75f),RoundedCornerShape(22.dp)))
   Box(Modifier.align(Alignment.Center).fillMaxWidth(.80f).fillMaxHeight(.88f).absoluteOffset(y=7.dp).clip(RoundedCornerShape(21.dp)).background(Brush.verticalGradient(listOf(Color(0xff5b2a18),Color(0xff230d07)))).border(1.dp,Color(0xffb57549).copy(.55f),RoundedCornerShape(21.dp)))
   Box(Modifier.align(Alignment.Center).fillMaxWidth(.80f).fillMaxHeight(.88f).graphicsLayer{shadowElevation=34.dp.toPx();shape=RoundedCornerShape(20.dp);clip=false}.clip(RoundedCornerShape(20.dp)).background(Brush.verticalGradient(listOf(Color(0xff8d5433),Color(0xff3b190f)))).border(1.dp,Color(0xffe3a875).copy(.55f),RoundedCornerShape(20.dp))){
