@@ -38,12 +38,12 @@ fun boardPalette(t:BoardTheme)=when(t){
   previous=now.copyDeep()
  }
  Canvas(modifier.pointerInput(state,selected){detectTapGestures{tap->
-  val rail=size.width*.028f;val barW=size.width*.072f;val playLeft=rail;val playRight=size.width-size.width*.095f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half
+  val rail=size.width*.045f;val barW=size.width*.072f;val playLeft=rail;val playRight=size.width-size.width*.095f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half
   val bar=tap.x in (barLeft-barW*.28f)..(barLeft+barW*1.28f);val off=tap.x>playRight;val local=if(tap.x<barLeft)tap.x-playLeft else tap.x-(barLeft+barW)+half
   val col=(local/(half/6)).toInt().coerceIn(0,11);val point=if(tap.y<size.height/2)12+col else 11-col;val target=when{off->Move.OFF;bar->Move.BAR;else->point};val choices=legal.filter{it.from==selected&&it.to==target};if(choices.isNotEmpty())move(choices.maxBy{it.die})else {val owns=target==Move.BAR&&state.position.bar(state.position.turn)>0||target in 0..23&&state.position.points[target]*state.position.turn.sign>0;if(owns)select(target)}
  }}){
-  val rail=size.width*.028f;val barW=size.width*.072f;val playLeft=rail;val playRight=size.width-size.width*.095f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half;val cw=half/6
-  drawRoundRect(materialBrush,cornerRadius=CornerRadius(18f));drawRoundRect(Brush.verticalGradient(listOf(Color.White.copy(.18f),p.frame.copy(.16f),p.frameDark.copy(.30f))),cornerRadius=CornerRadius(18f));drawRoundRect(Color.Black.copy(.38f),Offset(rail*.42f,rail*.32f),Size(size.width-rail*1.18f,size.height-rail*.64f),CornerRadius(12f));drawRect(materialBrush,Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2));drawRect(p.field.copy(if(theme==BoardTheme.SMOKED_GLASS).55f else .34f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2));drawRect(Brush.horizontalGradient(listOf(p.frameDark.copy(.92f),p.frame.copy(.68f),p.frameDark.copy(.92f))),Offset(barLeft,rail),Size(barW,size.height-rail*2));drawRect(Brush.horizontalGradient(listOf(p.frameDark,p.frame.copy(.72f),p.frameDark)),Offset(playRight,rail),Size(size.width-playRight-rail*.25f,size.height-rail*2))
+  val rail=size.width*.045f;val barW=size.width*.072f;val playLeft=rail;val playRight=size.width-size.width*.095f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half;val cw=half/6
+  drawRoundRect(materialBrush,cornerRadius=CornerRadius(18f));drawRoundRect(Brush.verticalGradient(listOf(Color.White.copy(.18f),p.frame.copy(.16f),p.frameDark.copy(.30f))),cornerRadius=CornerRadius(18f));drawRoundRect(Color.Black.copy(.38f),Offset(rail*.42f,rail*.32f),Size(size.width-rail*1.18f,size.height-rail*.64f),CornerRadius(12f));drawRect(materialBrush,Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2));drawRect(p.field.copy(if(theme==BoardTheme.SMOKED_GLASS).55f else .16f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2));drawRect(Brush.horizontalGradient(listOf(p.frameDark.copy(.92f),p.frame.copy(.68f),p.frameDark.copy(.92f))),Offset(barLeft,rail),Size(barW,size.height-rail*2));drawRect(Brush.horizontalGradient(listOf(p.frameDark,p.frame.copy(.72f),p.frameDark)),Offset(playRight,rail),Size(size.width-playRight-rail*.25f,size.height-rail*2))
   // Layered bevels and deterministic grain give the frame and playing bed physical depth.
   drawRoundRect(Color.White.copy(.16f),Offset(3f,3f),Size(size.width-6f,size.height-6f),CornerRadius(17f),style=Stroke(3f));drawRoundRect(Color.Black.copy(.38f),Offset(rail*.28f,rail*.28f),Size(size.width-rail*.85f,size.height-rail*.56f),CornerRadius(10f),style=Stroke(5f))
   when(theme){
@@ -63,6 +63,7 @@ fun boardPalette(t:BoardTheme)=when(t){
    val edge=if(white)base.copy(.78f)else Color(0xff170d0c)
    drawOval(Color.Black.copy(.42f),Offset(c.x-r*.90f,c.y-r*.72f),Size(r*1.80f,r*1.72f))
    drawCircle(edge,r,c)
+   if(theme==BoardTheme.PREMIUM_WOOD){drawCircle(materialBrush,r*.94f,c);drawCircle(base.copy(.38f),r*.94f,c)}
    drawCircle(Brush.radialGradient(listOf(Color.White.copy(if(white).62f else .38f),base,edge),c-Offset(r*.30f,r*.34f),r*1.30f),r*.91f,c)
    drawCircle(Color.White.copy(.40f),r*.88f,c,style=Stroke(r*.055f));drawCircle(Color.Black.copy(.38f),r*.73f,c,style=Stroke(r*.075f));drawCircle(Color.White.copy(.24f),r*.62f,c,style=Stroke(r*.045f));drawCircle(Color.Black.copy(.30f),r*.49f,c,style=Stroke(r*.060f));drawCircle(Color.White.copy(.18f),r*.38f,c,style=Stroke(r*.040f));drawCircle(Brush.radialGradient(listOf(Color.Black.copy(.22f),base.copy(.22f),Color.White.copy(.16f)),c,r*.31f),r*.29f,c)
    drawOval(Color.White.copy(.42f),Offset(c.x-r*.44f,c.y-r*.49f),Size(r*.44f,r*.18f))
