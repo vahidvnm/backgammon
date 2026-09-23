@@ -77,7 +77,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
  val palette=boardPalette(settings.theme)
  Box(Modifier.fillMaxSize()){
   Image(painterResource(R.drawable.game_table_background),null,Modifier.fillMaxSize(),contentScale=ContentScale.Crop);Box(Modifier.fillMaxSize().background(Color(0xff0b1511).copy(.32f)))
-  Box(Modifier.align(Alignment.Center).fillMaxWidth(.73f).fillMaxHeight(.67f).graphicsLayer{shadowElevation=24.dp.toPx();shape=RoundedCornerShape(18.dp);clip=false}.padding(top=8.dp)){
+  Box(Modifier.align(Alignment.Center).fillMaxWidth(.78f).fillMaxHeight(.74f).graphicsLayer{shadowElevation=24.dp.toPx();shape=RoundedCornerShape(18.dp);clip=false}.padding(top=8.dp)){
    FlatBoard(game,settings.theme,settings.pieces,selected,legal,{selected=it;haptic()},{vm.move(it);selected=null;haptic()},Modifier.fillMaxSize())
   }
   if(game.dice.isNotEmpty()||rolling||(!game.rolled&&!(vm.mode==Mode.AI&&game.position.turn==Player.BLACK))) AnimatedDice(game.dice,settings.dice,rolling,{vm.roll();haptic()},Modifier.align(Alignment.Center))
@@ -118,7 +118,6 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
    val released=throwVector;x1.snapTo(x1.value+released.x);x2.snapTo(x2.value+released.x);y1.snapTo(y1.value+released.y);y2.snapTo(y2.value+released.y);drag=Offset.Zero
    val tx1=(-82..-64).random().toFloat();val tx2=(64..82).random().toFloat();val commonY=(released.y*.12f).coerceIn(-18f,18f);val ty1=commonY+(-7..7).random();val ty2=commonY+(-7..7).random()
    kotlinx.coroutines.coroutineScope{
-    launch{while(rolling){face1=(1..6).random();face2=(1..6).random();kotlinx.coroutines.delay(110)}}
     launch{x1.animateTo(tx1,tween(1550,easing=FastOutSlowInEasing))};launch{x2.animateTo(tx2,tween(1580,easing=FastOutSlowInEasing))}
     launch{y1.animateTo(ty1,keyframes{durationMillis=1580;y1.value at 0;(ty1-42f) at 430;(ty1+10f) at 890;ty1 at 1580})}
     launch{y2.animateTo(ty2,keyframes{durationMillis=1580;y2.value at 0;(ty2-38f) at 470;(ty2+8f) at 920;ty2 at 1580})}
@@ -126,7 +125,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
    }
   } else {face1=finalDice.getOrElse(0){face1};face2=finalDice.getOrElse(1){face2};r1.snapTo(0f);r2.snapTo(0f);drag=Offset.Zero}
  }
- Box(modifier.size(230.dp,140.dp).graphicsLayer{translationX=drag.x;translationY=drag.y}.pointerInput(rolling,finalDice){if(!rolling&&finalDice.isEmpty())detectDragGestures(onDragEnd={if(drag.getDistance()>24f){throwVector=drag;onThrow()}else drag=Offset.Zero},onDragCancel={drag=Offset.Zero}){change,amount->change.consume();drag+=amount}}){DieFace(if(rolling)face1 else finalDice.getOrElse(0){face1},style,rolling,Modifier.align(Alignment.Center).offset{x1.value.roundToInt().let{androidx.compose.ui.unit.IntOffset(it,y1.value.roundToInt())}}.rotate(r1.value));DieFace(if(rolling)face2 else finalDice.getOrElse(1){face2},style,rolling,Modifier.align(Alignment.Center).offset{x2.value.roundToInt().let{androidx.compose.ui.unit.IntOffset(it,y2.value.roundToInt())}}.rotate(r2.value))}
+ Box(modifier.size(230.dp,140.dp).graphicsLayer{translationX=drag.x;translationY=drag.y}.pointerInput(rolling,finalDice){if(!rolling&&finalDice.isEmpty())detectDragGestures(onDragEnd={if(drag.getDistance()>24f){throwVector=drag;onThrow()}else drag=Offset.Zero},onDragCancel={drag=Offset.Zero}){change,amount->change.consume();drag+=amount}}){DieFace(finalDice.getOrElse(0){face1},style,rolling,Modifier.align(Alignment.Center).offset{x1.value.roundToInt().let{androidx.compose.ui.unit.IntOffset(it,y1.value.roundToInt())}}.graphicsLayer{rotationX=r1.value*.42f;rotationY=r1.value;rotationZ=r1.value*.10f;cameraDistance=14f*density});DieFace(finalDice.getOrElse(1){face2},style,rolling,Modifier.align(Alignment.Center).offset{x2.value.roundToInt().let{androidx.compose.ui.unit.IntOffset(it,y2.value.roundToInt())}}.graphicsLayer{rotationX=r2.value*.38f;rotationY=r2.value;rotationZ=-r2.value*.08f;cameraDistance=14f*density})}
 }
 @Composable private fun DieFace(value:Int,style:DiceStyle,rolling:Boolean,modifier:Modifier=Modifier){
  val base=when(style){DiceStyle.CLASSIC->Color(0xffffedc5);DiceStyle.ONYX->Color(0xff252731);DiceStyle.CRYSTAL->Color(0xff65cce8)};val ink=if(style==DiceStyle.CLASSIC)Color(0xff49382c)else Color.White
