@@ -6,11 +6,11 @@ import com.arena.backgammon.ai.Difficulty
 enum class BoardTheme { PREMIUM_WOOD, MARBLE_STONE, SMOKED_GLASS }
 enum class PieceStyle { IVORY, MARBLE, NEON }
 enum class DiceStyle { CLASSIC, ONYX, CRYSTAL }
-enum class TableScene { GRASS, WATER, SNOW }
-data class Settings(val sound:Boolean=true,val music:Boolean=false,val vibration:Boolean=true,val animations:Boolean=true,val theme:BoardTheme=BoardTheme.PREMIUM_WOOD,val pieces:PieceStyle=PieceStyle.IVORY,val dice:DiceStyle=DiceStyle.CLASSIC,val difficulty:Difficulty=Difficulty.MEDIUM,val tableScene:TableScene=TableScene.GRASS)
+enum class TableScene { STARRY_SKY, AUTUMN_SUNSET, PERSIAN_RUG, DARK_RIVER }
+data class Settings(val sound:Boolean=true,val music:Boolean=false,val vibration:Boolean=true,val animations:Boolean=true,val theme:BoardTheme=BoardTheme.PREMIUM_WOOD,val pieces:PieceStyle=PieceStyle.IVORY,val dice:DiceStyle=DiceStyle.CLASSIC,val difficulty:Difficulty=Difficulty.MEDIUM,val tableScene:TableScene=TableScene.AUTUMN_SUNSET)
 class Preferences(context: Context) {
     private val p=context.getSharedPreferences("settings",Context.MODE_PRIVATE)
-    fun load()=Settings(p.getBoolean("sound",true),p.getBoolean("music",false),p.getBoolean("vibration",true),p.getBoolean("animations",true),enum("theme",BoardTheme.PREMIUM_WOOD),enum("pieces",PieceStyle.IVORY),enum("dice",DiceStyle.CLASSIC),enum("difficulty",Difficulty.MEDIUM),enum("tableScene",TableScene.GRASS))
+    fun load()=Settings(p.getBoolean("sound",true),p.getBoolean("music",false),p.getBoolean("vibration",true),p.getBoolean("animations",true),enum("theme",BoardTheme.PREMIUM_WOOD),enum("pieces",PieceStyle.IVORY),enum("dice",DiceStyle.CLASSIC),enum("difficulty",Difficulty.MEDIUM),enum("tableScene",TableScene.AUTUMN_SUNSET))
     private inline fun <reified T:Enum<T>> enum(key:String, default:T)=runCatching { enumValueOf<T>(p.getString(key,default.name)!!) }.getOrDefault(default)
     fun save(s:Settings)=p.edit().putBoolean("sound",s.sound).putBoolean("music",s.music).putBoolean("vibration",s.vibration).putBoolean("animations",s.animations).putString("theme",s.theme.name).putString("pieces",s.pieces.name).putString("dice",s.dice.name).putString("difficulty",s.difficulty.name).putString("tableScene",s.tableScene.name).apply()
 }
