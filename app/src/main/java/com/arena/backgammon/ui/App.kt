@@ -77,6 +77,8 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
  val palette=boardPalette(settings.theme)
  Box(Modifier.fillMaxSize()){
   Image(painterResource(R.drawable.game_table_background),null,Modifier.fillMaxSize(),contentScale=ContentScale.Crop);Box(Modifier.fillMaxSize().background(Color(0xff0b1511).copy(.32f)))
+  Box(Modifier.align(Alignment.Center).fillMaxWidth(.80f).fillMaxHeight(.88f).absoluteOffset(y=13.dp).clip(RoundedCornerShape(22.dp)).background(Color(0xff160806)).border(2.dp,Color.Black.copy(.75f),RoundedCornerShape(22.dp)))
+  Box(Modifier.align(Alignment.Center).fillMaxWidth(.80f).fillMaxHeight(.88f).absoluteOffset(y=7.dp).clip(RoundedCornerShape(21.dp)).background(Brush.verticalGradient(listOf(Color(0xff5b2a18),Color(0xff230d07)))).border(1.dp,Color(0xffb57549).copy(.55f),RoundedCornerShape(21.dp)))
   Box(Modifier.align(Alignment.Center).fillMaxWidth(.80f).fillMaxHeight(.88f).graphicsLayer{shadowElevation=34.dp.toPx();shape=RoundedCornerShape(20.dp);clip=false}.clip(RoundedCornerShape(20.dp)).background(Brush.verticalGradient(listOf(Color(0xff8d5433),Color(0xff3b190f)))).border(1.dp,Color(0xffe3a875).copy(.55f),RoundedCornerShape(20.dp))){
    FlatBoard(game,settings.theme,settings.pieces,selected,legal,{selected=it;haptic()},{vm.move(it);selected=null;haptic()},Modifier.fillMaxSize().padding(top=34.dp,start=3.dp,end=3.dp,bottom=3.dp))
    TopGameBar(settings.difficulty,match,if(match.thinking)"AI THINKING" else if(rolling)"ROLLING" else if(game.position.turn==Player.WHITE)"YOUR TURN" else "AI TURN",{panel="menu"},{panel="settings"},Modifier.align(Alignment.TopCenter))
@@ -134,7 +136,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
 }
 @Composable private fun DieFace(value:Int,style:DiceStyle,rolling:Boolean,modifier:Modifier=Modifier){
  val base=when(style){DiceStyle.CLASSIC->Color(0xffffedc5);DiceStyle.ONYX->Color(0xff252731);DiceStyle.CRYSTAL->Color(0xff65cce8)};val ink=if(style==DiceStyle.CLASSIC)Color(0xff49382c)else Color.White
- Canvas(modifier.size(54.dp)){
+ Canvas(modifier.size(46.dp)){
   val u=size.minDimension/62f
   drawRoundRect(Color.Black.copy(.35f),Offset(9*u,13*u),Size(48*u,47*u),CornerRadius(8*u))
   val top=Path().apply{moveTo(7*u,12*u);lineTo(17*u,3*u);lineTo(58*u,3*u);lineTo(50*u,12*u);close()};drawPath(top,base.copy(.9f))

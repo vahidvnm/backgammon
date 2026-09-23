@@ -64,8 +64,8 @@ fun boardPalette(t:BoardTheme)=when(t){
    drawOval(Color.Black.copy(.42f),Offset(c.x-r*.90f,c.y-r*.72f),Size(r*1.80f,r*1.72f))
    drawCircle(edge,r,c)
    drawCircle(Brush.radialGradient(listOf(Color.White.copy(if(white).62f else .38f),base,edge),c-Offset(r*.30f,r*.34f),r*1.30f),r*.91f,c)
-   drawCircle(Color.White.copy(.34f),r*.88f,c,style=Stroke(r*.055f));drawCircle(Color.Black.copy(.30f),r*.70f,c,style=Stroke(r*.075f));drawCircle(Color.White.copy(.15f),r*.61f,c,style=Stroke(2f))
-   drawOval(Color.White.copy(.38f),Offset(c.x-r*.42f,c.y-r*.48f),Size(r*.42f,r*.20f))
+   drawCircle(Color.White.copy(.40f),r*.88f,c,style=Stroke(r*.055f));drawCircle(Color.Black.copy(.38f),r*.73f,c,style=Stroke(r*.075f));drawCircle(Color.White.copy(.24f),r*.62f,c,style=Stroke(r*.045f));drawCircle(Color.Black.copy(.30f),r*.49f,c,style=Stroke(r*.060f));drawCircle(Color.White.copy(.18f),r*.38f,c,style=Stroke(r*.040f));drawCircle(Brush.radialGradient(listOf(Color.Black.copy(.22f),base.copy(.22f),Color.White.copy(.16f)),c,r*.31f),r*.29f,c)
+   drawOval(Color.White.copy(.42f),Offset(c.x-r*.44f,c.y-r*.49f),Size(r*.44f,r*.18f))
    if(available&&!on){drawCircle(Color(0xffb7f45c).copy(.30f+.22f*pulse),r*1.15f,c);drawCircle(Color(0xff9ee84e),r*1.12f,c,style=Stroke(4f))};if(on){drawCircle(Color.Black.copy(.42f),r*1.13f,c,style=Stroke(7f));drawCircle(p.accent,r*1.13f,c,style=Stroke(4f))}
   }
   val active=motion
@@ -74,7 +74,7 @@ fun boardPalette(t:BoardTheme)=when(t){
   val offR=min(cw*.27f,trayW*.34f);for(i in 0 until min(state.position.offBlack,7))piece(Offset(trayX+trayW/2,rail*2.2f+offR*1.35f+i*offR*.82f),offR,false);for(i in 0 until min(state.position.offWhite,7))piece(Offset(trayX+trayW/2,size.height-rail*2.2f-offR*1.35f-i*offR*.82f),offR,true)
   active?.let{m->
    fun endpoint(point:Int,start:Boolean):Offset=when(point){Move.BAR->Offset(barLeft+barW/2,if(m.white)size.height*.62f else size.height*.38f);Move.OFF->Offset(playRight+(size.width-playRight)/2,if(m.white)size.height*.68f else size.height*.32f);else->{val count=abs(state.position.points[point]);center(point,if(start)count else (count-1).coerceAtLeast(0))}}
-   val a=endpoint(m.from,true);val b=endpoint(m.to,false);val q=travel.value*travel.value*(3f-2f*travel.value);val midY=size.height/2;val moving=when{q<.24f->Offset(a.x,a.y+(midY-a.y)*(q/.24f));q<.76f->Offset(a.x+(b.x-a.x)*((q-.24f)/.52f),midY);else->Offset(b.x,midY+(b.y-midY)*((q-.76f)/.24f))};drawOval(Color.Black.copy(.28f),Offset(moving.x-cw*.27f,moving.y+cw*.20f),Size(cw*.54f,cw*.17f));piece(moving,cw*.35f,m.white,true)
+   val a=endpoint(m.from,true);val b=endpoint(m.to,false);val q=travel.value*travel.value*(3f-2f*travel.value);val moving=Offset(a.x+(b.x-a.x)*q,a.y+(b.y-a.y)*q);drawOval(Color.Black.copy(.24f),Offset(moving.x-cw*.25f,moving.y+cw*.19f),Size(cw*.50f,cw*.15f));piece(moving,cw*.34f,m.white,true)
   }
   legal.filter{it.from==selected}.forEach{m->val c=if(m.to==Move.OFF)Offset(playRight+(size.width-playRight)/2,size.height/2)else center(m.to,abs(state.position.points[m.to]).coerceAtMost(4));val arrow=Path().apply{moveTo(c.x,c.y-cw*.32f);lineTo(c.x+cw*.30f,c.y+cw*.25f);lineTo(c.x+cw*.10f,c.y+cw*.19f);lineTo(c.x,c.y+cw*.38f);lineTo(c.x-cw*.10f,c.y+cw*.19f);lineTo(c.x-cw*.30f,c.y+cw*.25f);close()};drawPath(arrow,Color(0xffffd43b).copy(.68f+.28f*pulse));drawPath(arrow,Color(0xff4a2b00),style=Stroke(2.2f))}
   drawLine(Color.White.copy(.2f),Offset(rail,size.height/2),Offset(playRight,size.height/2),2f)
