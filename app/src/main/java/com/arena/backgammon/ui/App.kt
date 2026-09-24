@@ -178,7 +178,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
 @Composable private fun SceneArrow(text:String,modifier:Modifier=Modifier,go:()->Unit){Box(modifier.size(38.dp,72.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xff17110e).copy(.64f)).border(1.dp,Color.White.copy(.38f),RoundedCornerShape(18.dp)).clickable(onClick=go),contentAlignment=Alignment.Center){Text(text,color=Color.White,fontSize=34.sp,fontWeight=FontWeight.Light)}}
 @Composable private fun BarEngraving(text:String,modifier:Modifier=Modifier,go:()->Unit){
  val shape=RoundedCornerShape(4.dp)
- Box(modifier.width(72.dp).height(29.dp).graphicsLayer{shadowElevation=2.dp.toPx();this.shape=shape}.clip(shape).background(Brush.verticalGradient(listOf(Color.Black.copy(.34f),Color(0xff61361f).copy(.45f),Color.White.copy(.10f)))).border(1.3.dp,Color(0xff251108).copy(.78f),shape).clickable(onClick=go),contentAlignment=Alignment.Center){
+ Box(modifier.width(72.dp).height(29.dp).graphicsLayer{shadowElevation=7.dp.toPx();this.shape=shape;clip=false}.clip(shape).background(Brush.verticalGradient(listOf(Color(0xff1e0d07).copy(.72f),Color(0xff5b301d).copy(.66f),Color(0xff9a623a).copy(.28f)))).border(1.5.dp,Color(0xff1b0b06).copy(.88f),shape).clickable(onClick=go),contentAlignment=Alignment.Center){
   Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.TopCenter).background(Color.Black.copy(.45f)));Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.BottomCenter).background(Color(0xffd7a16d).copy(.24f)))
   Text(text,Modifier.offset(y=1.dp),color=Color(0xffffd49a).copy(.28f),fontSize=10.sp,fontWeight=FontWeight.Black,letterSpacing=1.4.sp);Text(text,Modifier.offset(y=(-.5).dp),color=Color(0xff1c0d08),fontSize=10.sp,fontWeight=FontWeight.Black,letterSpacing=1.4.sp)
  }
