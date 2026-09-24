@@ -136,7 +136,7 @@ fun boardPalette(t:BoardTheme)=when(t){
    // A single subtle grain/vein per checker keeps the material natural and uncluttered.
    val grainY=topC.y+r*variation*.12f;drawLine((if(white)Color(0xff76502d)else Color(0xffc08358)).copy(.10f),Offset(c.x-r*.48f,grainY),Offset(c.x+r*.46f,grainY+r*.035f*variation),r*.022f)
    drawOval(Color.White.copy(.31f),Offset(topC.x-r*.39f,topC.y-r*.36f),Size(r*.35f,r*.13f))
-   if(available&&!on){val lamp=c+Offset(r*.72f,-r*.72f);drawCircle(Color.Black.copy(.36f),r*.20f,lamp+Offset(0f,1.5f));drawCircle(Color(0xffd6b45d),r*.18f,lamp);drawCircle(Color(0xff66d56d).copy(.74f+.24f*pulse),r*.125f,lamp);drawCircle(Color.White.copy(.62f),r*.040f,lamp-Offset(r*.035f,r*.035f))};if(on){drawCircle(Color.Black.copy(.30f),r*1.10f,c,style=Stroke(5f));drawCircle(p.accent,r*1.08f,c,style=Stroke(3f))}
+   if(available&&!on){drawCircle(Brush.radialGradient(listOf(Color(0xffbaff88).copy(.30f+.18f*pulse),Color(0xff55d66b).copy(.18f),Color.Transparent),topC,r*.92f),r*.82f,topC);drawCircle(Color(0xff7ee779).copy(.62f+.28f*pulse),r*.78f,topC,style=Stroke(r*.055f));drawArc(Color.White.copy(.36f),205f,125f,false,Offset(topC.x-r*.70f,topC.y-r*.70f),Size(r*1.40f,r*1.40f),style=Stroke(r*.032f))};if(on){drawCircle(Color.Black.copy(.30f),r*1.10f,c,style=Stroke(5f));drawCircle(p.accent,r*1.08f,c,style=Stroke(3f))}
   }
   val active=motion;val drawn=if(active==null)previous else state.position
   for(pt in 0..23){val n=abs(drawn.points[pt]);for(i in 0 until min(n,5)){if(active?.to==pt&&i==min(n,5)-1)continue;piece(center(pt,i),cw*.262f,drawn.points[pt]>0,selected==pt&&i==min(n,5)-1,legal.any{it.from==pt}&&i==min(n,5)-1,(((pt*7+i*3)%7)-3)/3f)};if(n>5)drawCircle(p.accent,cw*.18f,center(pt,4))}
@@ -151,11 +151,12 @@ fun boardPalette(t:BoardTheme)=when(t){
    fun marker(point:Int):Offset=when(point){Move.BAR->Offset(barLeft+barW/2,size.height/2);Move.OFF->Offset(playRight+(size.width-playRight)/2,size.height/2);else->center(point,abs(state.position.points[point]).coerceAtMost(4))}
    val routePoints=mutableListOf(marker(plan.from)).apply{plan.moves.forEach{add(marker(it.to))}}
    if(guidance==GuidanceMode.COACH)for(i in 0 until routePoints.lastIndex)drawLine(Color(0xffffdf68).copy(.34f+.20f*pulse),routePoints[i],routePoints[i+1],3f,pathEffect=PathEffect.dashPathEffect(floatArrayOf(10f,7f)))
-   val c=routePoints.last();val rr=cw*.255f;val guide=p.accent.copy(.62f+.28f*pulse)
-   // Four precision brackets mark the landing area without imitating a checker or die.
-   listOf(42f,132f,222f,312f).forEach{angle->drawArc(Color.Black.copy(.24f),angle,34f,false,Offset(c.x-rr-1f,c.y-rr+2f),Size(rr*2,rr*2),style=Stroke(4.2f));drawArc(guide,angle,34f,false,Offset(c.x-rr,c.y-rr),Size(rr*2,rr*2),style=Stroke(2.4f))}
-   // Small brass chevrons indicate a direct, two-die, or longer compound destination.
-   val marks=plan.moves.size.coerceAtMost(4);val markW=cw*.075f;val gap=cw*.035f;val total=marks*markW+(marks-1).coerceAtLeast(0)*gap;repeat(marks){i->val x=c.x-total/2+i*(markW+gap)+markW/2;val y=c.y-rr-cw*.09f;val diamond=Path().apply{moveTo(x,y-markW*.52f);lineTo(x+markW*.48f,y);lineTo(x,y+markW*.52f);lineTo(x-markW*.48f,y);close()};drawPath(diamond,Color.Black.copy(.28f));drawPath(diamond,p.accent.copy(.92f))}
+   val c=routePoints.last();val direction=if(c.y<size.height/2)1f else -1f;val slide=((pulse-.58f)/.42f).coerceIn(0f,1f)*cw*.11f;val tipY=c.y-direction*(cw*.30f-slide);val tailY=tipY-direction*cw*.31f;val guide=p.accent.copy(.70f+.25f*pulse)
+   // A gently sliding inlaid arrow invites the move without resembling another checker.
+   drawLine(Color.Black.copy(.28f),Offset(c.x+1.5f,tailY+2f),Offset(c.x+1.5f,tipY-direction*cw*.06f+2f),5.5f)
+   drawLine(guide,Offset(c.x,tailY),Offset(c.x,tipY-direction*cw*.06f),3.2f)
+   val arrow=Path().apply{moveTo(c.x,tipY);lineTo(c.x-cw*.105f,tipY-direction*cw*.14f);lineTo(c.x+cw*.105f,tipY-direction*cw*.14f);close()};drawPath(arrow,Color.Black.copy(.30f),style=Stroke(4.5f));drawPath(arrow,guide)
+   repeat(plan.moves.size.coerceAtMost(4)){i->val x=c.x+(i-(plan.moves.size.coerceAtMost(4)-1)/2f)*cw*.065f;drawCircle(Color(0xffffe29a).copy(.88f),cw*.018f,Offset(x,tailY-direction*cw*.045f))}
   }
  }
 }
