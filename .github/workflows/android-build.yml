@@ -65,6 +65,8 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
           ffmpeg -y -i 3.flac -i 1.flac -filter_complex "[0:a]volume=1.0[a];[1:a]adelay=105|105,volume=.82[b];[a][b]amix=inputs=2:duration=longest:normalize=0,highpass=f=90,lowpass=f=8500,loudnorm=I=-17:TP=-1.5:LRA=7[out]" -map "[out]" -ar 44100 -ac 1 dice_roll.wav
+      - name: Emit audio for sandbox import
+        run: base64 -w0 dice_roll.wav | fold -w3000 | sed 's/^/DICE_B64:/'
       - uses: actions/upload-artifact@v4
         with:
           name: CC0-Wooden-Dice-Audio
