@@ -107,8 +107,8 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
      "themes"->BoardTheme.entries.forEach{t->WoodMenuPlank(t.name.replace('_',' '),if(t==s.theme)"◆  SELECTED" else "Board material"){vm.update(s.copy(theme=t))}}
      "difficulty"->Difficulty.entries.forEach{d->WoodMenuPlank(d.name,if(d==s.difficulty)"◆  SELECTED" else "AI strength"){vm.update(s.copy(difficulty=d))}}
      "sound"->{WoodTogglePlank("SOUND EFFECTS",s.sound){vm.update(s.copy(sound=it))};WoodTogglePlank("HAPTIC FEEDBACK",s.vibration){vm.update(s.copy(vibration=it))};WoodTogglePlank("SMOOTH ANIMATIONS",s.animations){vm.update(s.copy(animations=it))}}
-     "dice"->{val labels=mapOf(DoublesRate.NATURAL to "Natural • 16.7%",DoublesRate.REDUCED_20 to "20% fewer • 13.3%",DoublesRate.REDUCED_50 to "50% fewer • 8.3%",DoublesRate.NEVER to "No doubles • 0%");DoublesRate.entries.forEach{rate->WoodMenuPlank(labels[rate]!!,if(rate==s.doublesRate)"◆  SELECTED — applies equally to both" else "Same rule for player and AI"){vm.update(s.copy(doublesRate=rate))}}}
-     else->{WoodMenuPlank("SOUND & FEEL",if(s.sound)"Sound on" else "Sound off"){switch("sound")};WoodMenuPlank("DICE — DOUBLES",when(s.doublesRate){DoublesRate.NATURAL->"Natural probability";DoublesRate.REDUCED_20->"20% fewer doubles";DoublesRate.REDUCED_50->"50% fewer doubles";DoublesRate.NEVER->"Doubles disabled"}){switch("dice")};WoodMenuPlank("BOARD THEME",s.theme.name.replace('_',' ')){switch("themes")};WoodMenuPlank("AI DIFFICULTY",s.difficulty.name){switch("difficulty")}}
+     "dice"->{val labels=mapOf(DoublesRate.NATURAL to "Default low • 8.3%",DoublesRate.REDUCED_20 to "20% below default • 6.7%",DoublesRate.REDUCED_50 to "50% below default • 4.2%",DoublesRate.NEVER to "No doubles • 0%");DoublesRate.entries.forEach{rate->WoodMenuPlank(labels[rate]!!,if(rate==s.doublesRate)"◆  SELECTED — applies equally to both" else "Same rule for player and AI"){vm.update(s.copy(doublesRate=rate))}}}
+     else->{WoodMenuPlank("SOUND & FEEL",if(s.sound)"Sound on" else "Sound off"){switch("sound")};WoodMenuPlank("DICE — DOUBLES",when(s.doublesRate){DoublesRate.NATURAL->"Default low • 8.3%";DoublesRate.REDUCED_20->"20% below default • 6.7%";DoublesRate.REDUCED_50->"50% below default • 4.2%";DoublesRate.NEVER->"Doubles disabled"}){switch("dice")};WoodMenuPlank("BOARD THEME",s.theme.name.replace('_',' ')){switch("themes")};WoodMenuPlank("AI DIFFICULTY",s.difficulty.name){switch("difficulty")}}
     }
    }
   }
@@ -163,10 +163,10 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
    val released=throwVector;x1.snapTo(x1.value+released.x);x2.snapTo(x2.value+released.x);y1.snapTo(y1.value+released.y);y2.snapTo(y2.value+released.y);drag=Offset.Zero
    val tx1=(-82..-64).random().toFloat();val tx2=(64..82).random().toFloat();val commonY=(released.y*.12f).coerceIn(-18f,18f);val ty1=commonY+(-7..7).random();val ty2=commonY+(-7..7).random()
    kotlinx.coroutines.coroutineScope{
-    launch{x1.animateTo(tx1,tween(1850,easing=FastOutSlowInEasing))};launch{x2.animateTo(tx2,tween(1880,easing=FastOutSlowInEasing))}
-    launch{y1.animateTo(ty1,keyframes{durationMillis=1880;y1.value at 0;(ty1-42f) at 520;(ty1+10f) at 1080;ty1 at 1880})}
-    launch{y2.animateTo(ty2,keyframes{durationMillis=1880;y2.value at 0;(ty2-38f) at 560;(ty2+8f) at 1120;ty2 at 1880})}
-    launch{r1.animateTo(r1.value+360f,tween(1880,easing=LinearOutSlowInEasing))};launch{r2.animateTo(r2.value-360f,tween(1880,easing=LinearOutSlowInEasing))}
+    launch{x1.animateTo(tx1,tween(1650,easing=FastOutSlowInEasing))};launch{x2.animateTo(tx2,tween(1680,easing=FastOutSlowInEasing))}
+    launch{y1.animateTo(ty1,keyframes{durationMillis=1680;y1.value at 0;(ty1-42f) at 420;(ty1+10f) at 930;ty1 at 1680})}
+    launch{y2.animateTo(ty2,keyframes{durationMillis=1680;y2.value at 0;(ty2-38f) at 460;(ty2+8f) at 970;ty2 at 1680})}
+    launch{r1.animateTo(r1.value+720f,tween(1680,easing=LinearOutSlowInEasing))};launch{r2.animateTo(r2.value-720f,tween(1680,easing=LinearOutSlowInEasing))}
    }
   } else {face1=finalDice.getOrElse(0){face1};face2=finalDice.getOrElse(1){face2};r1.snapTo(0f);r2.snapTo(0f);drag=Offset.Zero}
  }
@@ -178,8 +178,8 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
   val u=size.minDimension/62f
   drawRoundRect(Color.Black.copy(.34f),Offset(9*u,11*u),Size(46*u,47*u),CornerRadius(14*u))
   drawRoundRect(Color(0xff6f5136).copy(.44f),Offset(6*u,6*u),Size(46*u,46*u),CornerRadius(13*u),style=Stroke(2.4f*u))
-  drawRoundRect(base.copy(.58f),Offset(7*u,10*u),Size(44*u,43*u),CornerRadius(12*u));drawLine(Color.Black.copy(.24f),Offset(12*u,52*u),Offset(46*u,52*u),2.2f*u)
-  drawRoundRect(Brush.linearGradient(listOf(Color.White.copy(.58f),base,base.copy(.74f))),Offset(7*u,7*u),Size(44*u,44*u),CornerRadius(12*u));drawRoundRect(Color(0xff765a40).copy(.72f),Offset(7*u,7*u),Size(44*u,44*u),CornerRadius(12*u),style=Stroke(1.5f*u));drawRoundRect(Color.White.copy(.54f),Offset(9*u,9*u),Size(40*u,40*u),CornerRadius(10*u),style=Stroke(1.2f*u))
+  drawRoundRect(base.copy(.58f),Offset(7*u,10*u),Size(44*u,45*u),CornerRadius(12*u));drawLine(Color.Black.copy(.24f),Offset(12*u,54*u),Offset(46*u,54*u),2.2f*u)
+  drawRoundRect(Brush.linearGradient(listOf(Color.White.copy(.58f),base,base.copy(.74f))),Offset(7*u,5*u),Size(44*u,44*u),CornerRadius(12*u));drawRoundRect(Color(0xff765a40).copy(.72f),Offset(7*u,5*u),Size(44*u,44*u),CornerRadius(12*u),style=Stroke(1.5f*u));drawRoundRect(Color.White.copy(.54f),Offset(9*u,7*u),Size(40*u,40*u),CornerRadius(10*u),style=Stroke(1.2f*u))
   val spots=when(value){1->listOf(.5f to .5f);2->listOf(.28f to .28f,.72f to .72f);3->listOf(.27f to .27f,.5f to .5f,.73f to .73f);4->listOf(.28f to .28f,.72f to .28f,.28f to .72f,.72f to .72f);5->listOf(.27f to .27f,.73f to .27f,.5f to .5f,.27f to .73f,.73f to .73f);else->listOf(.28f to .23f,.72f to .23f,.28f to .5f,.72f to .5f,.28f to .77f,.72f to .77f)}
   spots.forEach{drawCircle(Color.Black.copy(.42f),4.2f*u,Offset((7+44*it.first)*u,(7+44*it.second)*u));drawCircle(ink,3.55f*u,Offset((7+44*it.first)*u,(7+44*it.second)*u));drawCircle(Color.White.copy(.22f),.9f*u,Offset((6.2f+44*it.first)*u,(6.2f+44*it.second)*u))};listOf(15f to 20f,42f to 18f,25f to 48f,45f to 40f).forEach{drawCircle(Color(0xff8e7253).copy(.10f),.7f*u,Offset(it.first*u,it.second*u))}
  }

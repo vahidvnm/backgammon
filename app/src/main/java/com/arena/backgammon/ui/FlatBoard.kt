@@ -19,7 +19,7 @@ import kotlin.math.*
 private data class CheckerMotion(val from:Int,val to:Int,val white:Boolean,val fromIndex:Int=0,val toIndex:Int=0)
 data class BoardPalette(val frame:Color,val frameDark:Color,val field:Color,val pointA:Color,val pointB:Color,val light:Color,val dark:Color,val accent:Color)
 fun boardPalette(t:BoardTheme)=when(t){
- BoardTheme.PREMIUM_WOOD->BoardPalette(Color(0xff75402b),Color(0xff2f160d),Color(0xffbd8a61),Color(0xffd8bd8d),Color(0xff6d2730),Color(0xffffdfa0),Color(0xff351a15),Color(0xffd7b25b))
+ BoardTheme.PREMIUM_WOOD->BoardPalette(Color(0xff75402b),Color(0xff2f160d),Color(0xffc4936d),Color(0xffd8bd8d),Color(0xff6d2730),Color(0xffffdfa0),Color(0xff351a15),Color(0xffd7b25b))
  BoardTheme.MARBLE_STONE->BoardPalette(Color(0xff8c9298),Color(0xff30363c),Color(0xffc8c9c5),Color(0xfff0eee7),Color(0xff596773),Color(0xfff5f3ea),Color(0xff263039),Color(0xffb9c5cc))
  BoardTheme.SMOKED_GLASS->BoardPalette(Color(0xff334650),Color(0xff0b151b),Color(0xff183541),Color(0xff9ed4db),Color(0xff245f70),Color(0xffd5f5f4),Color(0xff0b2029),Color(0xff7de3e8))
 }
@@ -95,7 +95,7 @@ fun boardPalette(t:BoardTheme)=when(t){
    drawRoundRect(Color.Black.copy(.44f),Offset(wx+3f,y+5f),Size(ww,trayH),CornerRadius(8f))
    drawRoundRect(materialBrush,Offset(wx,y),Size(ww,trayH),CornerRadius(8f));drawRoundRect(p.frame.copy(.48f),Offset(wx,y),Size(ww,trayH),CornerRadius(8f))
    drawRoundRect(Brush.horizontalGradient(listOf(p.frameDark.copy(.88f),p.frame.copy(.38f),p.frameDark.copy(.88f))),Offset(wx+3f,y+3f),Size(ww-6f,trayH-6f),CornerRadius(6f))
-   drawRoundRect(materialBrush,Offset(wx+10f,y+10f),Size(ww-20f,trayH-20f),CornerRadius(4f));drawRoundRect(p.frameDark.copy(.52f),Offset(wx+10f,y+10f),Size(ww-20f,trayH-20f),CornerRadius(4f))
+   drawRoundRect(materialBrush,Offset(wx+10f,y+10f),Size(ww-20f,trayH-20f),CornerRadius(4f));drawRoundRect(p.frameDark.copy(.38f),Offset(wx+10f,y+10f),Size(ww-20f,trayH-20f),CornerRadius(4f))
    drawLine(Color.White.copy(.24f),Offset(wx+4f,y+4f),Offset(wx+ww-4f,y+4f),1.5f);drawLine(Color.Black.copy(.30f),Offset(wx+4f,y+trayH-4f),Offset(wx+ww-4f,y+trayH-4f),2f)
    val step=(trayH-16f)/15f;for(i in 1..14){val sy=y+8f+i*step;drawLine(Color.Black.copy(.11f),Offset(wx+11f,sy),Offset(wx+ww-11f,sy),1f)}
   }
@@ -119,10 +119,10 @@ fun boardPalette(t:BoardTheme)=when(t){
    drawOval(Color.White.copy(.42f),Offset(topC.x-r*.44f,topC.y-r*.39f),Size(r*.44f,r*.18f))
    if(available&&!on){drawCircle(Color(0xffb7f45c).copy(.30f+.22f*pulse),r*1.15f,c);drawCircle(Color(0xff9ee84e),r*1.12f,c,style=Stroke(4f))};if(on){drawCircle(Color.Black.copy(.42f),r*1.13f,c,style=Stroke(7f));drawCircle(p.accent,r*1.13f,c,style=Stroke(4f))}
   }
-  val active=motion
-  for(pt in 0..23){val n=abs(state.position.points[pt]);for(i in 0 until min(n,5)){if(active?.to==pt&&i==min(n,5)-1)continue;piece(center(pt,i),cw*.262f,state.position.points[pt]>0,selected==pt&&i==min(n,5)-1,legal.any{it.from==pt}&&i==min(n,5)-1)};if(n>5)drawCircle(p.accent,cw*.18f,center(pt,4))}
-  if(active?.to!=Move.BAR){val br=cw*.238f;for(i in 0 until min(state.position.barWhite,8))piece(Offset(barLeft+barW/2,size.height*.57f+i*br*.48f),br,true,selected==Move.BAR&&i==min(state.position.barWhite,8)-1,legal.any{it.from==Move.BAR}&&i==min(state.position.barWhite,8)-1);for(i in 0 until min(state.position.barBlack,8))piece(Offset(barLeft+barW/2,size.height*.43f-i*br*.48f),br,false,selected==Move.BAR&&i==min(state.position.barBlack,8)-1,legal.any{it.from==Move.BAR}&&i==min(state.position.barBlack,8)-1)}
-  fun DrawScope.offChip(y:Float,white:Boolean){val chipW=trayW*.68f;val chipH=((trayH-16f)/15f)*.66f;val base=if(white)Color(0xffe2c58d)else Color(0xff603326);drawRoundRect(Color.Black.copy(.38f),Offset(trayX+(trayW-chipW)/2+1f,y+2f),Size(chipW,chipH),CornerRadius(chipH/2));drawRoundRect(Brush.verticalGradient(listOf(Color.White.copy(.42f),base,base.copy(.72f))),Offset(trayX+(trayW-chipW)/2,y),Size(chipW,chipH),CornerRadius(chipH/2));drawLine(Color.White.copy(.30f),Offset(trayX+(trayW-chipW)/2+3f,y+2f),Offset(trayX+(trayW+chipW)/2-3f,y+2f),1f)};val chipStep=(trayH-16f)/15f;for(i in 0 until state.position.offBlack)offChip(topWellY+8f+i*chipStep,false);for(i in 0 until state.position.offWhite)offChip(bottomWellY+trayH-8f-(i+1)*chipStep,true)
+  val active=motion;val drawn=if(active==null)previous else state.position
+  for(pt in 0..23){val n=abs(drawn.points[pt]);for(i in 0 until min(n,5)){if(active?.to==pt&&i==min(n,5)-1)continue;piece(center(pt,i),cw*.262f,drawn.points[pt]>0,selected==pt&&i==min(n,5)-1,legal.any{it.from==pt}&&i==min(n,5)-1)};if(n>5)drawCircle(p.accent,cw*.18f,center(pt,4))}
+  if(active?.to!=Move.BAR){val br=cw*.238f;for(i in 0 until min(drawn.barWhite,8))piece(Offset(barLeft+barW/2,size.height*.57f+i*br*.48f),br,true,selected==Move.BAR&&i==min(drawn.barWhite,8)-1,legal.any{it.from==Move.BAR}&&i==min(drawn.barWhite,8)-1);for(i in 0 until min(drawn.barBlack,8))piece(Offset(barLeft+barW/2,size.height*.43f-i*br*.48f),br,false,selected==Move.BAR&&i==min(drawn.barBlack,8)-1,legal.any{it.from==Move.BAR}&&i==min(drawn.barBlack,8)-1)}
+  fun DrawScope.offChip(y:Float,white:Boolean){val chipW=trayW*.68f;val chipH=((trayH-16f)/15f)*.66f;val base=if(white)Color(0xffe2c58d)else Color(0xff603326);drawRoundRect(Color.Black.copy(.38f),Offset(trayX+(trayW-chipW)/2+1f,y+2f),Size(chipW,chipH),CornerRadius(chipH/2));drawRoundRect(Brush.verticalGradient(listOf(Color.White.copy(.42f),base,base.copy(.72f))),Offset(trayX+(trayW-chipW)/2,y),Size(chipW,chipH),CornerRadius(chipH/2));drawLine(Color.White.copy(.30f),Offset(trayX+(trayW-chipW)/2+3f,y+2f),Offset(trayX+(trayW+chipW)/2-3f,y+2f),1f)};val chipStep=(trayH-16f)/15f;for(i in 0 until drawn.offBlack)offChip(topWellY+8f+i*chipStep,false);for(i in 0 until drawn.offWhite)offChip(bottomWellY+trayH-8f-(i+1)*chipStep,true)
   active?.let{m->
    fun endpoint(point:Int,start:Boolean):Offset=when(point){Move.BAR->Offset(barLeft+barW/2,if(m.white)size.height*.62f else size.height*.38f);Move.OFF->Offset(playRight+(size.width-playRight)/2,if(m.white)size.height*.68f else size.height*.32f);else->center(point,if(start)m.fromIndex else m.toIndex)}
    val a=endpoint(m.from,true);val b=endpoint(m.to,false);val q=travel.value*travel.value*(3f-2f*travel.value);val moving=Offset(a.x+(b.x-a.x)*q,a.y+(b.y-a.y)*q);val lift=sin(Math.PI.toFloat()*q);drawOval(Color.Black.copy(.25f-.11f*lift),Offset(moving.x-cw*(.25f+.04f*lift),moving.y+cw*(.19f+.07f*lift)),Size(cw*(.50f+.08f*lift),cw*(.15f+.03f*lift)));piece(moving,cw*(.272f+.014f*lift),m.white,true)
