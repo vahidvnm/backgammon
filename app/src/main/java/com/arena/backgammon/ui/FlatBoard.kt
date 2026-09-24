@@ -95,6 +95,15 @@ fun boardPalette(t:BoardTheme)=when(t){
    BoardTheme.MARBLE_STONE->{for(i in 0..8){val x=playLeft+(playRight-playLeft)*i/8f;if(x !in barLeft..(barLeft+barW)){val vein=Path().apply{moveTo(x,rail);cubicTo(x+sin(i*2f)*32f,size.height*.30f,x+cos(i*1.3f)*46f,size.height*.68f,x+sin(i*.7f)*25f,size.height-rail)};drawPath(vein,Color.White.copy(if(i%3==0).22f else .09f),style=Stroke(if(i%3==0)2.3f else 1f));drawPath(vein,Color(0xff505860).copy(.07f),style=Stroke(4f))}}}
    BoardTheme.SMOKED_GLASS->{val sheen=Brush.linearGradient(listOf(Color.White.copy(.14f),Color.Transparent,Color(0xff6de7ef).copy(.09f)));drawRect(sheen,Offset(playLeft,rail),Size(half,size.height-rail*2));drawRect(sheen,Offset(barLeft+barW,rail),Size(half,size.height-rail*2));for(i in 0..5){drawLine(Color.White.copy(.055f),Offset(playLeft+i*70f,rail),Offset(playLeft+i*70f+140f,size.height-rail),1.2f);drawLine(Color.White.copy(.055f),Offset(barLeft+barW+i*70f,rail),Offset(barLeft+barW+i*70f+140f,size.height-rail),1.2f)}}
   }
+  // Fine routed ornament inspired by traditional luxury boards, kept inside the timber rails.
+  if(theme==BoardTheme.PREMIUM_WOOD){
+   val ornamentDark=p.frameDark.copy(.38f);val ornamentLight=p.accent.copy(.34f);val oy=rail*.43f;val step=(playRight-playLeft)/18f
+   drawLine(ornamentDark,Offset(playLeft+8f,oy+1.5f),Offset(playRight-8f,oy+1.5f),2.2f);drawLine(ornamentLight,Offset(playLeft+8f,oy),Offset(playRight-8f,oy),1f)
+   drawLine(ornamentDark,Offset(playLeft+8f,size.height-oy+1.5f),Offset(playRight-8f,size.height-oy+1.5f),2.2f);drawLine(ornamentLight,Offset(playLeft+8f,size.height-oy),Offset(playRight-8f,size.height-oy),1f)
+   for(i in 1..17){val x=playLeft+i*step;val r=min(rail*.12f,6f);fun diamond(y:Float)=Path().apply{moveTo(x,y-r);lineTo(x+r,y);lineTo(x,y+r);lineTo(x-r,y);close()};drawPath(diamond(oy),ornamentDark);drawPath(diamond(oy),ornamentLight,style=Stroke(1f));drawPath(diamond(size.height-oy),ornamentDark);drawPath(diamond(size.height-oy),ornamentLight,style=Stroke(1f))}
+   fun cornerFlourish(cx:Float,cy:Float,sx:Float,sy:Float){val a=rail*.42f;val curl=Path().apply{moveTo(cx,cy+sy*a);cubicTo(cx+sx*a*.15f,cy+sy*a*.25f,cx+sx*a*.70f,cy+sy*a*.78f,cx+sx*a,cy);cubicTo(cx+sx*a*.70f,cy-sy*a*.20f,cx+sx*a*.42f,cy+sy*a*.04f,cx+sx*a*.30f,cy+sy*a*.22f)};drawPath(curl,ornamentDark,style=Stroke(3f));drawPath(curl,ornamentLight,style=Stroke(1.2f))}
+   cornerFlourish(playLeft+5f,oy,1f,1f);cornerFlourish(playRight-5f,oy,-1f,1f);cornerFlourish(playLeft+5f,size.height-oy,1f,-1f);cornerFlourish(playRight-5f,size.height-oy,-1f,-1f)
+  }
   drawLine(Color.White.copy(.15f),Offset(5f,8f),Offset(5f,size.height-10f),2f);drawLine(p.frameDark.copy(.42f),Offset(size.width-6f,10f),Offset(size.width-6f,size.height-10f),3f)
   for(i in 0..7){val y=(i+.5f)*size.height/8f;drawLine(Color.Black.copy(.10f),Offset(3f,y),Offset(rail*.9f,y+sin(i.toFloat())*6f),1.2f);drawLine(Color.White.copy(.07f),Offset(playRight,y),Offset(size.width-4f,y+cos(i.toFloat())*5f),1f)}
   val trayX=playRight+size.width*.006f;val trayW=size.width-playRight-size.width*.012f;val trayH=size.height*.40f
