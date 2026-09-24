@@ -92,31 +92,36 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
   SceneArrow("‹",Modifier.align(Alignment.CenterStart).padding(start=8.dp)){cycleScene(-1)}
   SceneArrow("›",Modifier.align(Alignment.CenterEnd).padding(end=8.dp)){cycleScene(1)}
  }
- AnimatedVisibility(panel.isNotEmpty(),enter=slideInHorizontally(tween(420)){-it}+fadeIn(),exit=slideOutHorizontally(tween(340)){-it}+fadeOut()){GameDrawer(panel,settings,match,vm,{panel=""},{panel=it})}
+ AnimatedVisibility(panel.isNotEmpty(),enter=slideInHorizontally(tween(420)){it}+fadeIn(),exit=slideOutHorizontally(tween(340)){it}+fadeOut()){GameDrawer(panel,settings,match,vm,{panel=""},{panel=it})}
  game.winner?.let{w->val loser=w.other();val result=when{game.position.off(loser)>0->"Single game";game.position.bar(loser)>0->"Backgammon";else->"Gammon"};AlertDialog({},title={Text(if(w==Player.WHITE)"VICTORY" else "MATCH COMPLETE")},text={Text("$result • ${match.cube}× cube\nScore  ${match.whiteScore} — ${match.blackScore}",textAlign=TextAlign.Center)},confirmButton={Button({vm.restart()}){Text("REMATCH")}},dismissButton={TextButton({vm.menu()}){Text("MENU")}})}
 }
 @Composable private fun GameDrawer(kind:String,s:Settings,match:MatchInfo,vm:GameViewModel,close:()->Unit,switch:(String)->Unit){
- val wood=Color(0xff4a2618);val brass=Color(0xffc89552);val parchment=Color(0xfffff7e7)
- Box(Modifier.fillMaxSize().background(Color(0xff130a06).copy(.62f)).clickable(onClick=close)){
-  Row(Modifier.fillMaxHeight().widthIn(370.dp,510.dp).clip(RoundedCornerShape(topEnd=18.dp,bottomEnd=18.dp)).background(Brush.verticalGradient(listOf(Color(0xfffffbef),Color(0xffead9ba),Color(0xfff7ecd7)))).border(2.dp,brass.copy(.72f),RoundedCornerShape(topEnd=18.dp,bottomEnd=18.dp)).clickable(enabled=false){}){
-   Column(Modifier.width(82.dp).fillMaxHeight().background(Brush.verticalGradient(listOf(Color(0xff683a25),Color(0xff32170e)))).border(1.dp,Color.White.copy(.12f)).padding(10.dp),horizontalAlignment=Alignment.CenterHorizontally){Text("BG",color=Color(0xffffd28a),fontWeight=FontWeight.Black,fontSize=20.sp);Spacer(Modifier.height(28.dp));DrawerTab("☰",kind=="menu"){switch("menu")};Spacer(Modifier.height(12.dp));DrawerTab("⚙",kind!="menu"){switch("settings")};Spacer(Modifier.weight(1f));DrawerTab("‹",false,close)}
-   AnimatedContent(kind,modifier=Modifier.weight(1f).fillMaxHeight(),transitionSpec={slideInHorizontally(tween(330)){it}+fadeIn() togetherWith slideOutHorizontally(tween(260)){-it}+fadeOut()},label="drawerPage"){page->
-    Column(Modifier.fillMaxSize().padding(22.dp).verticalScroll(rememberScrollState())){
-     val nested=page in listOf("themes","difficulty","sound")
-     if(nested)TextButton({switch("settings")},contentPadding=PaddingValues(0.dp)){Text("‹  SETTINGS",color=wood,fontWeight=FontWeight.Bold)}
-     Text(when(page){"menu"->"MATCH MENU";"themes"->"BOARD THEME";"difficulty"->"AI DIFFICULTY";"sound"->"SOUND & FEEL";else->"GAME SETTINGS"},color=wood,fontWeight=FontWeight.Black,fontSize=21.sp)
-     Text("Score ${match.whiteScore} — ${match.blackScore}",color=Color(0xff876344),fontSize=11.sp);Spacer(Modifier.height(18.dp))
-     when(page){
-      "menu"->{DrawerButton("RESUME",close);DrawerButton("UNDO LAST MOVE"){vm.undo();close()};DrawerButton("MAIN MENU"){vm.menu()}}
-      "themes"->BoardTheme.entries.forEach{ThemeChoice(it,it==s.theme){vm.update(s.copy(theme=it))}}
-      "difficulty"->Difficulty.entries.forEach{DrawerChoice(it.name,it==s.difficulty){vm.update(s.copy(difficulty=it))}}
-      "sound"->{DrawerSwitch("Sound effects",s.sound){vm.update(s.copy(sound=it))};DrawerSwitch("Haptic feedback",s.vibration){vm.update(s.copy(vibration=it))};DrawerSwitch("Smooth animations",s.animations){vm.update(s.copy(animations=it))}}
-      else->{DrawerNav("SOUND & FEEL",if(s.sound)"Sound on • Premium motion" else "Sound off • Premium motion"){switch("sound")};DrawerNav("BOARD THEME",s.theme.name.replace('_',' ')){switch("themes")};DrawerNav("AI DIFFICULTY",s.difficulty.name){switch("difficulty")}}
-     }
+ Box(Modifier.fillMaxSize().background(Color.Black.copy(.24f)).clickable(onClick=close)){
+  AnimatedContent(kind,modifier=Modifier.align(Alignment.CenterEnd).widthIn(min=275.dp,max=345.dp).padding(end=22.dp),transitionSpec={slideInHorizontally(tween(330)){it}+fadeIn() togetherWith slideOutHorizontally(tween(250)){it}+fadeOut()},label="woodMenu"){page->
+   Column(horizontalAlignment=Alignment.End,verticalArrangement=Arrangement.spacedBy(11.dp)){
+    val nested=page in listOf("themes","difficulty","sound")
+    WoodMenuPlank(if(nested)"‹  SETTINGS" else when(page){"menu"->"MATCH MENU";else->"GAME SETTINGS"},"Score ${match.whiteScore} — ${match.blackScore}",large=true){if(nested)switch("settings")else close()}
+    when(page){
+     "menu"->{WoodMenuPlank("RESUME","Return to the board",go=close);WoodMenuPlank("UNDO LAST MOVE","Restore the previous position"){vm.undo();close()};WoodMenuPlank("MAIN MENU","Leave this match"){vm.menu()}}
+     "themes"->BoardTheme.entries.forEach{t->WoodMenuPlank(t.name.replace('_',' '),if(t==s.theme)"◆  SELECTED" else "Board material"){vm.update(s.copy(theme=t))}}
+     "difficulty"->Difficulty.entries.forEach{d->WoodMenuPlank(d.name,if(d==s.difficulty)"◆  SELECTED" else "AI strength"){vm.update(s.copy(difficulty=d))}}
+     "sound"->{WoodTogglePlank("SOUND EFFECTS",s.sound){vm.update(s.copy(sound=it))};WoodTogglePlank("HAPTIC FEEDBACK",s.vibration){vm.update(s.copy(vibration=it))};WoodTogglePlank("SMOOTH ANIMATIONS",s.animations){vm.update(s.copy(animations=it))}}
+     else->{WoodMenuPlank("SOUND & FEEL",if(s.sound)"Sound on" else "Sound off"){switch("sound")};WoodMenuPlank("BOARD THEME",s.theme.name.replace('_',' ')){switch("themes")};WoodMenuPlank("AI DIFFICULTY",s.difficulty.name){switch("difficulty")}}
     }
    }
   }
  }
+}
+@Composable private fun WoodMenuPlank(title:String,sub:String="",large:Boolean=false,go:()->Unit){
+ val shape=RoundedCornerShape(topStart=12.dp,bottomStart=12.dp,topEnd=4.dp,bottomEnd=4.dp)
+ Column(Modifier.width(if(large)310.dp else 282.dp).height(if(large)62.dp else 54.dp).graphicsLayer{shadowElevation=12.dp.toPx();this.shape=shape;clip=false}.clip(shape).background(Brush.verticalGradient(listOf(Color(0xff9a6039),Color(0xff63341f),Color(0xff3b1c11)))).border(1.dp,Color(0xffe1ab70).copy(.72f),shape).clickable(onClick=go).padding(horizontal=18.dp,vertical=9.dp)){
+  Text(title,color=Color(0xffffdda0),fontWeight=FontWeight.Black,fontSize=if(large)14.sp else 12.sp,letterSpacing=.8.sp)
+  if(sub.isNotEmpty())Text(sub,color=Color(0xffffead0).copy(.68f),fontSize=9.sp)
+ }
+}
+@Composable private fun WoodTogglePlank(title:String,value:Boolean,set:(Boolean)->Unit){
+ val shape=RoundedCornerShape(topStart=12.dp,bottomStart=12.dp,topEnd=4.dp,bottomEnd=4.dp)
+ Row(Modifier.width(282.dp).height(54.dp).graphicsLayer{shadowElevation=12.dp.toPx();this.shape=shape;clip=false}.clip(shape).background(Brush.verticalGradient(listOf(Color(0xff925936),Color(0xff4b2618)))).border(1.dp,Color(0xffd8a069).copy(.68f),shape).clickable{set(!value)}.padding(horizontal=17.dp),verticalAlignment=Alignment.CenterVertically){Text(title,Modifier.weight(1f),color=Color(0xffffdda0),fontWeight=FontWeight.Black,fontSize=11.sp);Switch(value,set,colors=SwitchDefaults.colors(checkedThumbColor=Color(0xffffe1a5),checkedTrackColor=Color(0xff3c1d12),uncheckedThumbColor=Color(0xffc49a70),uncheckedTrackColor=Color(0xff62402c)))}
 }
 @Composable private fun DrawerNav(title:String,sub:String,go:()->Unit){Row(Modifier.fillMaxWidth().padding(vertical=6.dp).clip(RoundedCornerShape(12.dp)).background(Brush.horizontalGradient(listOf(Color(0xfffffbef),Color(0xffe2c99e)))).border(1.dp,Color(0xff9b6a3e).copy(.62f),RoundedCornerShape(12.dp)).clickable(onClick=go).padding(14.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text(title,color=Color(0xff3f2116),fontWeight=FontWeight.Black,fontSize=12.sp);Text(sub,color=Color(0xff836247),fontSize=10.sp)};Text("›",color=Color(0xff7b492a),fontSize=25.sp)}}
 @Composable private fun DrawerTab(icon:String,on:Boolean,go:()->Unit){FilledTonalButton(go,Modifier.size(58.dp),contentPadding=PaddingValues(0.dp),shape=RoundedCornerShape(18.dp),colors=ButtonDefaults.filledTonalButtonColors(containerColor=if(on)Color(0xffffd998)else Color(0xff3b1c11))){Text(icon,color=if(on)Color(0xff3b1c11)else Color(0xffffe2ad),fontSize=22.sp)}}

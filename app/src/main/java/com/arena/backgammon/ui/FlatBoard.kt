@@ -29,7 +29,7 @@ fun boardPalette(t:BoardTheme)=when(t){
  val p=boardPalette(theme);val texture=ImageBitmap.imageResource(when(theme){BoardTheme.PREMIUM_WOOD->R.drawable.premium_walnut_texture;BoardTheme.MARBLE_STONE->R.drawable.ivory_marble_texture;BoardTheme.SMOKED_GLASS->R.drawable.smoked_glass_texture});val materialBrush=remember(texture){ShaderBrush(ImageShader(texture,TileMode.Mirror,TileMode.Mirror))};val pulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse")
  var previous by remember{mutableStateOf(state.position.copyDeep())};var motion by remember{mutableStateOf<CheckerMotion?>(null)};val travel=remember{Animatable(1f)}
  LaunchedEffect(state.position.points.contentHashCode(),state.position.barWhite,state.position.barBlack,state.position.offWhite,state.position.offBlack){
-  val now=state.position;val mover=previous.turn;val sign=mover.sign
+  val now=state.position;val mover=now.turn;val sign=mover.sign
   if(!previous.points.contentEquals(now.points)||previous.bar(mover)!=now.bar(mover)||previous.off(mover)!=now.off(mover)){
    val from=(0..23).firstOrNull{previous.points[it]*sign>now.points[it]*sign}?:if(previous.bar(mover)>now.bar(mover))Move.BAR else null
    val to=(0..23).firstOrNull{now.points[it]*sign>previous.points[it]*sign}?:if(now.off(mover)>previous.off(mover))Move.OFF else null
