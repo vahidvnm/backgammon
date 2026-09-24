@@ -37,11 +37,11 @@ fun boardPalette(t:BoardTheme)=when(t){
   }else previous=now.copyDeep()
  }
  Canvas(modifier.pointerInput(state,selected){detectTapGestures{tap->
-  val rail=size.width*.032f;val barW=size.width*.083f;val playLeft=rail;val playRight=size.width-size.width*.060f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half
+  val rail=size.width*.032f;val barW=size.width*.062f;val playLeft=rail;val playRight=size.width-size.width*.060f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half
   val bar=tap.x in (barLeft-barW*.28f)..(barLeft+barW*1.28f);val off=tap.x>playRight;val local=if(tap.x<barLeft)tap.x-playLeft else tap.x-(barLeft+barW)+half
   val col=(local/(half/6)).toInt().coerceIn(0,11);val point=if(tap.y<size.height/2)12+col else 11-col;val target=when{off->Move.OFF;bar->Move.BAR;else->point};val choices=legal.filter{it.from==selected&&it.to==target};if(choices.isNotEmpty())move(choices.maxBy{it.die})else if(selected!=null&&target!=Move.BAR&&combine(selected,target))Unit else {val owns=target==Move.BAR&&state.position.bar(state.position.turn)>0||target in 0..23&&state.position.points[target]*state.position.turn.sign>0;if(owns)select(target)}
  }}){
-  val rail=size.width*.032f;val barW=size.width*.083f;val playLeft=rail;val playRight=size.width-size.width*.060f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half;val cw=half/6
+  val rail=size.width*.032f;val barW=size.width*.062f;val playLeft=rail;val playRight=size.width-size.width*.060f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half;val cw=half/6
   // The board is constructed as wood surfaces and vertical walls, rather than dark outline bands.
   drawRoundRect(materialBrush,cornerRadius=CornerRadius(13f));drawRoundRect(p.frame.copy(.42f),cornerRadius=CornerRadius(13f))
   drawRoundRect(Brush.verticalGradient(listOf(Color.White.copy(.24f),Color.Transparent,p.frameDark.copy(.22f))),cornerRadius=CornerRadius(13f),style=Stroke(4f))
@@ -50,13 +50,15 @@ fun boardPalette(t:BoardTheme)=when(t){
   drawRect(Brush.verticalGradient(listOf(p.frameDark.copy(.82f),p.frameDark.copy(.48f))),Offset(playLeft-wall,rail-wall),Size(playRight-playLeft+wall*2,size.height-rail*2+wall*2))
   drawRect(materialBrush,Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2));drawRect(p.field.copy(if(theme==BoardTheme.SMOKED_GLASS).55f else .14f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2))
   // Short directional contact shadows reveal the vertical wall without painting a broad brown band.
-  val lip=9f
-  drawRect(Brush.verticalGradient(listOf(Color.Black.copy(.34f),Color.Transparent)),Offset(playLeft,rail),Size(playRight-playLeft,lip))
-  drawRect(Brush.verticalGradient(listOf(Color.Transparent,Color.Black.copy(.30f))),Offset(playLeft,size.height-rail-lip),Size(playRight-playLeft,lip))
-  drawRect(Brush.horizontalGradient(listOf(Color.Black.copy(.30f),Color.Transparent)),Offset(playLeft,rail),Size(lip,size.height-rail*2))
-  drawRect(Brush.horizontalGradient(listOf(Color.Transparent,Color.Black.copy(.25f))),Offset(playRight-lip,rail),Size(lip,size.height-rail*2))
-  drawLine(Color.White.copy(.22f),Offset(playLeft+2f,rail+2f),Offset(playRight-2f,rail+2f),2f)
-  drawLine(Color.White.copy(.13f),Offset(playLeft+2f,rail+2f),Offset(playLeft+2f,size.height-rail-2f),1.5f)
+  val lip=16f
+  // Visible sloped walls make the bed read as wood removed from a solid slab.
+  drawRect(Brush.verticalGradient(listOf(p.frameDark.copy(.78f),p.frame.copy(.34f),Color.Transparent)),Offset(playLeft,rail),Size(playRight-playLeft,lip))
+  drawRect(Brush.verticalGradient(listOf(Color.Transparent,p.frame.copy(.24f),p.frameDark.copy(.72f))),Offset(playLeft,size.height-rail-lip),Size(playRight-playLeft,lip))
+  drawRect(Brush.horizontalGradient(listOf(p.frameDark.copy(.72f),p.frame.copy(.26f),Color.Transparent)),Offset(playLeft,rail),Size(lip,size.height-rail*2))
+  drawRect(Brush.horizontalGradient(listOf(Color.Transparent,p.frame.copy(.20f),p.frameDark.copy(.68f))),Offset(playRight-lip,rail),Size(lip,size.height-rail*2))
+  drawLine(Color.White.copy(.30f),Offset(playLeft+3f,rail+3f),Offset(playRight-3f,rail+3f),2f)
+  drawLine(Color.White.copy(.20f),Offset(playLeft+3f,rail+3f),Offset(playLeft+3f,size.height-rail-3f),2f)
+  drawLine(Color.Black.copy(.30f),Offset(playLeft+4f,size.height-rail-3f),Offset(playRight-4f,size.height-rail-3f),2f)
   // A full-height timber beam physically joins the upper and lower rails.
   drawRect(Color.Black.copy(.34f),Offset(barLeft+barW+2f,0f),Size(7f,size.height))
   drawRect(materialBrush,Offset(barLeft,0f),Size(barW,size.height))
@@ -106,7 +108,7 @@ fun boardPalette(t:BoardTheme)=when(t){
   fun center(point:Int,index:Int):Offset{val col=if(point<12)11-point else point-12;val x=if(col<6)playLeft+(col+.5f)*cw else barLeft+barW+(col-5.5f)*cw;val r=cw*.262f;val gap=min(r*1.72f,(size.height*.37f)/5);return Offset(x,if(point>=12)rail+r+index.coerceAtMost(4)*gap else size.height-rail-r-index.coerceAtMost(4)*gap)}
   fun DrawScope.piece(c:Offset,r:Float,white:Boolean,on:Boolean=false,available:Boolean=false){
    val base=when(theme){BoardTheme.PREMIUM_WOOD->if(white)Color(0xffe2c58d)else Color(0xff603326);BoardTheme.MARBLE_STONE->if(white)Color(0xffe8e8e2)else Color(0xff34434d);BoardTheme.SMOKED_GLASS->if(white)Color(0xffb5edf0)else Color(0xff123b52)}
-   val edge=if(white)base.copy(.78f)else Color(0xff170d0c)
+   val edge=if(white)Color(0xffa77d48)else Color(0xff21100d)
    val topC=c-Offset(0f,r*.07f)
    drawOval(Color.Black.copy(.40f),Offset(c.x-r*.93f,c.y-r*.63f),Size(r*1.86f,r*1.78f))
    drawCircle(edge,r,c+Offset(0f,r*.05f));drawCircle(Brush.verticalGradient(listOf(base.copy(.95f),edge.copy(.82f))),r*.96f,c)
