@@ -16,7 +16,7 @@ import com.arena.backgammon.core.*
 import com.arena.backgammon.data.*
 import kotlin.math.*
 
-private data class CheckerMotion(val from:Int,val to:Int,val white:Boolean)
+private data class CheckerMotion(val from:Int,val to:Int,val white:Boolean,val fromIndex:Int=0,val toIndex:Int=0)
 data class BoardPalette(val frame:Color,val frameDark:Color,val field:Color,val pointA:Color,val pointB:Color,val light:Color,val dark:Color,val accent:Color)
 fun boardPalette(t:BoardTheme)=when(t){
  BoardTheme.PREMIUM_WOOD->BoardPalette(Color(0xff75402b),Color(0xff2f160d),Color(0xffbd8a61),Color(0xffd8bd8d),Color(0xff6d2730),Color(0xffffdfa0),Color(0xff351a15),Color(0xffd7b25b))
@@ -28,14 +28,13 @@ fun boardPalette(t:BoardTheme)=when(t){
 @Composable fun FlatBoard(state:TurnState,theme:BoardTheme,pieces:PieceStyle,selected:Int?,legal:List<Move>,select:(Int)->Unit,move:(Move)->Unit,combine:(Int,Int)->Boolean={_,_->false},modifier:Modifier=Modifier){
  val p=boardPalette(theme);val texture=ImageBitmap.imageResource(when(theme){BoardTheme.PREMIUM_WOOD->R.drawable.premium_walnut_texture;BoardTheme.MARBLE_STONE->R.drawable.ivory_marble_texture;BoardTheme.SMOKED_GLASS->R.drawable.smoked_glass_texture});val materialBrush=remember(texture){ShaderBrush(ImageShader(texture,TileMode.Mirror,TileMode.Mirror))};val pulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse")
  var previous by remember{mutableStateOf(state.position.copyDeep())};var motion by remember{mutableStateOf<CheckerMotion?>(null)};val travel=remember{Animatable(1f)}
- LaunchedEffect(state.position){
+ LaunchedEffect(state.position.points.contentHashCode(),state.position.barWhite,state.position.barBlack,state.position.offWhite,state.position.offBlack){
   val now=state.position;val mover=previous.turn;val sign=mover.sign
   if(!previous.points.contentEquals(now.points)||previous.bar(mover)!=now.bar(mover)||previous.off(mover)!=now.off(mover)){
    val from=(0..23).firstOrNull{previous.points[it]*sign>now.points[it]*sign}?:if(previous.bar(mover)>now.bar(mover))Move.BAR else null
    val to=(0..23).firstOrNull{now.points[it]*sign>previous.points[it]*sign}?:if(now.off(mover)>previous.off(mover))Move.OFF else null
-   if(from!=null&&to!=null){motion=CheckerMotion(from,to,mover==Player.WHITE);travel.snapTo(0f);travel.animateTo(1f,tween(1080,easing=FastOutSlowInEasing));motion=null}
-  }
-  previous=now.copyDeep()
+   if(from!=null&&to!=null){val fromIndex=if(from in 0..23)(abs(previous.points[from])-1).coerceAtLeast(0)else 0;val toIndex=if(to in 0..23)(abs(now.points[to])-1).coerceAtLeast(0)else 0;motion=CheckerMotion(from,to,mover==Player.WHITE,fromIndex,toIndex);previous=now.copyDeep();travel.snapTo(0f);travel.animateTo(1f,tween(1080,easing=FastOutSlowInEasing));motion=null}else previous=now.copyDeep()
+  }else previous=now.copyDeep()
  }
  Canvas(modifier.pointerInput(state,selected){detectTapGestures{tap->
   val rail=size.width*.032f;val barW=size.width*.083f;val playLeft=rail;val playRight=size.width-size.width*.060f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half
@@ -123,7 +122,7 @@ fun boardPalette(t:BoardTheme)=when(t){
   if(active?.to!=Move.BAR){val br=cw*.238f;for(i in 0 until min(state.position.barWhite,8))piece(Offset(barLeft+barW/2,size.height*.57f+i*br*.48f),br,true,selected==Move.BAR&&i==min(state.position.barWhite,8)-1,legal.any{it.from==Move.BAR}&&i==min(state.position.barWhite,8)-1);for(i in 0 until min(state.position.barBlack,8))piece(Offset(barLeft+barW/2,size.height*.43f-i*br*.48f),br,false,selected==Move.BAR&&i==min(state.position.barBlack,8)-1,legal.any{it.from==Move.BAR}&&i==min(state.position.barBlack,8)-1)}
   fun DrawScope.offChip(y:Float,white:Boolean){val chipW=trayW*.68f;val chipH=((trayH-16f)/15f)*.66f;val base=if(white)Color(0xffe2c58d)else Color(0xff603326);drawRoundRect(Color.Black.copy(.38f),Offset(trayX+(trayW-chipW)/2+1f,y+2f),Size(chipW,chipH),CornerRadius(chipH/2));drawRoundRect(Brush.verticalGradient(listOf(Color.White.copy(.42f),base,base.copy(.72f))),Offset(trayX+(trayW-chipW)/2,y),Size(chipW,chipH),CornerRadius(chipH/2));drawLine(Color.White.copy(.30f),Offset(trayX+(trayW-chipW)/2+3f,y+2f),Offset(trayX+(trayW+chipW)/2-3f,y+2f),1f)};val chipStep=(trayH-16f)/15f;for(i in 0 until state.position.offBlack)offChip(topWellY+8f+i*chipStep,false);for(i in 0 until state.position.offWhite)offChip(bottomWellY+trayH-8f-(i+1)*chipStep,true)
   active?.let{m->
-   fun endpoint(point:Int,start:Boolean):Offset=when(point){Move.BAR->Offset(barLeft+barW/2,if(m.white)size.height*.62f else size.height*.38f);Move.OFF->Offset(playRight+(size.width-playRight)/2,if(m.white)size.height*.68f else size.height*.32f);else->{val count=if(start)abs(previous.points[point])else abs(state.position.points[point]);center(point,(count-1).coerceAtLeast(0))}}
+   fun endpoint(point:Int,start:Boolean):Offset=when(point){Move.BAR->Offset(barLeft+barW/2,if(m.white)size.height*.62f else size.height*.38f);Move.OFF->Offset(playRight+(size.width-playRight)/2,if(m.white)size.height*.68f else size.height*.32f);else->center(point,if(start)m.fromIndex else m.toIndex)}
    val a=endpoint(m.from,true);val b=endpoint(m.to,false);val q=travel.value*travel.value*(3f-2f*travel.value);val moving=Offset(a.x+(b.x-a.x)*q,a.y+(b.y-a.y)*q);val lift=sin(Math.PI.toFloat()*q);drawOval(Color.Black.copy(.25f-.11f*lift),Offset(moving.x-cw*(.25f+.04f*lift),moving.y+cw*(.19f+.07f*lift)),Size(cw*(.50f+.08f*lift),cw*(.15f+.03f*lift)));piece(moving,cw*(.272f+.014f*lift),m.white,true)
   }
   legal.filter{it.from==selected}.forEach{m->val c=if(m.to==Move.OFF)Offset(playRight+(size.width-playRight)/2,size.height/2)else center(m.to,abs(state.position.points[m.to]).coerceAtMost(4));val arrow=Path().apply{moveTo(c.x,c.y-cw*.32f);lineTo(c.x+cw*.30f,c.y+cw*.25f);lineTo(c.x+cw*.10f,c.y+cw*.19f);lineTo(c.x,c.y+cw*.38f);lineTo(c.x-cw*.10f,c.y+cw*.19f);lineTo(c.x-cw*.30f,c.y+cw*.25f);close()};drawPath(arrow,Color(0xffffd43b).copy(.68f+.28f*pulse));drawPath(arrow,Color(0xff4a2b00),style=Stroke(2.2f))}
