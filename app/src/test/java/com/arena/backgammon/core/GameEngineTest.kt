@@ -87,6 +87,20 @@ class GameEngineTest {
         assertEquals(4, GameEngine.sequences(p, listOf(2, 2, 2, 2)).single().size)
     }
 
+    @Test fun movePlansDescribeDirectAndCompoundDiceRoutes() {
+        val p = position(white = mapOf(7 to 1), offWhite = 14)
+        val plans = GameEngine.movePlans(p, listOf(2, 3), 7)
+        assertTrue(plans.any { it.to == 5 && it.dice == listOf(2) })
+        assertTrue(plans.any { it.to == 2 && it.dice.sum() == 5 && it.moves.size == 2 })
+    }
+
+    @Test fun movePlansNeverJumpToAnotherChecker() {
+        val p = position(white = mapOf(7 to 1, 4 to 1), offWhite = 13)
+        assertTrue(GameEngine.movePlans(p, listOf(3, 2), 7).all { plan ->
+            plan.moves.zipWithNext().all { (a, b) -> a.to == b.from }
+        })
+    }
+
     @Test fun turnCannotEndWhileALegalMoveRemains() {
         val state = TurnState(position(white = mapOf(5 to 1), offWhite = 14), listOf(1), rolled = true)
         assertThrows(IllegalArgumentException::class.java) { GameEngine.endTurn(state) }

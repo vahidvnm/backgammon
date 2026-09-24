@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.*
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.input.pointer.pointerInput
 import com.arena.backgammon.R
@@ -27,6 +28,8 @@ fun boardPalette(t:BoardTheme)=when(t){
 /** Precise top-down board inspired by classic mobile layouts, drawn entirely with original vector assets. */
 @Composable fun FlatBoard(state:TurnState,theme:BoardTheme,pieces:PieceStyle,selected:Int?,legal:List<Move>,select:(Int)->Unit,move:(Move)->Unit,combine:(Int,Int)->Boolean={_,_->false},modifier:Modifier=Modifier){
  val p=boardPalette(theme);val texture=ImageBitmap.imageResource(when(theme){BoardTheme.PREMIUM_WOOD->R.drawable.premium_walnut_texture;BoardTheme.MARBLE_STONE->R.drawable.ivory_marble_texture;BoardTheme.SMOKED_GLASS->R.drawable.smoked_glass_texture});val materialBrush=remember(texture){ShaderBrush(ImageShader(texture,TileMode.Mirror,TileMode.Mirror))};val pulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse")
+ val plans=if(selected==null)emptyList() else GameEngine.movePlans(state.position,state.dice,selected)
+ val displayPlans=plans.groupBy{it.to}.values.mapNotNull{routes->routes.maxByOrNull{it.moves.size}}
  var previous by remember{mutableStateOf(state.position.copyDeep())};var motion by remember{mutableStateOf<CheckerMotion?>(null)};val travel=remember{Animatable(1f)}
  LaunchedEffect(state.position.points.contentHashCode(),state.position.barWhite,state.position.barBlack,state.position.offWhite,state.position.offBlack){
   val now=state.position;val mover=now.turn;val sign=mover.sign
@@ -127,7 +130,16 @@ fun boardPalette(t:BoardTheme)=when(t){
    fun endpoint(point:Int,start:Boolean):Offset=when(point){Move.BAR->Offset(barLeft+barW/2,if(m.white)size.height*.62f else size.height*.38f);Move.OFF->Offset(playRight+(size.width-playRight)/2,if(m.white)size.height*.68f else size.height*.32f);else->center(point,if(start)m.fromIndex else m.toIndex)}
    val a=endpoint(m.from,true);val b=endpoint(m.to,false);val q=travel.value*travel.value*(3f-2f*travel.value);val moving=Offset(a.x+(b.x-a.x)*q,a.y+(b.y-a.y)*q);val lift=sin(Math.PI.toFloat()*q);drawOval(Color.Black.copy(.25f-.11f*lift),Offset(moving.x-cw*(.25f+.04f*lift),moving.y+cw*(.19f+.07f*lift)),Size(cw*(.50f+.08f*lift),cw*(.15f+.03f*lift)));piece(moving,cw*(.272f+.014f*lift),m.white,true)
   }
-  legal.filter{it.from==selected}.forEach{m->val c=if(m.to==Move.OFF)Offset(playRight+(size.width-playRight)/2,size.height/2)else center(m.to,abs(state.position.points[m.to]).coerceAtMost(4));val arrow=Path().apply{moveTo(c.x,c.y-cw*.32f);lineTo(c.x+cw*.30f,c.y+cw*.25f);lineTo(c.x+cw*.10f,c.y+cw*.19f);lineTo(c.x,c.y+cw*.38f);lineTo(c.x-cw*.10f,c.y+cw*.19f);lineTo(c.x-cw*.30f,c.y+cw*.25f);close()};drawPath(arrow,Color(0xffffd43b).copy(.68f+.28f*pulse));drawPath(arrow,Color(0xff4a2b00),style=Stroke(2.2f))}
+  // Ghost destinations show the actual checker landing place and every die consumed by the route.
+  displayPlans.forEach{plan->
+   fun marker(point:Int):Offset=when(point){Move.BAR->Offset(barLeft+barW/2,size.height/2);Move.OFF->Offset(playRight+(size.width-playRight)/2,size.height/2);else->center(point,abs(state.position.points[point]).coerceAtMost(4))}
+   val routePoints=mutableListOf(marker(plan.from)).apply{plan.moves.forEach{add(marker(it.to))}}
+   for(i in 0 until routePoints.lastIndex)drawLine(Color(0xffffdf68).copy(.34f+.20f*pulse),routePoints[i],routePoints[i+1],3f,pathEffect=PathEffect.dashPathEffect(floatArrayOf(10f,7f)))
+   val c=routePoints.last();val white=state.position.turn==Player.WHITE;val ghostBase=if(white)Color(0xffffe5b0)else Color(0xff49261d)
+   drawCircle(Color.Black.copy(.22f),cw*.30f,c+Offset(1.5f,3f));drawCircle(ghostBase.copy(.30f+.14f*pulse),cw*.285f,c);drawCircle(Color(0xffffdc63).copy(.92f),cw*.285f,c,style=Stroke(2.4f));drawCircle(Color.White.copy(.22f),cw*.19f,c,style=Stroke(1.4f))
+   val label=plan.dice.joinToString("+");val paint=android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply{color=android.graphics.Color.rgb(62,35,10);textAlign=android.graphics.Paint.Align.CENTER;textSize=cw*.22f;typeface=android.graphics.Typeface.DEFAULT_BOLD}
+   drawContext.canvas.nativeCanvas.drawText(label,c.x,c.y+paint.textSize*.36f,paint)
+  }
   drawLine(Color.White.copy(.2f),Offset(rail,size.height/2),Offset(playRight,size.height/2),2f)
  }
 }

@@ -46,9 +46,8 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
  fun move(m:Move){if(!humanCanMove()||m !in GameEngine.legalMoves(_game.value.position,_game.value.dice))return;history.addLast(_game.value.copy(position=_game.value.position.copyDeep()));_game.value=GameEngine.afterMove(_game.value,m);if(_game.value.winner!=null)scoreGame();else autoEnd()}
  fun moveCombined(from:Int,to:Int):Boolean{
   if(!humanCanMove())return false
-  fun search(s:TurnState,current:Int,path:List<Move>):List<List<Move>>{if(path.size>=4||s.dice.isEmpty())return listOf(path);val next=GameEngine.legalMoves(s.position,s.dice).filter{it.from==current};return listOf(path)+next.flatMap{search(GameEngine.afterMove(s,it),it.to,path+it)}}
-  val chosen=search(_game.value,from,emptyList()).filter{it.size>1&&it.last().to==to}.maxByOrNull{it.size}?:return false
-  history.addLast(_game.value.copy(position=_game.value.position.copyDeep()));var s=_game.value;chosen.forEach{s=GameEngine.afterMove(s,it)};_game.value=s
+  val chosen=GameEngine.movePlans(_game.value.position,_game.value.dice,from).filter{it.moves.size>1&&it.to==to}.maxByOrNull{it.moves.size}?:return false
+  history.addLast(_game.value.copy(position=_game.value.position.copyDeep()));var s=_game.value;chosen.moves.forEach{s=GameEngine.afterMove(s,it)};_game.value=s
   if(s.winner!=null)scoreGame()else autoEnd();return true
  }
  fun toggleAutoAssist(){_autoAssist.value=!_autoAssist.value;if(!_autoAssist.value){if(_game.value.position.turn==Player.WHITE)turnJob?.cancel()}else if(_game.value.rolled)autoAssistTurn()}

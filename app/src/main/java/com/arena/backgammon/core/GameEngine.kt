@@ -2,6 +2,10 @@ package com.arena.backgammon.core
 
 enum class Player(val sign: Int) { WHITE(1), BLACK(-1); fun other() = if (this == WHITE) BLACK else WHITE }
 data class Move(val from: Int, val to: Int, val die: Int) { companion object { const val BAR = 24; const val OFF = 25 } }
+/** A direct or compound route for one checker, including exactly which dice it consumes. */
+data class MovePlan(val from: Int, val to: Int, val moves: List<Move>) {
+    val dice: List<Int> get() = moves.map { it.die }
+}
 data class Position(
     val points: IntArray = initialPoints(),
     val barWhite: Int = 0, val barBlack: Int = 0,
@@ -82,6 +86,25 @@ object GameEngine {
     }
 
     fun legalMoves(pos: Position, dice: List<Int>) = sequences(pos, dice).mapNotNull { it.firstOrNull() }.distinct()
+
+    /** Every legal destination reachable by moving the same checker through consecutive dice. */
+    fun movePlans(pos: Position, dice: List<Int>, from: Int): List<MovePlan> {
+        val plans = mutableListOf<MovePlan>()
+        sequences(pos, dice).forEach { sequence ->
+            if (sequence.firstOrNull()?.from != from) return@forEach
+            val route = mutableListOf<Move>()
+            var expectedFrom = from
+            for (move in sequence) {
+                if (move.from != expectedFrom) break
+                route += move
+                plans += MovePlan(from, move.to, route.toList())
+                expectedFrom = move.to
+                if (move.to == Move.OFF) break
+            }
+        }
+        return plans.distinctBy { Triple(it.to, it.dice, it.moves.size) }
+    }
+
     fun afterMove(state: TurnState, move: Move): TurnState {
         require(move in legalMoves(state.position, state.dice))
         val nextPos = apply(state.position, move)
