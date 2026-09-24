@@ -9,7 +9,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.*
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.input.pointer.pointerInput
 import com.arena.backgammon.R
@@ -47,12 +46,12 @@ fun boardPalette(t:BoardTheme)=when(t){
  }}){
   val rail=size.width*.032f;val barW=size.width*.062f;val playLeft=rail;val playRight=size.width-size.width*.060f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half;val cw=half/6
   // The board is constructed as wood surfaces and vertical walls, rather than dark outline bands.
-  drawRoundRect(materialBrush,cornerRadius=CornerRadius(13f));drawRoundRect(p.frame.copy(.42f),cornerRadius=CornerRadius(13f))
+  drawRoundRect(materialBrush,cornerRadius=CornerRadius(13f));drawRoundRect(p.frame.copy(.50f),cornerRadius=CornerRadius(13f))
   drawRoundRect(Brush.verticalGradient(listOf(Color.White.copy(.24f),Color.Transparent,p.frameDark.copy(.22f))),cornerRadius=CornerRadius(13f),style=Stroke(4f))
   val wall=rail*.42f
   // A continuous dark vertical wall surrounds the carved playing bed.
   drawRect(Brush.verticalGradient(listOf(p.frameDark.copy(.82f),p.frameDark.copy(.48f))),Offset(playLeft-wall,rail-wall),Size(playRight-playLeft+wall*2,size.height-rail*2+wall*2))
-  drawRect(materialBrush,Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2));drawRect(p.field.copy(if(theme==BoardTheme.SMOKED_GLASS).55f else .14f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2))
+  drawRect(materialBrush,Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2));drawRect(p.field.copy(if(theme==BoardTheme.SMOKED_GLASS).62f else .32f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2));drawRect(Color(0xffffead0).copy(if(theme==BoardTheme.PREMIUM_WOOD).055f else .025f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2))
   // Short directional contact shadows reveal the vertical wall without painting a broad brown band.
   val lip=16f
   // Visible sloped walls make the bed read as wood removed from a solid slab.
@@ -97,7 +96,7 @@ fun boardPalette(t:BoardTheme)=when(t){
    BoardTheme.SMOKED_GLASS->{val sheen=Brush.linearGradient(listOf(Color.White.copy(.14f),Color.Transparent,Color(0xff6de7ef).copy(.09f)));drawRect(sheen,Offset(playLeft,rail),Size(half,size.height-rail*2));drawRect(sheen,Offset(barLeft+barW,rail),Size(half,size.height-rail*2));for(i in 0..5){drawLine(Color.White.copy(.055f),Offset(playLeft+i*70f,rail),Offset(playLeft+i*70f+140f,size.height-rail),1.2f);drawLine(Color.White.copy(.055f),Offset(barLeft+barW+i*70f,rail),Offset(barLeft+barW+i*70f+140f,size.height-rail),1.2f)}}
   }
   // Soft cavity vignette keeps the bed below the illuminated rails.
-  drawRect(Brush.radialGradient(listOf(Color.Transparent,Color.Black.copy(.075f)),Offset((playLeft+playRight)/2,size.height/2),max(size.width,size.height)*.62f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2))
+  drawRect(Brush.radialGradient(listOf(Color.Transparent,Color.Black.copy(.045f)),Offset((playLeft+playRight)/2,size.height/2),max(size.width,size.height)*.62f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2))
   drawLine(Color.White.copy(.15f),Offset(5f,8f),Offset(5f,size.height-10f),2f);drawLine(p.frameDark.copy(.42f),Offset(size.width-6f,10f),Offset(size.width-6f,size.height-10f),3f)
   for(i in 0..7){val y=(i+.5f)*size.height/8f;drawLine(Color.Black.copy(.10f),Offset(3f,y),Offset(rail*.9f,y+sin(i.toFloat())*6f),1.2f);drawLine(Color.White.copy(.07f),Offset(playRight,y),Offset(size.width-4f,y+cos(i.toFloat())*5f),1f)}
   val trayX=playRight+size.width*.006f;val trayW=size.width-playRight-size.width*.012f;val trayH=size.height*.40f
@@ -156,9 +155,9 @@ fun boardPalette(t:BoardTheme)=when(t){
    if(guidance==GuidanceMode.COACH)for(i in 0 until routePoints.lastIndex)drawLine(Color(0xffffdf68).copy(.34f+.20f*pulse),routePoints[i],routePoints[i+1],3f,pathEffect=PathEffect.dashPathEffect(floatArrayOf(10f,7f)))
    val c=routePoints.last();val white=state.position.turn==Player.WHITE;val ghostBase=if(white)Color(0xffffe5b0)else Color(0xff49261d)
    drawCircle(Color.Black.copy(.22f),cw*.30f,c+Offset(1.5f,3f));drawCircle(ghostBase.copy(.30f+.14f*pulse),cw*.285f,c);drawCircle(Color(0xffffdc63).copy(.92f),cw*.285f,c,style=Stroke(2.4f));drawCircle(Color.White.copy(.22f),cw*.19f,c,style=Stroke(1.4f))
-   val label=plan.dice.joinToString("+");val paint=android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply{color=android.graphics.Color.rgb(62,35,10);textAlign=android.graphics.Paint.Align.CENTER;textSize=cw*.22f;typeface=android.graphics.Typeface.DEFAULT_BOLD}
-   drawContext.canvas.nativeCanvas.drawText(label,c.x,c.y+paint.textSize*.36f,paint)
+   // Physical miniature dice communicate the route without game-like numeric labels.
+   val dieSide=cw*.205f;val dieGap=cw*.035f;val total=plan.dice.size*dieSide+(plan.dice.size-1).coerceAtLeast(0)*dieGap
+   plan.dice.forEachIndexed{index,value->val left=c.x-total/2+index*(dieSide+dieGap);val top=c.y-cw*.43f;drawRoundRect(Color.Black.copy(.28f),Offset(left+1.2f,top+1.8f),Size(dieSide,dieSide),CornerRadius(dieSide*.24f));drawRoundRect(Color(0xffffe7b2).copy(.96f),Offset(left,top),Size(dieSide,dieSide),CornerRadius(dieSide*.24f));drawRoundRect(Color(0xff7b4b2b).copy(.72f),Offset(left,top),Size(dieSide,dieSide),CornerRadius(dieSide*.24f),style=Stroke(1f));val lo=.29f;val hi=.71f;val mid=.5f;val spots=when(value){1->listOf(mid to mid);2->listOf(lo to lo,hi to hi);3->listOf(lo to lo,mid to mid,hi to hi);4->listOf(lo to lo,hi to lo,lo to hi,hi to hi);5->listOf(lo to lo,hi to lo,mid to mid,lo to hi,hi to hi);else->listOf(lo to .23f,hi to .23f,lo to mid,hi to mid,lo to .77f,hi to .77f)};spots.forEach{spot->drawCircle(Color(0xff442417),dieSide*.075f,Offset(left+dieSide*spot.first,top+dieSide*spot.second))}}
   }
-  drawLine(Color.White.copy(.2f),Offset(rail,size.height/2),Offset(playRight,size.height/2),2f)
  }
 }

@@ -87,7 +87,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
   Box(Modifier.align(Alignment.Center).fillMaxWidth(layout.widthFraction).fillMaxHeight(layout.heightFraction).graphicsLayer{shadowElevation=34.dp.toPx();shape=RoundedCornerShape(13.dp);clip=false}.clip(RoundedCornerShape(13.dp)).background(Brush.verticalGradient(listOf(Color(0xffa56d45),Color(0xff542a18)))).border(1.dp,Color(0xffe3a875).copy(.55f),RoundedCornerShape(13.dp))){
    FlatBoard(game,settings.theme,settings.pieces,selected,legal,{selected=it;haptic()},{vm.move(it);selected=null;haptic()},{from,to->vm.moveCombined(from,to).also{if(it){selected=null;haptic()}}},Modifier.fillMaxSize().padding(top=30.dp,start=3.dp,end=3.dp,bottom=3.dp),scene=settings.tableScene,guidance=settings.guidanceMode)
    TopGameBar(settings.difficulty,settings.aiPersona,match,if(match.thinking)"AI THINKING" else if(rolling)"ROLLING" else if(game.position.turn==Player.WHITE)"YOUR TURN" else "AI TURN",{panel="menu"},{panel="settings"},Modifier.align(Alignment.TopCenter))
-   BarEngraving("UNDO",Modifier.align(Alignment.BottomCenter).absoluteOffset(x=(-12).dp).padding(bottom=24.dp)){vm.undo()}
+   BarEngraving("UNDO",Modifier.align(Alignment.BottomCenter).padding(bottom=27.dp)){vm.undo()}
    if(!game.rolled&&!rolling&&!match.thinking&&game.position.turn==Player.WHITE&&match.pendingDoubleBy==null&&(match.cubeOwner==null||match.cubeOwner==Player.WHITE))InlayButton("DOUBLE  ×${match.cube*2}",Modifier.align(Alignment.Center).absoluteOffset(x=layout.actionOffsetDp.dp)){vm.offerDouble()}
    if((game.rolled&&!rolling&&game.position.turn==Player.WHITE)||autoAssist)InlayButton(if(autoAssist)"AUTO ON" else "AUTO OFF",Modifier.align(Alignment.Center).absoluteOffset(x=layout.actionOffsetDp.dp)){vm.toggleAutoAssist()}
   }
@@ -173,7 +173,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
 @Composable private fun SceneArrow(text:String,modifier:Modifier=Modifier,go:()->Unit){Box(modifier.size(38.dp,72.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xff17110e).copy(.64f)).border(1.dp,Color.White.copy(.38f),RoundedCornerShape(18.dp)).clickable(onClick=go),contentAlignment=Alignment.Center){Text(text,color=Color.White,fontSize=34.sp,fontWeight=FontWeight.Light)}}
 @Composable private fun BarEngraving(text:String,modifier:Modifier=Modifier,go:()->Unit){
  val shape=RoundedCornerShape(4.dp)
- Box(modifier.width(52.dp).height(18.dp).graphicsLayer{shadowElevation=1.dp.toPx();this.shape=shape}.clip(shape).background(Brush.verticalGradient(listOf(Color.Black.copy(.22f),Color(0xff4a2819).copy(.22f),Color.White.copy(.07f)))).border(1.dp,Color(0xff251108).copy(.66f),shape).clickable(onClick=go),contentAlignment=Alignment.Center){
+ Box(modifier.width(50.dp).height(24.dp).graphicsLayer{shadowElevation=1.dp.toPx();this.shape=shape}.clip(shape).background(Brush.verticalGradient(listOf(Color.Black.copy(.22f),Color(0xff4a2819).copy(.22f),Color.White.copy(.07f)))).border(1.dp,Color(0xff251108).copy(.66f),shape).clickable(onClick=go),contentAlignment=Alignment.Center){
   Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.TopCenter).background(Color.Black.copy(.45f)));Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.BottomCenter).background(Color(0xffd7a16d).copy(.24f)))
   Text(text,Modifier.offset(y=1.dp),color=Color.White.copy(.14f),fontSize=9.sp,fontWeight=FontWeight.Black,letterSpacing=1.2.sp);Text(text,Modifier.offset(y=(-.5).dp),color=Color(0xff211008),fontSize=9.sp,fontWeight=FontWeight.Black,letterSpacing=1.2.sp)
  }
