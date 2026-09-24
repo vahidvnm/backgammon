@@ -99,14 +99,15 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
  Box(Modifier.fillMaxSize().background(Color.Black.copy(.24f)).clickable(onClick=close)){
   AnimatedContent(kind,modifier=Modifier.align(Alignment.CenterEnd).widthIn(min=275.dp,max=345.dp).padding(end=22.dp),transitionSpec={slideInHorizontally(tween(330)){it}+fadeIn() togetherWith slideOutHorizontally(tween(250)){it}+fadeOut()},label="woodMenu"){page->
    Column(horizontalAlignment=Alignment.End,verticalArrangement=Arrangement.spacedBy(11.dp)){
-    val nested=page in listOf("themes","difficulty","sound")
+    val nested=page in listOf("themes","difficulty","sound","dice")
     WoodMenuPlank(if(nested)"‹  SETTINGS" else when(page){"menu"->"MATCH MENU";else->"GAME SETTINGS"},"Score ${match.whiteScore} — ${match.blackScore}",large=true){if(nested)switch("settings")else close()}
     when(page){
      "menu"->{WoodMenuPlank("RESUME","Return to the board",go=close);WoodMenuPlank("UNDO LAST MOVE","Restore the previous position"){vm.undo();close()};WoodMenuPlank("MAIN MENU","Leave this match"){vm.menu()}}
      "themes"->BoardTheme.entries.forEach{t->WoodMenuPlank(t.name.replace('_',' '),if(t==s.theme)"◆  SELECTED" else "Board material"){vm.update(s.copy(theme=t))}}
      "difficulty"->Difficulty.entries.forEach{d->WoodMenuPlank(d.name,if(d==s.difficulty)"◆  SELECTED" else "AI strength"){vm.update(s.copy(difficulty=d))}}
      "sound"->{WoodTogglePlank("SOUND EFFECTS",s.sound){vm.update(s.copy(sound=it))};WoodTogglePlank("HAPTIC FEEDBACK",s.vibration){vm.update(s.copy(vibration=it))};WoodTogglePlank("SMOOTH ANIMATIONS",s.animations){vm.update(s.copy(animations=it))}}
-     else->{WoodMenuPlank("SOUND & FEEL",if(s.sound)"Sound on" else "Sound off"){switch("sound")};WoodMenuPlank("BOARD THEME",s.theme.name.replace('_',' ')){switch("themes")};WoodMenuPlank("AI DIFFICULTY",s.difficulty.name){switch("difficulty")}}
+     "dice"->{val labels=mapOf(DoublesRate.NATURAL to "Natural • 16.7%",DoublesRate.REDUCED_20 to "20% fewer • 13.3%",DoublesRate.REDUCED_50 to "50% fewer • 8.3%",DoublesRate.NEVER to "No doubles • 0%");DoublesRate.entries.forEach{rate->WoodMenuPlank(labels[rate]!!,if(rate==s.doublesRate)"◆  SELECTED — applies equally to both" else "Same rule for player and AI"){vm.update(s.copy(doublesRate=rate))}}}
+     else->{WoodMenuPlank("SOUND & FEEL",if(s.sound)"Sound on" else "Sound off"){switch("sound")};WoodMenuPlank("DICE — DOUBLES",when(s.doublesRate){DoublesRate.NATURAL->"Natural probability";DoublesRate.REDUCED_20->"20% fewer doubles";DoublesRate.REDUCED_50->"50% fewer doubles";DoublesRate.NEVER->"Doubles disabled"}){switch("dice")};WoodMenuPlank("BOARD THEME",s.theme.name.replace('_',' ')){switch("themes")};WoodMenuPlank("AI DIFFICULTY",s.difficulty.name){switch("difficulty")}}
     }
    }
   }
