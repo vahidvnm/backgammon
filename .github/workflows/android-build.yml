@@ -28,7 +28,7 @@ jobs:
       - name: Build and test debug APK
         run: |
           set -o pipefail
-          ./gradlew testDebugUnitTest assembleDebug --stacktrace 2>&1 | tee build.log
+          ./gradlew testDebugUnitTest lintDebug assembleDebug --stacktrace 2>&1 | tee build.log
       - name: Surface compiler diagnostics
         if: failure()
         run: |

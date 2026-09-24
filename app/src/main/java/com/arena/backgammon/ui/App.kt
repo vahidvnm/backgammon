@@ -77,20 +77,21 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
  fun haptic(){if(settings.vibration){val v=context.getSystemService(android.os.Vibrator::class.java);if(Build.VERSION.SDK_INT>=26)v?.vibrate(VibrationEffect.createOneShot(22,70))else @Suppress("DEPRECATION")v?.vibrate(22)}}
  val palette=boardPalette(settings.theme);val background=when(settings.tableScene){TableScene.STARRY_SKY->R.drawable.table_starry_sky;TableScene.AUTUMN_SUNSET->R.drawable.table_autumn_sunset;TableScene.PERSIAN_RUG->R.drawable.table_persian_rug;TableScene.DARK_RIVER->R.drawable.table_dark_river}
  fun cycleScene(step:Int){val all=TableScene.entries;val next=all[(all.indexOf(settings.tableScene)+step+all.size)%all.size];vm.update(settings.copy(tableScene=next))}
- Box(Modifier.fillMaxSize()){
+ BoxWithConstraints(Modifier.fillMaxSize()){
+  val layout=boardLayoutProfile(maxWidth.value,maxHeight.value)
   Image(painterResource(background),null,Modifier.fillMaxSize(),contentScale=ContentScale.Crop);Box(Modifier.fillMaxSize().background(Color.Black.copy(.06f)))
-  Box(Modifier.align(Alignment.Center).fillMaxWidth(.80f).fillMaxHeight(.88f).absoluteOffset(y=13.dp).clip(RoundedCornerShape(15.dp)).background(Color(0xff160806)).border(2.dp,Color.Black.copy(.75f),RoundedCornerShape(15.dp)))
-  Box(Modifier.align(Alignment.Center).fillMaxWidth(.80f).fillMaxHeight(.88f).absoluteOffset(y=7.dp).clip(RoundedCornerShape(14.dp)).background(Brush.verticalGradient(listOf(Color(0xff5b2a18),Color(0xff230d07)))).border(1.dp,Color(0xffb57549).copy(.55f),RoundedCornerShape(14.dp)))
-  Box(Modifier.align(Alignment.Center).fillMaxWidth(.80f).fillMaxHeight(.88f).graphicsLayer{shadowElevation=34.dp.toPx();shape=RoundedCornerShape(13.dp);clip=false}.clip(RoundedCornerShape(13.dp)).background(Brush.verticalGradient(listOf(Color(0xffa56d45),Color(0xff542a18)))).border(1.dp,Color(0xffe3a875).copy(.55f),RoundedCornerShape(13.dp))){
+  Box(Modifier.align(Alignment.Center).fillMaxWidth(layout.widthFraction).fillMaxHeight(layout.heightFraction).absoluteOffset(y=13.dp).clip(RoundedCornerShape(15.dp)).background(Color(0xff160806)).border(2.dp,Color.Black.copy(.75f),RoundedCornerShape(15.dp)))
+  Box(Modifier.align(Alignment.Center).fillMaxWidth(layout.widthFraction).fillMaxHeight(layout.heightFraction).absoluteOffset(y=7.dp).clip(RoundedCornerShape(14.dp)).background(Brush.verticalGradient(listOf(Color(0xff5b2a18),Color(0xff230d07)))).border(1.dp,Color(0xffb57549).copy(.55f),RoundedCornerShape(14.dp)))
+  Box(Modifier.align(Alignment.Center).fillMaxWidth(layout.widthFraction).fillMaxHeight(layout.heightFraction).graphicsLayer{shadowElevation=34.dp.toPx();shape=RoundedCornerShape(13.dp);clip=false}.clip(RoundedCornerShape(13.dp)).background(Brush.verticalGradient(listOf(Color(0xffa56d45),Color(0xff542a18)))).border(1.dp,Color(0xffe3a875).copy(.55f),RoundedCornerShape(13.dp))){
    FlatBoard(game,settings.theme,settings.pieces,selected,legal,{selected=it;haptic()},{vm.move(it);selected=null;haptic()},{from,to->vm.moveCombined(from,to).also{if(it){selected=null;haptic()}}},Modifier.fillMaxSize().padding(top=30.dp,start=3.dp,end=3.dp,bottom=3.dp),scene=settings.tableScene)
    TopGameBar(settings.difficulty,settings.aiPersona,match,if(match.thinking)"AI THINKING" else if(rolling)"ROLLING" else if(game.position.turn==Player.WHITE)"YOUR TURN" else "AI TURN",{panel="menu"},{panel="settings"},Modifier.align(Alignment.TopCenter))
    BarEngraving("UNDO",Modifier.align(Alignment.BottomCenter).absoluteOffset(x=(-12).dp).padding(bottom=24.dp)){vm.undo()}
-   if(!game.rolled&&!rolling&&!match.thinking&&game.position.turn==Player.WHITE&&match.pendingDoubleBy==null&&(match.cubeOwner==null||match.cubeOwner==Player.WHITE))InlayButton("DOUBLE  ×${match.cube*2}",Modifier.align(Alignment.Center).absoluteOffset(x=105.dp)){vm.offerDouble()}
-   if((game.rolled&&!rolling&&game.position.turn==Player.WHITE)||autoAssist)InlayButton(if(autoAssist)"AUTO ON" else "AUTO OFF",Modifier.align(Alignment.Center).absoluteOffset(x=105.dp)){vm.toggleAutoAssist()}
+   if(!game.rolled&&!rolling&&!match.thinking&&game.position.turn==Player.WHITE&&match.pendingDoubleBy==null&&(match.cubeOwner==null||match.cubeOwner==Player.WHITE))InlayButton("DOUBLE  ×${match.cube*2}",Modifier.align(Alignment.Center).absoluteOffset(x=layout.actionOffsetDp.dp)){vm.offerDouble()}
+   if((game.rolled&&!rolling&&game.position.turn==Player.WHITE)||autoAssist)InlayButton(if(autoAssist)"AUTO ON" else "AUTO OFF",Modifier.align(Alignment.Center).absoluteOffset(x=layout.actionOffsetDp.dp)){vm.toggleAutoAssist()}
   }
   if(clock.active)MatchClocks(clock,game.position.turn,Modifier.align(Alignment.TopCenter).fillMaxWidth(.70f).padding(top=5.dp))
   CarvedScoreCounter(match.whiteScore,match.blackScore,Modifier.align(Alignment.TopCenter).padding(top=2.dp))
-  if(game.dice.isNotEmpty()||rolling||(!game.rolled&&!(vm.mode==Mode.AI&&game.position.turn==Player.BLACK))) AnimatedDice(game.dice,settings.dice,rolling,{vm.roll();haptic()},Modifier.align(Alignment.Center).absoluteOffset(x=(-130).dp))
+  if(game.dice.isNotEmpty()||rolling||(!game.rolled&&!(vm.mode==Mode.AI&&game.position.turn==Player.BLACK))) AnimatedDice(game.dice,settings.dice,rolling,{vm.roll();haptic()},Modifier.align(Alignment.Center).absoluteOffset(x=layout.diceOffsetDp.dp))
   SceneArrow("‹",Modifier.align(Alignment.CenterStart).padding(start=8.dp)){cycleScene(-1)}
   SceneArrow("›",Modifier.align(Alignment.CenterEnd).padding(end=8.dp)){cycleScene(1)}
  }
