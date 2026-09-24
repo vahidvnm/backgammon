@@ -1,8 +1,0 @@
-# Temporary helper retained only until the CC0 wooden-dice recording is imported.
-name: Fetch CC0 wooden dice audio
-on: workflow_dispatch
-jobs:
-  audio:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Use the audio import job in android-build.yml"
