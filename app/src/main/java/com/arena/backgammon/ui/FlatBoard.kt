@@ -72,6 +72,14 @@ fun boardPalette(t:BoardTheme)=when(t){
   drawRect(Brush.horizontalGradient(listOf(Color.Transparent,p.frameDark.copy(.64f))),Offset(barLeft+barW-8f,0f),Size(8f,size.height))
   drawLine(Color.White.copy(.20f),Offset(barLeft+3f,2f),Offset(barLeft+barW-5f,2f),2f)
   drawLine(p.frameDark.copy(.62f),Offset(barLeft+3f,size.height-3f),Offset(barLeft+barW-4f,size.height-3f),3f)
+  // Routed inner panel, side walls and ornaments turn the centre bar into carved joinery.
+  drawRoundRect(Color.Black.copy(.28f),Offset(barLeft+barW*.18f,rail*.72f),Size(barW*.67f,size.height-rail*1.44f),CornerRadius(barW*.19f),style=Stroke(4f))
+  drawRoundRect(Color.White.copy(.12f),Offset(barLeft+barW*.22f,rail*.82f),Size(barW*.56f,size.height-rail*1.64f),CornerRadius(barW*.16f),style=Stroke(1.4f))
+  fun DrawScope.barDiamond(y:Float){val cx=barLeft+barW/2;val r=barW*.13f;val d=Path().apply{moveTo(cx,y-r);lineTo(cx+r,y);lineTo(cx,y+r);lineTo(cx-r,y);close()};drawPath(d,Color.Black.copy(.30f));drawPath(d,p.accent.copy(.32f),style=Stroke(1.5f))}
+  barDiamond(size.height*.14f);barDiamond(size.height*.86f)
+  // Two small recessed dice-rest pockets decorate the important central bridge.
+  fun DrawScope.diceBay(y:Float,alternate:Boolean){val side=barW*.48f;val x=barLeft+(barW-side)/2;drawRoundRect(Color.Black.copy(.35f),Offset(x+2f,y-side/2+3f),Size(side,side),CornerRadius(side*.20f));drawRoundRect(Brush.radialGradient(listOf(p.frame.copy(.20f),p.frameDark.copy(.42f))),Offset(x,y-side/2),Size(side,side),CornerRadius(side*.20f));drawRoundRect(Color.White.copy(.13f),Offset(x+2f,y-side/2+2f),Size(side-4f,side-4f),CornerRadius(side*.17f),style=Stroke(1.2f));val pip=side*.055f;val cx=x+side/2;if(alternate){drawCircle(p.frameDark.copy(.62f),pip,Offset(cx-side*.19f,y-side*.19f));drawCircle(p.frameDark.copy(.62f),pip,Offset(cx+side*.19f,y+side*.19f))}else{drawCircle(p.frameDark.copy(.62f),pip,Offset(cx,y))}}
+  diceBay(size.height*.455f,false);diceBay(size.height*.545f,true)
   // Bear-off rail is another wood member, not a translucent overlay.
   drawRect(materialBrush,Offset(playRight,0f),Size(size.width-playRight,size.height));drawRect(p.frame.copy(.46f),Offset(playRight,0f),Size(size.width-playRight,size.height))
   drawRect(Brush.horizontalGradient(listOf(p.frameDark.copy(.52f),Color.Transparent)),Offset(playRight,0f),Size(7f,size.height))
@@ -96,12 +104,13 @@ fun boardPalette(t:BoardTheme)=when(t){
   fun DrawScope.bearOffWell(y:Float){
    val wx=trayX+trayW*.08f;val ww=trayW*.84f
    // Raised wooden rim, sloped inner wall, and a recessed timber floor.
-   drawRoundRect(Color.Black.copy(.44f),Offset(wx+3f,y+5f),Size(ww,trayH),CornerRadius(8f))
-   drawRoundRect(materialBrush,Offset(wx,y),Size(ww,trayH),CornerRadius(8f));drawRoundRect(p.frame.copy(.48f),Offset(wx,y),Size(ww,trayH),CornerRadius(8f))
-   drawRoundRect(Brush.horizontalGradient(listOf(p.frameDark.copy(.88f),p.frame.copy(.38f),p.frameDark.copy(.88f))),Offset(wx+3f,y+3f),Size(ww-6f,trayH-6f),CornerRadius(6f))
-   drawRoundRect(materialBrush,Offset(wx+10f,y+10f),Size(ww-20f,trayH-20f),CornerRadius(4f));drawRoundRect(p.frameDark.copy(.38f),Offset(wx+10f,y+10f),Size(ww-20f,trayH-20f),CornerRadius(4f))
-   drawLine(Color.White.copy(.24f),Offset(wx+4f,y+4f),Offset(wx+ww-4f,y+4f),1.5f);drawLine(Color.Black.copy(.30f),Offset(wx+4f,y+trayH-4f),Offset(wx+ww-4f,y+trayH-4f),2f)
-   val step=(trayH-16f)/15f;for(i in 1..14){val sy=y+8f+i*step;drawLine(Color.Black.copy(.11f),Offset(wx+11f,sy),Offset(wx+ww-11f,sy),1f)}
+   drawRoundRect(Color.Black.copy(.55f),Offset(wx+4f,y+7f),Size(ww,trayH),CornerRadius(9f))
+   drawRoundRect(materialBrush,Offset(wx,y),Size(ww,trayH),CornerRadius(9f));drawRoundRect(p.frame.copy(.52f),Offset(wx,y),Size(ww,trayH),CornerRadius(9f));drawRoundRect(p.frameDark.copy(.48f),Offset(wx+1f,y+1f),Size(ww-2f,trayH-2f),CornerRadius(8f),style=Stroke(2f))
+   drawRoundRect(Brush.horizontalGradient(listOf(p.frameDark.copy(.96f),p.frame.copy(.28f),p.frameDark.copy(.96f))),Offset(wx+3f,y+3f),Size(ww-6f,trayH-6f),CornerRadius(7f))
+   drawRoundRect(materialBrush,Offset(wx+13f,y+13f),Size(ww-26f,trayH-26f),CornerRadius(4f));drawRoundRect(p.frameDark.copy(.31f),Offset(wx+13f,y+13f),Size(ww-26f,trayH-26f),CornerRadius(4f))
+   drawLine(Color.White.copy(.30f),Offset(wx+4f,y+4f),Offset(wx+ww-4f,y+4f),1.7f);drawLine(Color.Black.copy(.42f),Offset(wx+4f,y+trayH-4f),Offset(wx+ww-4f,y+trayH-4f),2.4f)
+   drawLine(Color.Black.copy(.42f),Offset(wx+12f,y+14f),Offset(wx+12f,y+trayH-14f),2f);drawLine(Color.White.copy(.14f),Offset(wx+14f,y+14f),Offset(wx+14f,y+trayH-14f),1f)
+   val step=(trayH-20f)/15f;for(i in 1..14){val sy=y+10f+i*step;drawLine(Color.Black.copy(.20f),Offset(wx+14f,sy),Offset(wx+ww-14f,sy),1.3f);drawLine(Color.White.copy(.07f),Offset(wx+15f,sy+1.2f),Offset(wx+ww-15f,sy+1.2f),.8f)}
   }
   val topWellY=rail*1.55f;val bottomWellY=size.height-rail*1.55f-trayH;bearOffWell(topWellY);bearOffWell(bottomWellY)
   // A solid timber bridge separates black and white storage wells.
@@ -144,7 +153,7 @@ fun boardPalette(t:BoardTheme)=when(t){
   displayPlans.forEach{plan->
    fun marker(point:Int):Offset=when(point){Move.BAR->Offset(barLeft+barW/2,size.height/2);Move.OFF->Offset(playRight+(size.width-playRight)/2,size.height/2);else->center(point,abs(state.position.points[point]).coerceAtMost(4))}
    val routePoints=mutableListOf(marker(plan.from)).apply{plan.moves.forEach{add(marker(it.to))}}
-   for(i in 0 until routePoints.lastIndex)drawLine(Color(0xffffdf68).copy(.34f+.20f*pulse),routePoints[i],routePoints[i+1],3f,pathEffect=PathEffect.dashPathEffect(floatArrayOf(10f,7f)))
+   if(guidance==GuidanceMode.COACH)for(i in 0 until routePoints.lastIndex)drawLine(Color(0xffffdf68).copy(.34f+.20f*pulse),routePoints[i],routePoints[i+1],3f,pathEffect=PathEffect.dashPathEffect(floatArrayOf(10f,7f)))
    val c=routePoints.last();val white=state.position.turn==Player.WHITE;val ghostBase=if(white)Color(0xffffe5b0)else Color(0xff49261d)
    drawCircle(Color.Black.copy(.22f),cw*.30f,c+Offset(1.5f,3f));drawCircle(ghostBase.copy(.30f+.14f*pulse),cw*.285f,c);drawCircle(Color(0xffffdc63).copy(.92f),cw*.285f,c,style=Stroke(2.4f));drawCircle(Color.White.copy(.22f),cw*.19f,c,style=Stroke(1.4f))
    val label=plan.dice.joinToString("+");val paint=android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply{color=android.graphics.Color.rgb(62,35,10);textAlign=android.graphics.Paint.Align.CENTER;textSize=cw*.22f;typeface=android.graphics.Typeface.DEFAULT_BOLD}
