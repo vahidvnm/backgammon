@@ -60,9 +60,10 @@ class GameEngineTest {
     }
 
     @Test fun higherDieIsRequiredWhenOnlyOneCanBePlayed() {
-        val p = position(white = mapOf(1 to 1), offWhite = 14)
+        // Both dice can move the checker initially, but point 2 blocks every follow-up.
+        val p = position(white = mapOf(5 to 1), black = mapOf(2 to 2), offWhite = 14)
         val legal = GameEngine.legalMoves(p, listOf(1, 2))
-        assertEquals(listOf(Move(1, Move.OFF, 2)), legal)
+        assertEquals(listOf(Move(5, 3, 2)), legal)
     }
 
     @Test fun exactBearOffIsLegal() {
