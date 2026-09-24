@@ -17,22 +17,35 @@ import kotlin.random.Random
 
 enum class Screen { MENU, SETUP, GAME }
 enum class Mode { AI, LOCAL }
+/** Single source of truth for which interactions are safe at any instant. */
+enum class InteractionPhase { WAITING_FOR_ROLL, ROLLING, WAITING_FOR_MOVE, ANIMATING_MOVE, AI_THINKING, DOUBLE_OFFER, GAME_OVER }
 data class MatchInfo(val whiteScore:Int=0,val blackScore:Int=0,val target:Int=5,val cube:Int=1,val cubeOwner:Player?=null,val thinking:Boolean=false,val pendingDoubleBy:Player?=null,val droppedBy:Player?=null)
 class GameViewModel(app:Application):AndroidViewModel(app) {
  private val prefs=Preferences(app);private val tone=ToneGenerator(AudioManager.STREAM_MUSIC,48);private val soundPool=SoundPool.Builder().setMaxStreams(3).build();private val diceSound=soundPool.load(app,R.raw.dice_roll,1)
  private val _settings=MutableStateFlow(prefs.load());val settings=_settings.asStateFlow();private val _screen=MutableStateFlow(Screen.MENU);val screen=_screen.asStateFlow();private val _game=MutableStateFlow(TurnState());val game=_game.asStateFlow();private val _rolling=MutableStateFlow(false);val rolling=_rolling.asStateFlow();private val _match=MutableStateFlow(MatchInfo());val match=_match.asStateFlow();private val _autoAssist=MutableStateFlow(false);val autoAssist=_autoAssist.asStateFlow()
  private val history=ArrayDeque<TurnState>();private var turnJob:Job?=null
  var mode=Mode.AI;private set
+ fun interactionPhase():InteractionPhase=when{
+  _game.value.winner!=null->InteractionPhase.GAME_OVER
+  _match.value.pendingDoubleBy!=null->InteractionPhase.DOUBLE_OFFER
+  _rolling.value->InteractionPhase.ROLLING
+  _match.value.thinking||(mode==Mode.AI&&_game.value.position.turn==Player.BLACK)->InteractionPhase.AI_THINKING
+  turnJob?.isActive==true->InteractionPhase.ANIMATING_MOVE
+  _game.value.rolled->InteractionPhase.WAITING_FOR_MOVE
+  else->InteractionPhase.WAITING_FOR_ROLL
+ }
+ private fun humanCanMove()=interactionPhase()==InteractionPhase.WAITING_FOR_MOVE
+ private fun humanCanRoll()=interactionPhase()==InteractionPhase.WAITING_FOR_ROLL
  fun setup(){_screen.value=Screen.SETUP}
  fun start(m:Mode){mode=m;history.clear();_match.value=MatchInfo();_game.value=TurnState();_screen.value=Screen.GAME}
  fun menu(){_screen.value=Screen.MENU};fun restart(){history.clear();turnJob?.cancel();_game.value=TurnState();_rolling.value=false;_match.value=_match.value.copy(cube=1,cubeOwner=null,thinking=false,pendingDoubleBy=null,droppedBy=null)};fun update(s:Settings){_settings.value=s;prefs.save(s)}
  fun undo(){if(history.isEmpty())return;turnJob?.cancel();turnJob=null;_rolling.value=false;_match.value=_match.value.copy(thinking=false);var restored:TurnState;do{restored=history.removeLast()}while(mode==Mode.AI&&restored.position.turn==Player.BLACK&&history.isNotEmpty());_game.value=restored}
  private fun sound(kind:Int=ToneGenerator.TONE_PROP_BEEP){if(settings.value.sound)tone.startTone(kind,55)}
  private fun configuredRoll():List<Int>{val a=Random.nextInt(1,7);var b=Random.nextInt(1,7);val keep=when(settings.value.doublesRate){DoublesRate.NATURAL->.5f;DoublesRate.REDUCED_20->.4f;DoublesRate.REDUCED_50->.25f;DoublesRate.NEVER->0f};if(a==b&&Random.nextFloat()>keep){b=Random.nextInt(1,6);if(b>=a)b++};return GameEngine.rollValues(a,b)}
- fun roll(){if(_rolling.value||_match.value.thinking||_game.value.rolled||_game.value.winner!=null||(mode==Mode.AI&&_game.value.position.turn==Player.BLACK))return;viewModelScope.launch{val values=configuredRoll();_game.value=_game.value.copy(dice=values,rolled=false);_rolling.value=true;if(settings.value.sound)soundPool.play(diceSound,.75f,.75f,1,0,1f);delay(if(settings.value.animations)1700 else 80);_game.value=_game.value.copy(dice=values,rolled=true);_rolling.value=false;if(_autoAssist.value)autoAssistTurn()else autoEnd()}}
- fun move(m:Move){if(_rolling.value||_match.value.thinking||(mode==Mode.AI&&_game.value.position.turn==Player.BLACK)||m !in GameEngine.legalMoves(_game.value.position,_game.value.dice))return;history.addLast(_game.value.copy(position=_game.value.position.copyDeep()));_game.value=GameEngine.afterMove(_game.value,m);if(_game.value.winner!=null)scoreGame();else autoEnd()}
+ fun roll(){if(!humanCanRoll())return;viewModelScope.launch{val values=configuredRoll();_game.value=_game.value.copy(dice=values,rolled=false);_rolling.value=true;if(settings.value.sound)soundPool.play(diceSound,.75f,.75f,1,0,1f);delay(if(settings.value.animations)1700 else 80);_game.value=_game.value.copy(dice=values,rolled=true);_rolling.value=false;if(_autoAssist.value)autoAssistTurn()else autoEnd()}}
+ fun move(m:Move){if(!humanCanMove()||m !in GameEngine.legalMoves(_game.value.position,_game.value.dice))return;history.addLast(_game.value.copy(position=_game.value.position.copyDeep()));_game.value=GameEngine.afterMove(_game.value,m);if(_game.value.winner!=null)scoreGame();else autoEnd()}
  fun moveCombined(from:Int,to:Int):Boolean{
-  if(_rolling.value||_match.value.thinking||(mode==Mode.AI&&_game.value.position.turn==Player.BLACK)||!_game.value.rolled)return false
+  if(!humanCanMove())return false
   fun search(s:TurnState,current:Int,path:List<Move>):List<List<Move>>{if(path.size>=4||s.dice.isEmpty())return listOf(path);val next=GameEngine.legalMoves(s.position,s.dice).filter{it.from==current};return listOf(path)+next.flatMap{search(GameEngine.afterMove(s,it),it.to,path+it)}}
   val chosen=search(_game.value,from,emptyList()).filter{it.size>1&&it.last().to==to}.maxByOrNull{it.size}?:return false
   history.addLast(_game.value.copy(position=_game.value.position.copyDeep()));var s=_game.value;chosen.forEach{s=GameEngine.afterMove(s,it)};_game.value=s
