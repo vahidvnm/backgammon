@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -55,6 +55,7 @@ jobs:
   fetch-audio:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Download CC0 wooden dice recordings
         run: |
           set -eux
@@ -64,10 +65,17 @@ jobs:
       - name: Build a clean two-dice wooden roll
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
-          ffmpeg -y -i 3.flac -i 1.flac -filter_complex "[0:a]volume=1.0[a];[1:a]adelay=105|105,volume=.82[b];[a][b]amix=inputs=2:duration=longest:normalize=0,highpass=f=90,lowpass=f=8500,loudnorm=I=-17:TP=-1.5:LRA=7[out]" -map "[out]" -ar 44100 -ac 1 dice_roll.wav
+          ffmpeg -y -i 3.flac -i 1.flac -filter_complex "[0:a]volume=1.0[a];[1:a]adelay=105|105,volume=.82[b];[a][b]amix=inputs=2:duration=longest:normalize=0,highpass=f=90,lowpass=f=8500,loudnorm=I=-17:TP=-1.5:LRA=7[out]" -map "[out]" -ar 44100 -ac 1 app/src/main/res/raw/dice_roll.wav
+      - name: Commit authentic CC0 recording
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add app/src/main/res/raw/dice_roll.wav
+          git commit -m "Import authentic wooden dice recording [skip ci]"
+          git push
       - name: Emit audio for sandbox import
-        run: base64 -w0 dice_roll.wav | fold -w3000 | sed 's/^/DICE_B64:/'
+        run: base64 -w0 app/src/main/res/raw/dice_roll.wav | fold -w3000 | sed 's/^/DICE_B64:/'
       - uses: actions/upload-artifact@v4
         with:
           name: CC0-Wooden-Dice-Audio
-          path: dice_roll.wav
+          path: app/src/main/res/raw/dice_roll.wav
