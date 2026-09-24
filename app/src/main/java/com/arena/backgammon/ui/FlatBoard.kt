@@ -25,10 +25,10 @@ fun boardPalette(t:BoardTheme)=when(t){
 }
 
 /** Precise top-down board inspired by classic mobile layouts, drawn entirely with original vector assets. */
-@Composable fun FlatBoard(state:TurnState,theme:BoardTheme,pieces:PieceStyle,selected:Int?,legal:List<Move>,select:(Int)->Unit,move:(Move)->Unit,combine:(Int,Int)->Boolean={_,_->false},modifier:Modifier=Modifier,scene:TableScene=TableScene.AUTUMN_SUNSET,guidance:GuidanceMode=GuidanceMode.SIMPLE){
+@Composable fun FlatBoard(state:TurnState,theme:BoardTheme,pieces:PieceStyle,selected:Int?,legal:List<Move>,select:(Int)->Unit,move:(Move)->Unit,combine:(Int,Int)->Boolean={_,_->false},modifier:Modifier=Modifier,scene:TableScene=TableScene.DARK_GRASS,guidance:GuidanceMode=GuidanceMode.SIMPLE){
  val p=boardPalette(theme);val texture=ImageBitmap.imageResource(when(theme){BoardTheme.PREMIUM_WOOD->R.drawable.premium_walnut_texture;BoardTheme.MARBLE_STONE->R.drawable.ivory_marble_texture;BoardTheme.SMOKED_GLASS->R.drawable.smoked_glass_texture});val materialBrush=remember(texture){ShaderBrush(ImageShader(texture,TileMode.Mirror,TileMode.Mirror))};val pulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse")
  val plans=if(selected==null)emptyList() else GameEngine.movePlans(state.position,state.dice,selected)
- val visiblePlans=if(guidance==GuidanceMode.COACH)plans else plans.filter{it.moves.size==1}
+ val visiblePlans=plans
  val displayPlans=visiblePlans.groupBy{it.to}.values.mapNotNull{routes->routes.maxByOrNull{it.moves.size}}
  var previous by remember{mutableStateOf(state.position.copyDeep())};var motion by remember{mutableStateOf<CheckerMotion?>(null)};val travel=remember{Animatable(1f)}
  LaunchedEffect(state.position.points.contentHashCode(),state.position.barWhite,state.position.barBlack,state.position.offWhite,state.position.offBlack){
@@ -42,7 +42,7 @@ fun boardPalette(t:BoardTheme)=when(t){
  Canvas(modifier.pointerInput(state,selected){detectTapGestures{tap->
   val rail=size.width*.032f;val barW=size.width*.062f;val playLeft=rail;val playRight=size.width-size.width*.060f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half
   val bar=tap.x in (barLeft-barW*.28f)..(barLeft+barW*1.28f);val off=tap.x>playRight;val local=if(tap.x<barLeft)tap.x-playLeft else tap.x-(barLeft+barW)+half
-  val col=(local/(half/6)).toInt().coerceIn(0,11);val point=if(tap.y<size.height/2)12+col else 11-col;val target=when{off->Move.OFF;bar->Move.BAR;else->point};val choices=legal.filter{it.from==selected&&it.to==target};if(choices.isNotEmpty())move(choices.maxBy{it.die})else if(selected!=null&&target!=Move.BAR&&combine(selected,target))Unit else {val owns=target==Move.BAR&&state.position.bar(state.position.turn)>0||target in 0..23&&state.position.points[target]*state.position.turn.sign>0;if(owns)select(target)}
+  val col=(local/(half/6)).toInt().coerceIn(0,11);val point=if(tap.y<size.height/2)12+col else 11-col;val target=when{off->Move.OFF;bar->Move.BAR;else->point};val choices=legal.filter{it.from==selected&&it.to==target};val compound=plans.any{it.to==target&&it.moves.size>1};if(selected!=null&&target!=Move.BAR&&compound&&combine(selected,target))Unit else if(choices.isNotEmpty())move(choices.maxBy{it.die})else if(selected!=null&&target!=Move.BAR&&combine(selected,target))Unit else {val owns=target==Move.BAR&&state.position.bar(state.position.turn)>0||target in 0..23&&state.position.points[target]*state.position.turn.sign>0;if(owns)select(target)}
  }}){
   val rail=size.width*.032f;val barW=size.width*.062f;val playLeft=rail;val playRight=size.width-size.width*.060f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half;val cw=half/6
   // The board is constructed as wood surfaces and vertical walls, rather than dark outline bands.
@@ -117,7 +117,7 @@ fun boardPalette(t:BoardTheme)=when(t){
   drawLine(Color.White.copy(.12f),Offset(playLeft+2f,rail+2f),Offset(playRight-2f,rail+2f),1.5f)
   drawLine(Color.White.copy(.12f),Offset(barLeft+4f,rail),Offset(barLeft+4f,size.height-rail),1.5f)
   // The board picks up a restrained cast from the selected room instead of looking pasted over it.
-  val ambient=when(scene){TableScene.STARRY_SKY->Color(0xff6f9ed2);TableScene.AUTUMN_SUNSET->Color(0xffffb268);TableScene.PERSIAN_RUG->Color(0xffd69a78);TableScene.DARK_RIVER->Color(0xff60a59c)}
+  val ambient=when(scene){TableScene.DARK_GRASS->Color(0xff6e9270);TableScene.STARRY_SKY->Color(0xff6f9ed2);TableScene.AUTUMN_SUNSET->Color(0xffffb268);TableScene.PERSIAN_RUG->Color(0xffd69a78);TableScene.DARK_RIVER->Color(0xff60a59c)}
   drawRect(Brush.linearGradient(listOf(ambient.copy(.075f),Color.Transparent,ambient.copy(.035f)),Offset(playLeft,rail),Offset(playRight,size.height-rail)),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2),blendMode=BlendMode.Softlight)
   for(c in 0..11){val x=if(c<6)playLeft+c*cw else barLeft+barW+(c-6)*cw;val color=if(c%2==0)p.pointA else p.pointB;val other=if(c%2==0)p.pointB else p.pointA;val top=Path().apply{moveTo(x+cw*.10f,rail);lineTo(x+cw*.90f,rail);lineTo(x+cw/2,size.height*.405f);close()};val bottom=Path().apply{moveTo(x+cw*.10f,size.height-rail);lineTo(x+cw*.90f,size.height-rail);lineTo(x+cw/2,size.height*.595f);close()};drawPath(top,Brush.verticalGradient(listOf(color.copy(.72f),color,color.copy(.76f)),rail,size.height*.43f));drawPath(bottom,Brush.verticalGradient(listOf(other.copy(.76f),other,other.copy(.72f)),size.height*.57f,size.height-rail));drawPath(top,Color.Black.copy(.18f),style=Stroke(1.3f));drawPath(bottom,Color.Black.copy(.18f),style=Stroke(1.3f));drawLine(Color.White.copy(.13f),Offset(x+cw*.10f,rail+1f),Offset(x+cw/2,size.height*.405f),1f);drawLine(Color.Black.copy(.13f),Offset(x+cw*.90f,rail+1f),Offset(x+cw/2,size.height*.405f),1f);drawLine(Color.White.copy(.10f),Offset(x+cw*.10f,size.height-rail-1f),Offset(x+cw/2,size.height*.595f),1f);drawLine(Color.Black.copy(.14f),Offset(x+cw*.90f,size.height-rail-1f),Offset(x+cw/2,size.height*.595f),1f)}
   fun center(point:Int,index:Int):Offset{val col=if(point<12)11-point else point-12;val x=if(col<6)playLeft+(col+.5f)*cw else barLeft+barW+(col-5.5f)*cw;val r=cw*.262f;val gap=min(r*1.72f,(size.height*.37f)/5);return Offset(x,if(point>=12)rail+r+index.coerceAtMost(4)*gap else size.height-rail-r-index.coerceAtMost(4)*gap)}
@@ -138,7 +138,7 @@ fun boardPalette(t:BoardTheme)=when(t){
    // A single subtle grain/vein per checker keeps the material natural and uncluttered.
    val grainY=topC.y+r*variation*.12f;drawLine((if(white)Color(0xff76502d)else Color(0xffc08358)).copy(.10f),Offset(c.x-r*.48f,grainY),Offset(c.x+r*.46f,grainY+r*.035f*variation),r*.022f)
    drawOval(Color.White.copy(.31f),Offset(topC.x-r*.39f,topC.y-r*.36f),Size(r*.35f,r*.13f))
-   if(available&&!on){drawCircle(Color(0xffb7f45c).copy(.25f+.20f*pulse),r*1.13f,c);drawCircle(Color(0xff9ee84e),r*1.10f,c,style=Stroke(3f))};if(on){drawCircle(Color.Black.copy(.34f),r*1.11f,c,style=Stroke(6f));drawCircle(p.accent,r*1.11f,c,style=Stroke(3f))}
+   if(available&&!on){drawArc(p.accent.copy(.48f+.28f*pulse),205f,130f,false,Offset(c.x-r*1.03f,c.y-r*1.03f),Size(r*2.06f,r*2.06f),style=Stroke(3f));drawCircle(p.accent.copy(.72f),r*.085f,c+Offset(0f,r*1.10f))};if(on){drawCircle(Color.Black.copy(.30f),r*1.10f,c,style=Stroke(5f));drawCircle(p.accent,r*1.08f,c,style=Stroke(3f))}
   }
   val active=motion;val drawn=if(active==null)previous else state.position
   for(pt in 0..23){val n=abs(drawn.points[pt]);for(i in 0 until min(n,5)){if(active?.to==pt&&i==min(n,5)-1)continue;piece(center(pt,i),cw*.262f,drawn.points[pt]>0,selected==pt&&i==min(n,5)-1,legal.any{it.from==pt}&&i==min(n,5)-1,(((pt*7+i*3)%7)-3)/3f)};if(n>5)drawCircle(p.accent,cw*.18f,center(pt,4))}
@@ -153,8 +153,9 @@ fun boardPalette(t:BoardTheme)=when(t){
    fun marker(point:Int):Offset=when(point){Move.BAR->Offset(barLeft+barW/2,size.height/2);Move.OFF->Offset(playRight+(size.width-playRight)/2,size.height/2);else->center(point,abs(state.position.points[point]).coerceAtMost(4))}
    val routePoints=mutableListOf(marker(plan.from)).apply{plan.moves.forEach{add(marker(it.to))}}
    if(guidance==GuidanceMode.COACH)for(i in 0 until routePoints.lastIndex)drawLine(Color(0xffffdf68).copy(.34f+.20f*pulse),routePoints[i],routePoints[i+1],3f,pathEffect=PathEffect.dashPathEffect(floatArrayOf(10f,7f)))
-   val c=routePoints.last();val white=state.position.turn==Player.WHITE;val ghostBase=if(white)Color(0xffffe5b0)else Color(0xff49261d)
-   drawCircle(Color.Black.copy(.22f),cw*.30f,c+Offset(1.5f,3f));drawCircle(ghostBase.copy(.30f+.14f*pulse),cw*.285f,c);drawCircle(Color(0xffffdc63).copy(.92f),cw*.285f,c,style=Stroke(2.4f));drawCircle(Color.White.copy(.22f),cw*.19f,c,style=Stroke(1.4f))
+   val c=routePoints.last()
+   // A restrained landing socket reads as an invitation, not as an extra checker.
+   drawCircle(Color.Black.copy(.12f),cw*.255f,c+Offset(1f,2f));drawCircle(p.accent.copy(.55f+.25f*pulse),cw*.252f,c,style=Stroke(2.5f));drawCircle(Color.White.copy(.16f),cw*.178f,c,style=Stroke(1.2f));drawCircle(p.accent.copy(.70f),cw*.048f,c)
    // Physical miniature dice communicate the route without game-like numeric labels.
    val dieSide=cw*.205f;val dieGap=cw*.035f;val total=plan.dice.size*dieSide+(plan.dice.size-1).coerceAtLeast(0)*dieGap
    plan.dice.forEachIndexed{index,value->val left=c.x-total/2+index*(dieSide+dieGap);val top=c.y-cw*.43f;drawRoundRect(Color.Black.copy(.28f),Offset(left+1.2f,top+1.8f),Size(dieSide,dieSide),CornerRadius(dieSide*.24f));drawRoundRect(Color(0xffffe7b2).copy(.96f),Offset(left,top),Size(dieSide,dieSide),CornerRadius(dieSide*.24f));drawRoundRect(Color(0xff7b4b2b).copy(.72f),Offset(left,top),Size(dieSide,dieSide),CornerRadius(dieSide*.24f),style=Stroke(1f));val lo=.29f;val hi=.71f;val mid=.5f;val spots=when(value){1->listOf(mid to mid);2->listOf(lo to lo,hi to hi);3->listOf(lo to lo,mid to mid,hi to hi);4->listOf(lo to lo,hi to lo,lo to hi,hi to hi);5->listOf(lo to lo,hi to lo,mid to mid,lo to hi,hi to hi);else->listOf(lo to .23f,hi to .23f,lo to mid,hi to mid,lo to .77f,hi to .77f)};spots.forEach{spot->drawCircle(Color(0xff442417),dieSide*.075f,Offset(left+dieSide*spot.first,top+dieSide*spot.second))}}
