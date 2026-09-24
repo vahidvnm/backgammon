@@ -19,12 +19,32 @@ enum class Screen { MENU, SETUP, GAME }
 enum class Mode { AI, LOCAL }
 /** Single source of truth for which interactions are safe at any instant. */
 enum class InteractionPhase { WAITING_FOR_ROLL, ROLLING, WAITING_FOR_MOVE, ANIMATING_MOVE, AI_THINKING, DOUBLE_OFFER, GAME_OVER }
-data class MatchInfo(val whiteScore:Int=0,val blackScore:Int=0,val target:Int=5,val cube:Int=1,val cubeOwner:Player?=null,val thinking:Boolean=false,val pendingDoubleBy:Player?=null,val droppedBy:Player?=null)
+data class MatchInfo(val whiteScore:Int=0,val blackScore:Int=0,val target:Int=5,val cube:Int=1,val cubeOwner:Player?=null,val thinking:Boolean=false,val pendingDoubleBy:Player?=null,val droppedBy:Player?=null,val timedOutBy:Player?=null)
+data class ClockState(val whiteMillis:Long=60_000,val blackMillis:Long=60_000,val turnMillis:Long=10_000,val active:Boolean=true)
 class GameViewModel(app:Application):AndroidViewModel(app) {
  private val prefs=Preferences(app);private val tone=ToneGenerator(AudioManager.STREAM_MUSIC,48);private val soundPool=SoundPool.Builder().setMaxStreams(3).build();private val diceSound=soundPool.load(app,R.raw.dice_roll,1)
- private val _settings=MutableStateFlow(prefs.load());val settings=_settings.asStateFlow();private val _screen=MutableStateFlow(Screen.MENU);val screen=_screen.asStateFlow();private val _game=MutableStateFlow(TurnState());val game=_game.asStateFlow();private val _rolling=MutableStateFlow(false);val rolling=_rolling.asStateFlow();private val _match=MutableStateFlow(MatchInfo());val match=_match.asStateFlow();private val _autoAssist=MutableStateFlow(false);val autoAssist=_autoAssist.asStateFlow()
- private val history=ArrayDeque<TurnState>();private var turnJob:Job?=null
+ private val _settings=MutableStateFlow(prefs.load());val settings=_settings.asStateFlow();private val _screen=MutableStateFlow(Screen.MENU);val screen=_screen.asStateFlow();private val _game=MutableStateFlow(TurnState());val game=_game.asStateFlow();private val _rolling=MutableStateFlow(false);val rolling=_rolling.asStateFlow();private val _match=MutableStateFlow(MatchInfo());val match=_match.asStateFlow();private val _autoAssist=MutableStateFlow(false);val autoAssist=_autoAssist.asStateFlow();private val _clock=MutableStateFlow(newClock());val clock=_clock.asStateFlow()
+ private val history=ArrayDeque<TurnState>();private var turnJob:Job?=null;private var clockTurn=Player.WHITE
+ init{viewModelScope.launch{var last=android.os.SystemClock.elapsedRealtime();while(isActive){delay(100);val now=android.os.SystemClock.elapsedRealtime();val delta=(now-last).coerceAtMost(250);last=now;tickClock(delta)}}}
  var mode=Mode.AI;private set
+ private fun newClock():ClockState{val c=_settings.value.clockPreset;return ClockState(c.bankMillis,c.bankMillis,c.turnMillis,c!=ClockPreset.OFF)}
+ private fun resetClock(){_clock.value=newClock();clockTurn=_game.value.position.turn}
+ private fun tickClock(delta:Long){
+  val preset=_settings.value.clockPreset;if(preset==ClockPreset.OFF||_screen.value!=Screen.GAME||_game.value.winner!=null)return
+  val turn=_game.value.position.turn;if(turn!=clockTurn){clockTurn=turn;_clock.value=_clock.value.copy(turnMillis=preset.turnMillis)}
+  if(interactionPhase() !in setOf(InteractionPhase.WAITING_FOR_ROLL,InteractionPhase.WAITING_FOR_MOVE))return
+  val c=_clock.value;val bank=(if(turn==Player.WHITE)c.whiteMillis else c.blackMillis)-delta;val turnLeft=c.turnMillis-delta
+  _clock.value=if(turn==Player.WHITE)c.copy(whiteMillis=bank.coerceAtLeast(0),turnMillis=turnLeft.coerceAtLeast(0))else c.copy(blackMillis=bank.coerceAtLeast(0),turnMillis=turnLeft.coerceAtLeast(0))
+  if(bank<=0){val m=_match.value;_match.value=if(turn==Player.WHITE)m.copy(blackScore=m.blackScore+m.cube,timedOutBy=turn)else m.copy(whiteScore=m.whiteScore+m.cube,timedOutBy=turn);_game.value=_game.value.copy(winner=turn.other())}
+  else if(turnLeft<=0&&turnJob?.isActive!=true){_clock.value=_clock.value.copy(turnMillis=preset.turnMillis);forceFinishTurn()}
+ }
+ private fun forceFinishTurn(){turnJob=viewModelScope.launch{
+  var s=_game.value;if(!s.rolled)s=s.copy(dice=configuredRoll(),rolled=true)
+  val seq=withContext(Dispatchers.Default){BackgammonAi.chooseSequence(s.position,s.dice,settings.value.difficulty)}
+  for(m in seq){history.addLast(s.copy(position=s.position.copyDeep()));s=GameEngine.afterMove(s,m);_game.value=s;delay(if(settings.value.animations)420 else 20)}
+  if(s.winner!=null)scoreGame()else if(s.rolled&&(s.dice.isEmpty()||GameEngine.legalMoves(s.position,s.dice).isEmpty()))_game.value=GameEngine.endTurn(s)
+  if(mode==Mode.AI&&_game.value.winner==null&&_game.value.position.turn==Player.BLACK)aiTurn()
+ }}
  fun interactionPhase():InteractionPhase=when{
   _game.value.winner!=null->InteractionPhase.GAME_OVER
   _match.value.pendingDoubleBy!=null->InteractionPhase.DOUBLE_OFFER
@@ -37,8 +57,8 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
  private fun humanCanMove()=interactionPhase()==InteractionPhase.WAITING_FOR_MOVE
  private fun humanCanRoll()=interactionPhase()==InteractionPhase.WAITING_FOR_ROLL
  fun setup(){_screen.value=Screen.SETUP}
- fun start(m:Mode){mode=m;history.clear();_match.value=MatchInfo();_game.value=TurnState();_screen.value=Screen.GAME}
- fun menu(){_screen.value=Screen.MENU};fun restart(){history.clear();turnJob?.cancel();_game.value=TurnState();_rolling.value=false;_match.value=_match.value.copy(cube=1,cubeOwner=null,thinking=false,pendingDoubleBy=null,droppedBy=null)};fun update(s:Settings){_settings.value=s;prefs.save(s)}
+ fun start(m:Mode){mode=m;history.clear();_match.value=MatchInfo();_game.value=TurnState();resetClock();_screen.value=Screen.GAME}
+ fun menu(){_screen.value=Screen.MENU};fun restart(){history.clear();turnJob?.cancel();_game.value=TurnState();_rolling.value=false;_match.value=_match.value.copy(cube=1,cubeOwner=null,thinking=false,pendingDoubleBy=null,droppedBy=null,timedOutBy=null);resetClock()};fun update(s:Settings){val clockChanged=s.clockPreset!=_settings.value.clockPreset;_settings.value=s;prefs.save(s);if(clockChanged)resetClock()}
  fun undo(){if(history.isEmpty())return;turnJob?.cancel();turnJob=null;_rolling.value=false;_match.value=_match.value.copy(thinking=false);var restored:TurnState;do{restored=history.removeLast()}while(mode==Mode.AI&&restored.position.turn==Player.BLACK&&history.isNotEmpty());_game.value=restored}
  private fun sound(kind:Int=ToneGenerator.TONE_PROP_BEEP){if(settings.value.sound)tone.startTone(kind,55)}
  private fun configuredRoll():List<Int>{val a=Random.nextInt(1,7);var b=Random.nextInt(1,7);val keep=when(settings.value.doublesRate){DoublesRate.NATURAL->.5f;DoublesRate.REDUCED_20->.4f;DoublesRate.REDUCED_50->.25f;DoublesRate.NEVER->0f};if(a==b&&Random.nextFloat()>keep){b=Random.nextInt(1,6);if(b>=a)b++};return GameEngine.rollValues(a,b)}
