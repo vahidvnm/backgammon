@@ -26,10 +26,11 @@ fun boardPalette(t:BoardTheme)=when(t){
 }
 
 /** Precise top-down board inspired by classic mobile layouts, drawn entirely with original vector assets. */
-@Composable fun FlatBoard(state:TurnState,theme:BoardTheme,pieces:PieceStyle,selected:Int?,legal:List<Move>,select:(Int)->Unit,move:(Move)->Unit,combine:(Int,Int)->Boolean={_,_->false},modifier:Modifier=Modifier,scene:TableScene=TableScene.AUTUMN_SUNSET){
+@Composable fun FlatBoard(state:TurnState,theme:BoardTheme,pieces:PieceStyle,selected:Int?,legal:List<Move>,select:(Int)->Unit,move:(Move)->Unit,combine:(Int,Int)->Boolean={_,_->false},modifier:Modifier=Modifier,scene:TableScene=TableScene.AUTUMN_SUNSET,guidance:GuidanceMode=GuidanceMode.SIMPLE){
  val p=boardPalette(theme);val texture=ImageBitmap.imageResource(when(theme){BoardTheme.PREMIUM_WOOD->R.drawable.premium_walnut_texture;BoardTheme.MARBLE_STONE->R.drawable.ivory_marble_texture;BoardTheme.SMOKED_GLASS->R.drawable.smoked_glass_texture});val materialBrush=remember(texture){ShaderBrush(ImageShader(texture,TileMode.Mirror,TileMode.Mirror))};val pulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse")
  val plans=if(selected==null)emptyList() else GameEngine.movePlans(state.position,state.dice,selected)
- val displayPlans=plans.groupBy{it.to}.values.mapNotNull{routes->routes.maxByOrNull{it.moves.size}}
+ val visiblePlans=if(guidance==GuidanceMode.COACH)plans else plans.filter{it.moves.size==1}
+ val displayPlans=visiblePlans.groupBy{it.to}.values.mapNotNull{routes->routes.maxByOrNull{it.moves.size}}
  var previous by remember{mutableStateOf(state.position.copyDeep())};var motion by remember{mutableStateOf<CheckerMotion?>(null)};val travel=remember{Animatable(1f)}
  LaunchedEffect(state.position.points.contentHashCode(),state.position.barWhite,state.position.barBlack,state.position.offWhite,state.position.offBlack){
   val now=state.position;val mover=now.turn;val sign=mover.sign
