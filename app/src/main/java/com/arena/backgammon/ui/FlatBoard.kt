@@ -100,7 +100,8 @@ fun boardPalette(t:BoardTheme)=when(t){
    val ornamentDark=p.frameDark.copy(.38f);val ornamentLight=p.accent.copy(.34f);val oy=rail*.43f;val step=(playRight-playLeft)/18f
    drawLine(ornamentDark,Offset(playLeft+8f,oy+1.5f),Offset(playRight-8f,oy+1.5f),2.2f);drawLine(ornamentLight,Offset(playLeft+8f,oy),Offset(playRight-8f,oy),1f)
    drawLine(ornamentDark,Offset(playLeft+8f,size.height-oy+1.5f),Offset(playRight-8f,size.height-oy+1.5f),2.2f);drawLine(ornamentLight,Offset(playLeft+8f,size.height-oy),Offset(playRight-8f,size.height-oy),1f)
-   for(i in 1..17){val x=playLeft+i*step;val r=min(rail*.12f,6f);fun diamond(y:Float)=Path().apply{moveTo(x,y-r);lineTo(x+r,y);lineTo(x,y+r);lineTo(x-r,y);close()};drawPath(diamond(oy),ornamentDark);drawPath(diamond(oy),ornamentLight,style=Stroke(1f));drawPath(diamond(size.height-oy),ornamentDark);drawPath(diamond(size.height-oy),ornamentLight,style=Stroke(1f))}
+   fun railDiamond(x:Float,y:Float):Path{val r=min(rail*.12f,6f);return Path().apply{moveTo(x,y-r);lineTo(x+r,y);lineTo(x,y+r);lineTo(x-r,y);close()}}
+   for(i in 1..17){val x=playLeft+i*step;drawPath(railDiamond(x,oy),ornamentDark);drawPath(railDiamond(x,oy),ornamentLight,style=Stroke(1f));drawPath(railDiamond(x,size.height-oy),ornamentDark);drawPath(railDiamond(x,size.height-oy),ornamentLight,style=Stroke(1f))}
    fun cornerFlourish(cx:Float,cy:Float,sx:Float,sy:Float){val a=rail*.42f;val curl=Path().apply{moveTo(cx,cy+sy*a);cubicTo(cx+sx*a*.15f,cy+sy*a*.25f,cx+sx*a*.70f,cy+sy*a*.78f,cx+sx*a,cy);cubicTo(cx+sx*a*.70f,cy-sy*a*.20f,cx+sx*a*.42f,cy+sy*a*.04f,cx+sx*a*.30f,cy+sy*a*.22f)};drawPath(curl,ornamentDark,style=Stroke(3f));drawPath(curl,ornamentLight,style=Stroke(1.2f))}
    cornerFlourish(playLeft+5f,oy,1f,1f);cornerFlourish(playRight-5f,oy,-1f,1f);cornerFlourish(playLeft+5f,size.height-oy,1f,-1f);cornerFlourish(playRight-5f,size.height-oy,-1f,-1f)
   }
