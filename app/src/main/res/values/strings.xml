@@ -1,1 +1,3 @@
-<resources><string name="app_name">Backgammon</string></resources>
+<resources>
+    <string name="app_name">AI Backgammon</string>
+</resources>
