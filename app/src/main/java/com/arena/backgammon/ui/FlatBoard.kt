@@ -95,8 +95,6 @@ fun boardPalette(t:BoardTheme)=when(t){
    BoardTheme.MARBLE_STONE->{for(i in 0..8){val x=playLeft+(playRight-playLeft)*i/8f;if(x !in barLeft..(barLeft+barW)){val vein=Path().apply{moveTo(x,rail);cubicTo(x+sin(i*2f)*32f,size.height*.30f,x+cos(i*1.3f)*46f,size.height*.68f,x+sin(i*.7f)*25f,size.height-rail)};drawPath(vein,Color.White.copy(if(i%3==0).22f else .09f),style=Stroke(if(i%3==0)2.3f else 1f));drawPath(vein,Color(0xff505860).copy(.07f),style=Stroke(4f))}}}
    BoardTheme.SMOKED_GLASS->{val sheen=Brush.linearGradient(listOf(Color.White.copy(.14f),Color.Transparent,Color(0xff6de7ef).copy(.09f)));drawRect(sheen,Offset(playLeft,rail),Size(half,size.height-rail*2));drawRect(sheen,Offset(barLeft+barW,rail),Size(half,size.height-rail*2));for(i in 0..5){drawLine(Color.White.copy(.055f),Offset(playLeft+i*70f,rail),Offset(playLeft+i*70f+140f,size.height-rail),1.2f);drawLine(Color.White.copy(.055f),Offset(barLeft+barW+i*70f,rail),Offset(barLeft+barW+i*70f+140f,size.height-rail),1.2f)}}
   }
-  // Soft cavity vignette keeps the bed below the illuminated rails.
-  drawRect(Brush.radialGradient(listOf(Color.Transparent,Color.Black.copy(.045f)),Offset((playLeft+playRight)/2,size.height/2),max(size.width,size.height)*.62f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2))
   drawLine(Color.White.copy(.15f),Offset(5f,8f),Offset(5f,size.height-10f),2f);drawLine(p.frameDark.copy(.42f),Offset(size.width-6f,10f),Offset(size.width-6f,size.height-10f),3f)
   for(i in 0..7){val y=(i+.5f)*size.height/8f;drawLine(Color.Black.copy(.10f),Offset(3f,y),Offset(rail*.9f,y+sin(i.toFloat())*6f),1.2f);drawLine(Color.White.copy(.07f),Offset(playRight,y),Offset(size.width-4f,y+cos(i.toFloat())*5f),1f)}
   val trayX=playRight+size.width*.006f;val trayW=size.width-playRight-size.width*.012f;val trayH=size.height*.40f
@@ -138,7 +136,7 @@ fun boardPalette(t:BoardTheme)=when(t){
    // A single subtle grain/vein per checker keeps the material natural and uncluttered.
    val grainY=topC.y+r*variation*.12f;drawLine((if(white)Color(0xff76502d)else Color(0xffc08358)).copy(.10f),Offset(c.x-r*.48f,grainY),Offset(c.x+r*.46f,grainY+r*.035f*variation),r*.022f)
    drawOval(Color.White.copy(.31f),Offset(topC.x-r*.39f,topC.y-r*.36f),Size(r*.35f,r*.13f))
-   if(available&&!on){drawArc(p.accent.copy(.48f+.28f*pulse),205f,130f,false,Offset(c.x-r*1.03f,c.y-r*1.03f),Size(r*2.06f,r*2.06f),style=Stroke(3f));drawCircle(p.accent.copy(.72f),r*.085f,c+Offset(0f,r*1.10f))};if(on){drawCircle(Color.Black.copy(.30f),r*1.10f,c,style=Stroke(5f));drawCircle(p.accent,r*1.08f,c,style=Stroke(3f))}
+   if(available&&!on){val lamp=c+Offset(r*.72f,-r*.72f);drawCircle(Color.Black.copy(.36f),r*.20f,lamp+Offset(0f,1.5f));drawCircle(Color(0xffd6b45d),r*.18f,lamp);drawCircle(Color(0xff66d56d).copy(.74f+.24f*pulse),r*.125f,lamp);drawCircle(Color.White.copy(.62f),r*.040f,lamp-Offset(r*.035f,r*.035f))};if(on){drawCircle(Color.Black.copy(.30f),r*1.10f,c,style=Stroke(5f));drawCircle(p.accent,r*1.08f,c,style=Stroke(3f))}
   }
   val active=motion;val drawn=if(active==null)previous else state.position
   for(pt in 0..23){val n=abs(drawn.points[pt]);for(i in 0 until min(n,5)){if(active?.to==pt&&i==min(n,5)-1)continue;piece(center(pt,i),cw*.262f,drawn.points[pt]>0,selected==pt&&i==min(n,5)-1,legal.any{it.from==pt}&&i==min(n,5)-1,(((pt*7+i*3)%7)-3)/3f)};if(n>5)drawCircle(p.accent,cw*.18f,center(pt,4))}
@@ -148,17 +146,16 @@ fun boardPalette(t:BoardTheme)=when(t){
    fun endpoint(point:Int,start:Boolean):Offset=when(point){Move.BAR->Offset(barLeft+barW/2,if(m.white)size.height*.62f else size.height*.38f);Move.OFF->Offset(playRight+(size.width-playRight)/2,if(m.white)size.height*.68f else size.height*.32f);else->center(point,if(start)m.fromIndex else m.toIndex)}
    val a=endpoint(m.from,true);val b=endpoint(m.to,false);val q=travel.value*travel.value*(3f-2f*travel.value);val moving=Offset(a.x+(b.x-a.x)*q,a.y+(b.y-a.y)*q);val lift=sin(Math.PI.toFloat()*q);drawOval(Color.Black.copy(.25f-.11f*lift),Offset(moving.x-cw*(.25f+.04f*lift),moving.y+cw*(.19f+.07f*lift)),Size(cw*(.50f+.08f*lift),cw*(.15f+.03f*lift)));piece(moving,cw*(.272f+.014f*lift),m.white,true)
   }
-  // Ghost destinations show the actual checker landing place and every die consumed by the route.
+  // Precision landing reticles reveal direct and compound destinations without fake checkers.
   displayPlans.forEach{plan->
    fun marker(point:Int):Offset=when(point){Move.BAR->Offset(barLeft+barW/2,size.height/2);Move.OFF->Offset(playRight+(size.width-playRight)/2,size.height/2);else->center(point,abs(state.position.points[point]).coerceAtMost(4))}
    val routePoints=mutableListOf(marker(plan.from)).apply{plan.moves.forEach{add(marker(it.to))}}
    if(guidance==GuidanceMode.COACH)for(i in 0 until routePoints.lastIndex)drawLine(Color(0xffffdf68).copy(.34f+.20f*pulse),routePoints[i],routePoints[i+1],3f,pathEffect=PathEffect.dashPathEffect(floatArrayOf(10f,7f)))
-   val c=routePoints.last()
-   // A restrained landing socket reads as an invitation, not as an extra checker.
-   drawCircle(Color.Black.copy(.12f),cw*.255f,c+Offset(1f,2f));drawCircle(p.accent.copy(.55f+.25f*pulse),cw*.252f,c,style=Stroke(2.5f));drawCircle(Color.White.copy(.16f),cw*.178f,c,style=Stroke(1.2f));drawCircle(p.accent.copy(.70f),cw*.048f,c)
-   // Physical miniature dice communicate the route without game-like numeric labels.
-   val dieSide=cw*.205f;val dieGap=cw*.035f;val total=plan.dice.size*dieSide+(plan.dice.size-1).coerceAtLeast(0)*dieGap
-   plan.dice.forEachIndexed{index,value->val left=c.x-total/2+index*(dieSide+dieGap);val top=c.y-cw*.43f;drawRoundRect(Color.Black.copy(.28f),Offset(left+1.2f,top+1.8f),Size(dieSide,dieSide),CornerRadius(dieSide*.24f));drawRoundRect(Color(0xffffe7b2).copy(.96f),Offset(left,top),Size(dieSide,dieSide),CornerRadius(dieSide*.24f));drawRoundRect(Color(0xff7b4b2b).copy(.72f),Offset(left,top),Size(dieSide,dieSide),CornerRadius(dieSide*.24f),style=Stroke(1f));val lo=.29f;val hi=.71f;val mid=.5f;val spots=when(value){1->listOf(mid to mid);2->listOf(lo to lo,hi to hi);3->listOf(lo to lo,mid to mid,hi to hi);4->listOf(lo to lo,hi to lo,lo to hi,hi to hi);5->listOf(lo to lo,hi to lo,mid to mid,lo to hi,hi to hi);else->listOf(lo to .23f,hi to .23f,lo to mid,hi to mid,lo to .77f,hi to .77f)};spots.forEach{spot->drawCircle(Color(0xff442417),dieSide*.075f,Offset(left+dieSide*spot.first,top+dieSide*spot.second))}}
+   val c=routePoints.last();val rr=cw*.255f;val guide=p.accent.copy(.62f+.28f*pulse)
+   // Four precision brackets mark the landing area without imitating a checker or die.
+   listOf(42f,132f,222f,312f).forEach{angle->drawArc(Color.Black.copy(.24f),angle,34f,false,Offset(c.x-rr-1f,c.y-rr+2f),Size(rr*2,rr*2),style=Stroke(4.2f));drawArc(guide,angle,34f,false,Offset(c.x-rr,c.y-rr),Size(rr*2,rr*2),style=Stroke(2.4f))}
+   // Small brass chevrons indicate a direct, two-die, or longer compound destination.
+   val marks=plan.moves.size.coerceAtMost(4);val markW=cw*.075f;val gap=cw*.035f;val total=marks*markW+(marks-1).coerceAtLeast(0)*gap;repeat(marks){i->val x=c.x-total/2+i*(markW+gap)+markW/2;val y=c.y-rr-cw*.09f;val diamond=Path().apply{moveTo(x,y-markW*.52f);lineTo(x+markW*.48f,y);lineTo(x,y+markW*.52f);lineTo(x-markW*.48f,y);close()};drawPath(diamond,Color.Black.copy(.28f));drawPath(diamond,p.accent.copy(.92f))}
   }
  }
 }
