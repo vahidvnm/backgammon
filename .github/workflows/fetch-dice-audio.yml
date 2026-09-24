@@ -1,20 +1,8 @@
+# Temporary helper retained only until the CC0 wooden-dice recording is imported.
 name: Fetch CC0 wooden dice audio
-on:
-  workflow_dispatch:
+on: workflow_dispatch
 jobs:
   audio:
     runs-on: ubuntu-latest
     steps:
-      - name: Download CC0 wooden dice recordings
-        run: |
-          set -eux
-          for n in 1 2 3 4; do
-            curl --retry 5 --retry-all-errors -L -o "$n.flac" "https://opengameart.org/sites/default/files/Holzw%C3%BCrfel_auf_Holztisch_${n}.flac"
-          done
-      - name: Build clean two-dice wooden roll
-        run: |
-          ffmpeg -y -i 3.flac -i 1.flac -filter_complex "[0:a]volume=1.0[a];[1:a]adelay=105|105,volume=.82[b];[a][b]amix=inputs=2:duration=longest:normalize=0,highpass=f=90,lowpass=f=8500,loudnorm=I=-17:TP=-1.5:LRA=7[out]" -map "[out]" -ar 44100 -ac 1 dice_roll.wav
-      - uses: actions/upload-artifact@v4
-        with:
-          name: cc0-wooden-dice
-          path: dice_roll.wav
+      - run: echo "Use the audio import job in android-build.yml"
