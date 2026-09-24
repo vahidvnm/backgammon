@@ -21,6 +21,17 @@ object BackgammonAi {
             else -> choices.first()
         }
     }
+    /** Lightweight cube intelligence: positive values favour [me]. */
+    fun equity(position: Position, me: Player): Double {
+        fun pip(player: Player): Int = (0..23).sumOf { i ->
+            val count=(position.points[i]*player.sign).coerceAtLeast(0)
+            count * if(player==Player.WHITE) i+1 else 24-i
+        } + position.bar(player)*25
+        val mine=pip(me).coerceAtLeast(1);val theirs=pip(me.other()).coerceAtLeast(1)
+        return (theirs-mine).toDouble()/(mine+theirs)+(position.off(me)-position.off(me.other()))*.045+(position.bar(me.other())-position.bar(me))*.035
+    }
+    fun shouldOfferDouble(position: Position, me: Player)=equity(position,me)>.13
+    fun shouldTakeDouble(position: Position, taker: Player)=equity(position,taker)>-.27
     private fun play(start: Position, moves: List<Move>) = moves.fold(start) { p,m -> GameEngine.apply(p,m) }
     private fun evaluate(p: Position, me: Player): Double {
         fun pip(player: Player): Int = (0..23).sumOf { i ->

@@ -92,11 +92,11 @@ fun boardPalette(t:BoardTheme)=when(t){
   fun DrawScope.bearOffWell(y:Float){
    val wx=trayX+trayW*.08f;val ww=trayW*.84f
    // Raised wooden rim, sloped inner wall, and a recessed timber floor.
-   drawRoundRect(Color.Black.copy(.30f),Offset(wx+2f,y+3f),Size(ww,trayH),CornerRadius(8f))
+   drawRoundRect(Color.Black.copy(.44f),Offset(wx+3f,y+5f),Size(ww,trayH),CornerRadius(8f))
    drawRoundRect(materialBrush,Offset(wx,y),Size(ww,trayH),CornerRadius(8f));drawRoundRect(p.frame.copy(.48f),Offset(wx,y),Size(ww,trayH),CornerRadius(8f))
-   drawRoundRect(Brush.horizontalGradient(listOf(p.frameDark.copy(.88f),p.frame.copy(.38f),p.frameDark.copy(.88f))),Offset(wx+4f,y+4f),Size(ww-8f,trayH-8f),CornerRadius(6f))
-   drawRoundRect(materialBrush,Offset(wx+8f,y+8f),Size(ww-16f,trayH-16f),CornerRadius(4f));drawRoundRect(p.frameDark.copy(.42f),Offset(wx+8f,y+8f),Size(ww-16f,trayH-16f),CornerRadius(4f))
-   drawLine(Color.White.copy(.24f),Offset(wx+5f,y+5f),Offset(wx+ww-5f,y+5f),1.5f);drawLine(Color.Black.copy(.30f),Offset(wx+5f,y+trayH-5f),Offset(wx+ww-5f,y+trayH-5f),2f)
+   drawRoundRect(Brush.horizontalGradient(listOf(p.frameDark.copy(.88f),p.frame.copy(.38f),p.frameDark.copy(.88f))),Offset(wx+3f,y+3f),Size(ww-6f,trayH-6f),CornerRadius(6f))
+   drawRoundRect(materialBrush,Offset(wx+10f,y+10f),Size(ww-20f,trayH-20f),CornerRadius(4f));drawRoundRect(p.frameDark.copy(.52f),Offset(wx+10f,y+10f),Size(ww-20f,trayH-20f),CornerRadius(4f))
+   drawLine(Color.White.copy(.24f),Offset(wx+4f,y+4f),Offset(wx+ww-4f,y+4f),1.5f);drawLine(Color.Black.copy(.30f),Offset(wx+4f,y+trayH-4f),Offset(wx+ww-4f,y+trayH-4f),2f)
    val step=(trayH-16f)/15f;for(i in 1..14){val sy=y+8f+i*step;drawLine(Color.Black.copy(.11f),Offset(wx+11f,sy),Offset(wx+ww-11f,sy),1f)}
   }
   val topWellY=rail*1.55f;val bottomWellY=size.height-rail*1.55f-trayH;bearOffWell(topWellY);bearOffWell(bottomWellY)
