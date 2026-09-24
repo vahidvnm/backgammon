@@ -1,24 +1,61 @@
-# Backgammon for Android
+# AI Backgammon for Android
 
-A polished, completely offline Backgammon game built with native Kotlin and Jetpack Compose.
+A polished, completely offline backgammon game built with native Kotlin and Jetpack Compose.
 
 ## Features
-- Complete standard move rules: bar entry, hits, doubles, forced maximum dice usage, higher-die priority, bearing off, and wins
-- Local pass-and-play and five-level on-device AI
-- Original vector-rendered full-screen board with precise touch mapping, polished materials, shadows, and scalable graphics
-- Ten coherent premium themes, three checker styles, and three dice styles
-- Deterministic animated dice plus smooth checker feedback and animated legal destination halos
-- Match scoring, doubling cube, gammon/backgammon results, sound and haptic feedback
-- Persistent preferences and a responsive landscape-first classic premium interface
 
-## Build
+- Complete standard movement rules: bar entry, hits, doubles, forced maximum dice usage, higher-die priority, bearing off and compound checker routes
+- Four on-device AI personalities and five difficulty levels
+- Local pass-and-play
+- Standard doubling cube with ownership, Take, Drop and Redouble
+- Optional coaching, match clocks, unlimited in-session Undo, automatic match restoration, sound and haptics
+- Responsive landscape layouts, crafted themes, physical dice and polished checker animation
+- No account, ads, analytics, tracking or internet permission
+
+## Development build
+
 Requires JDK 17 and Android SDK 35.
 
 ```bash
-./gradlew testDebugUnitTest assembleDebug
+./gradlew testDebugUnitTest lintDebug assembleDebug
 ```
 
-The GitHub Actions **Android APK** workflow builds on pushes to `main` and manual dispatches. Download its `Backgammon-Android-APK` artifact.
+The **Android APK** GitHub Actions workflow runs tests and lint and uploads `AI-Backgammon-Debug-APK`.
+
+## Release build
+
+```bash
+./gradlew testReleaseUnitTest lintRelease bundleRelease assembleRelease
+```
+
+This produces an Android App Bundle and release APK. They remain unsigned unless all four signing environment variables are supplied:
+
+```text
+ANDROID_KEYSTORE_PATH
+ANDROID_KEYSTORE_PASSWORD
+ANDROID_KEY_ALIAS
+ANDROID_KEY_PASSWORD
+```
+
+The manual **AI Backgammon Release** workflow can create signed production binaries after these repository secrets are configured:
+
+```text
+ANDROID_KEYSTORE_BASE64
+ANDROID_KEYSTORE_PASSWORD
+ANDROID_KEY_ALIAS
+ANDROID_KEY_PASSWORD
+```
+
+Never commit the keystore or its passwords. Keep at least two secure offline backups. The same signing identity is required for future updates outside Google Play App Signing.
+
+## Store material
+
+- Final icons and feature graphic: `branding/store/`
+- English and Persian listing copy: `store-listing/`
+- Data Safety worksheet: `store-listing/data-safety.md`
+- Privacy policy source and web page: `docs/`
+- Third-party attribution: `THIRD_PARTY_NOTICES.md`
 
 ## Controls
-Roll, tap one of your checkers, then tap a glowing legal destination. Checkers on the bar must re-enter first. The status line shows the active side and remaining dice.
+
+Roll, tap an illuminated checker, then tap a sliding legal destination arrow. Compound destinations can consume two dice—or all available double moves—with one direct action when the complete route is legal.
