@@ -20,7 +20,7 @@ Requires JDK 17 and Android SDK 35.
 ./gradlew testDebugUnitTest lintDebug assembleDebug
 ```
 
-The **Android APK** GitHub Actions workflow runs tests and lint and uploads `AI-Backgammon-Debug-APK`.
+The **Android APK** GitHub Actions workflow runs tests and lint and uploads `AI-Backgammon-Debug-APK`. CI debug builds use the repository's dedicated non-production `app/ci-debug.p12` key, so debug APKs from future runs can update one another. This key is public by design and must never be used for a store release.
 
 ## Release build
 

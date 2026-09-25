@@ -8,6 +8,14 @@ android {
     namespace = "com.arena.backgammon"
     compileSdk = 35
 
+    signingConfigs.create("stableDebug") {
+        storeFile = file("ci-debug.p12")
+        storePassword = "android"
+        keyAlias = "androiddebugkey"
+        keyPassword = "android"
+        storeType = "PKCS12"
+    }
+
     val releaseStoreFile = System.getenv("ANDROID_KEYSTORE_PATH")
     val releaseStorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
     val releaseKeyAlias = System.getenv("ANDROID_KEY_ALIAS")
@@ -24,8 +32,8 @@ android {
         applicationId = "com.arena.backgammon"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.0-rc2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
@@ -34,6 +42,9 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
     buildTypes {
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("stableDebug")
+        }
         getByName("release") {
             isDebuggable = false
             isMinifyEnabled = true
