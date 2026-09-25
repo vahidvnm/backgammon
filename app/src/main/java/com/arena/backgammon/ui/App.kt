@@ -96,7 +96,7 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
    Row(Modifier.align(Alignment.Center).absoluteOffset(x=layout.actionOffsetDp.dp),horizontalArrangement=Arrangement.spacedBy(6.dp),verticalAlignment=Alignment.CenterVertically){if((game.rolled&&!rolling&&game.position.turn==Player.WHITE)||autoAssist)EngravedWoodAction(if(autoAssist)"AUTO ON" else "AUTO OFF"){vm.toggleAutoAssist()};BarEngraving("UNDO"){vm.undo()}}
 
   }
-  if(clock.active)MatchClocks(clock,game.position.turn,Modifier.align(Alignment.TopCenter).fillMaxWidth(.58f).padding(top=52.dp))
+  if(clock.active)MatchClocks(clock,game.position.turn,Modifier.align(Alignment.TopCenter).fillMaxWidth(.72f).padding(top=7.dp))
   CarvedScoreCounter(match.whiteScore,match.blackScore,Modifier.align(Alignment.TopCenter).padding(top=2.dp))
   if(game.dice.isNotEmpty()||rolling||(!game.rolled&&!(vm.mode==Mode.AI&&game.position.turn==Player.BLACK))) AnimatedDice(game.dice,settings.dice,rolling,{vm.roll();haptic()},Modifier.align(Alignment.Center).absoluteOffset(x=layout.diceOffsetDp.dp))
   SceneArrow("‹",Modifier.align(Alignment.CenterStart).padding(start=8.dp)){cycleScene(-1)}
@@ -148,15 +148,17 @@ private val Gold=Color(0xffffd274);private val Glass=Color(0xcc11151b)
 @Composable private fun ThemeChoice(theme:BoardTheme,on:Boolean,go:()->Unit){val p=boardPalette(theme);Row(Modifier.fillMaxWidth().padding(vertical=4.dp).clip(RoundedCornerShape(14.dp)).background(if(on)Color(0xffead0a4)else Color.Transparent).clickable(onClick=go).padding(9.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(48.dp,30.dp).clip(RoundedCornerShape(8.dp)).background(Brush.horizontalGradient(listOf(p.frame,p.field,p.pointA,p.pointB))).border(1.dp,Color(0xff9b6a3e),RoundedCornerShape(8.dp)));Spacer(Modifier.width(12.dp));Text(theme.name.replace('_',' '),Modifier.weight(1f),color=Color(0xff3b2117),fontWeight=if(on)FontWeight.Bold else FontWeight.Normal);if(on)Text("◆",color=Color(0xff665b49))}}
 @Composable private fun MatchClocks(clock:ClockState,turn:Player,modifier:Modifier=Modifier){
  fun format(ms:Long):String{val safe=ms.coerceAtLeast(0);return if(safe<10_000)"${safe/1000}.${(safe%1000)/100}" else "%d:%02d".format(safe/60_000,(safe/1000)%60)}
- Row(modifier,horizontalArrangement=Arrangement.SpaceBetween){
-  ClockFace("BLACK",format(clock.blackMillis),turn==Player.BLACK,clock.turnMillis)
+ androidx.compose.runtime.CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr){Row(modifier,horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.Top){
   ClockFace("WHITE",format(clock.whiteMillis),turn==Player.WHITE,clock.turnMillis)
- }
+  ClockFace("BLACK",format(clock.blackMillis),turn==Player.BLACK,clock.turnMillis)
+ }}
 }
 @Composable private fun ClockFace(label:String,time:String,active:Boolean,turnMillis:Long){
- Row(Modifier.width(116.dp).height(39.dp).graphicsLayer{shadowElevation=7.dp.toPx();shape=RoundedCornerShape(7.dp);clip=false}.clip(RoundedCornerShape(7.dp)).background(Brush.verticalGradient(if(active)listOf(Color(0xffaa7044),Color(0xff442015))else listOf(Color(0xff4c352b),Color(0xff20130f)))).border(1.dp,if(active)Color(0xffffd47f)else Color.White.copy(.18f),RoundedCornerShape(7.dp)).padding(horizontal=8.dp),verticalAlignment=Alignment.CenterVertically){
-  Column(Modifier.weight(1f)){Text(label,color=Color.White.copy(.62f),fontSize=7.sp,fontWeight=FontWeight.Black,letterSpacing=1.sp);Text(time,color=if(active)Color(0xffffe0a0)else Color.White.copy(.62f),fontSize=15.sp,fontWeight=FontWeight.Black)}
-  Box(Modifier.size(22.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color.Black.copy(.32f)),contentAlignment=Alignment.Center){Text("${(turnMillis/1000).coerceAtLeast(0)}",color=if(turnMillis<3000)Color(0xffff786c)else Color.White.copy(.72f),fontSize=8.sp,fontWeight=FontWeight.Bold)}
+ val shape=RoundedCornerShape(9.dp)
+ Box(Modifier.width(142.dp).height(45.dp).graphicsLayer{shadowElevation=9.dp.toPx();this.shape=shape;clip=false}.clip(shape).background(Brush.verticalGradient(if(active)listOf(Color(0xffad7245),Color(0xff3d1b11))else listOf(Color(0xff4c352b),Color(0xff1c100c)))).border(if(active)1.5.dp else 1.dp,if(active)Color(0xffffd47f)else Color.White.copy(.20f),shape).padding(horizontal=8.dp)){
+  Text(label,Modifier.align(Alignment.TopEnd).padding(top=3.dp),color=Color.White.copy(.68f),fontSize=7.sp,fontWeight=FontWeight.Black,letterSpacing=1.2.sp)
+  Text(time,Modifier.align(Alignment.Center).offset(y=3.dp),color=if(active)Color(0xffffe0a0)else Color.White.copy(.74f),fontSize=18.sp,fontWeight=FontWeight.Black,letterSpacing=.8.sp)
+  Box(Modifier.align(Alignment.CenterStart).size(27.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color.Black.copy(.38f)).border(1.dp,if(active)Color(0xffffd47f).copy(.62f)else Color.White.copy(.15f),androidx.compose.foundation.shape.CircleShape),contentAlignment=Alignment.Center){Column(horizontalAlignment=Alignment.CenterHorizontally){Text("TURN",fontSize=5.sp,color=Color.White.copy(.48f),lineHeight=5.sp);Text("${(turnMillis/1000).coerceAtLeast(0)}",color=if(turnMillis<3000)Color(0xffff786c)else Color.White.copy(.82f),fontSize=9.sp,fontWeight=FontWeight.Black,lineHeight=9.sp)}}
  }
 }
 @Composable private fun CarvedScoreCounter(white:Int,black:Int,modifier:Modifier=Modifier){
