@@ -4,7 +4,7 @@ import android.content.Context
 import com.arena.backgammon.ai.Difficulty
 import com.arena.backgammon.ai.AiPersona
 
-enum class BoardTheme { PREMIUM_WOOD, MARBLE_STONE, SMOKED_GLASS }
+enum class BoardTheme { PREMIUM_WOOD, BRUSHED_METAL, MARBLE_STONE, SMOKED_GLASS }
 enum class PieceStyle { IVORY, MARBLE, NEON }
 enum class DiceStyle { CLASSIC, ONYX, CRYSTAL }
 enum class TableScene { DARK_GRASS, STARRY_SKY, AUTUMN_SUNSET, PERSIAN_RUG, DARK_RIVER }

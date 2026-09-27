@@ -20,13 +20,14 @@ private data class CheckerMotion(val from:Int,val to:Int,val white:Boolean,val f
 data class BoardPalette(val frame:Color,val frameDark:Color,val field:Color,val pointA:Color,val pointB:Color,val light:Color,val dark:Color,val accent:Color)
 fun boardPalette(t:BoardTheme)=when(t){
  BoardTheme.PREMIUM_WOOD->BoardPalette(Color(0xff75402b),Color(0xff2f160d),Color(0xffc4936d),Color(0xffd8bd8d),Color(0xff6d2730),Color(0xffffdfa0),Color(0xff351a15),Color(0xffd7b25b))
+ BoardTheme.BRUSHED_METAL->BoardPalette(Color(0xff777b7d),Color(0xff202426),Color(0xffa1a3a0),Color(0xffd6b879),Color(0xff732934),Color(0xffffe0a0),Color(0xff25282a),Color(0xffc89c52))
  BoardTheme.MARBLE_STONE->BoardPalette(Color(0xff8c9298),Color(0xff30363c),Color(0xffc8c9c5),Color(0xfff0eee7),Color(0xff596773),Color(0xfff5f3ea),Color(0xff263039),Color(0xffb9c5cc))
  BoardTheme.SMOKED_GLASS->BoardPalette(Color(0xff334650),Color(0xff0b151b),Color(0xff183541),Color(0xff9ed4db),Color(0xff245f70),Color(0xffd5f5f4),Color(0xff0b2029),Color(0xff7de3e8))
 }
 
 /** Precise top-down board inspired by classic mobile layouts, drawn entirely with original vector assets. */
 @Composable fun FlatBoard(state:TurnState,theme:BoardTheme,pieces:PieceStyle,selected:Int?,legal:List<Move>,select:(Int)->Unit,move:(Move)->Unit,combine:(Int,Int)->Boolean={_,_->false},modifier:Modifier=Modifier,scene:TableScene=TableScene.DARK_GRASS,guidance:GuidanceMode=GuidanceMode.SIMPLE){
- val p=boardPalette(theme);val texture=ImageBitmap.imageResource(when(theme){BoardTheme.PREMIUM_WOOD->R.drawable.premium_walnut_texture;BoardTheme.MARBLE_STONE->R.drawable.ivory_marble_texture;BoardTheme.SMOKED_GLASS->R.drawable.smoked_glass_texture});val materialBrush=remember(texture){ShaderBrush(ImageShader(texture,TileMode.Mirror,TileMode.Mirror))};val pulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse")
+ val p=boardPalette(theme);val texture=ImageBitmap.imageResource(when(theme){BoardTheme.PREMIUM_WOOD->R.drawable.premium_walnut_texture;BoardTheme.BRUSHED_METAL->R.drawable.smoked_glass_texture;BoardTheme.MARBLE_STONE->R.drawable.ivory_marble_texture;BoardTheme.SMOKED_GLASS->R.drawable.smoked_glass_texture});val materialBrush=remember(texture){ShaderBrush(ImageShader(texture,TileMode.Mirror,TileMode.Mirror))};val pulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse")
  val plans=if(selected==null)emptyList() else GameEngine.movePlans(state.position,state.dice,selected)
  val visiblePlans=plans
  val displayPlans=visiblePlans.groupBy{it.to}.values.mapNotNull{routes->routes.maxByOrNull{it.moves.size}}
@@ -91,6 +92,12 @@ fun boardPalette(t:BoardTheme)=when(t){
     for(i in 1..5){val y=rail*i/6f;drawLine(p.frameDark.copy(.13f),Offset(10f,y),Offset(size.width-10f,y+sin(i.toFloat())*2f),1f);drawLine(Color.White.copy(.055f),Offset(10f,size.height-y),Offset(size.width-10f,size.height-y+cos(i.toFloat())*2f),1f)}
     for(i in 1..4){val x=playLeft*i/5f;val side=Path().apply{moveTo(x,8f);cubicTo(x+2f,size.height*.3f,x-2f,size.height*.7f,x,size.height-8f)};drawPath(side,p.frameDark.copy(.11f),style=Stroke(1f))}
     for(i in 1..4){val x=playRight+(size.width-playRight)*i/5f;drawLine(p.frameDark.copy(.10f),Offset(x,7f),Offset(x+sin(i.toFloat())*2f,size.height-7f),1f)}
+   }
+   BoardTheme.BRUSHED_METAL->{
+    // Fine directional machining, panel seams and fasteners create a fabricated metal chassis.
+    for(i in 0..34){val y=rail+(size.height-rail*2)*i/34f;val a=if(i%6==0).16f else .055f;drawLine(if(i%2==0)Color.White.copy(a)else Color.Black.copy(a),Offset(playLeft+3f,y),Offset(playRight-3f,y+sin(i*.73f)*1.2f),if(i%6==0)1.2f else .65f)}
+    for(x in listOf(playLeft,barLeft,barLeft+barW,playRight)){drawLine(Color.Black.copy(.38f),Offset(x+2f,rail),Offset(x+2f,size.height-rail),2.6f);drawLine(Color.White.copy(.22f),Offset(x+4f,rail+2f),Offset(x+4f,size.height-rail-2f),1f)}
+    for(x in listOf(playLeft+rail*.45f,playRight-rail*.45f))for(y in listOf(rail*.45f,size.height-rail*.45f)){drawCircle(Color.Black.copy(.48f),5.2f,Offset(x+1.5f,y+1.8f));drawCircle(Brush.radialGradient(listOf(Color.White.copy(.70f),p.frame,p.frameDark)),4.3f,Offset(x,y));drawLine(Color.Black.copy(.48f),Offset(x-2.2f,y),Offset(x+2.2f,y),.9f)}
    }
    BoardTheme.MARBLE_STONE->{for(i in 0..8){val x=playLeft+(playRight-playLeft)*i/8f;if(x !in barLeft..(barLeft+barW)){val vein=Path().apply{moveTo(x,rail);cubicTo(x+sin(i*2f)*32f,size.height*.30f,x+cos(i*1.3f)*46f,size.height*.68f,x+sin(i*.7f)*25f,size.height-rail)};drawPath(vein,Color.White.copy(if(i%3==0).22f else .09f),style=Stroke(if(i%3==0)2.3f else 1f));drawPath(vein,Color(0xff505860).copy(.07f),style=Stroke(4f))}}}
    BoardTheme.SMOKED_GLASS->{val sheen=Brush.linearGradient(listOf(Color.White.copy(.14f),Color.Transparent,Color(0xff6de7ef).copy(.09f)));drawRect(sheen,Offset(playLeft,rail),Size(half,size.height-rail*2));drawRect(sheen,Offset(barLeft+barW,rail),Size(half,size.height-rail*2));for(i in 0..5){drawLine(Color.White.copy(.055f),Offset(playLeft+i*70f,rail),Offset(playLeft+i*70f+140f,size.height-rail),1.2f);drawLine(Color.White.copy(.055f),Offset(barLeft+barW+i*70f,rail),Offset(barLeft+barW+i*70f+140f,size.height-rail),1.2f)}}
