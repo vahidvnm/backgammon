@@ -6,7 +6,7 @@ import com.arena.backgammon.ai.AiPersona
 
 enum class BoardTheme { PREMIUM_WOOD, BRUSHED_METAL, MARBLE_STONE, SMOKED_GLASS }
 enum class PieceStyle { IVORY, MARBLE, NEON }
-enum class DiceStyle { CLASSIC, ONYX, CRYSTAL }
+enum class DiceStyle { CLASSIC, ONYX, CRYSTAL, GOLD, SILVER, MARBLE_LIGHT, MARBLE_DARK, GLASS_LIGHT, GLASS_DARK }
 enum class TableScene { DARK_GRASS, STARRY_SKY, AUTUMN_SUNSET, PERSIAN_RUG, DARK_RIVER }
 enum class DoublesRate { NATURAL, REDUCED_20, REDUCED_50, NEVER }
 enum class ClockPreset(val bankMillis:Long,val turnMillis:Long) { OFF(0,0), RAPID_60(60_000,10_000), STANDARD_180(180_000,20_000) }

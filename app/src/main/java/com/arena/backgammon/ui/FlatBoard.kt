@@ -138,8 +138,8 @@ fun boardPalette(t:BoardTheme)=when(t){
   fun center(point:Int,index:Int):Offset{val col=if(point<12)11-point else point-12;val x=if(col<6)playLeft+(col+.5f)*cw else barLeft+barW+(col-5.5f)*cw;val r=cw*.262f;val gap=min(r*1.72f,(size.height*.37f)/5);return Offset(x,if(point>=12)rail+r+index.coerceAtMost(4)*gap else size.height-rail-r-index.coerceAtMost(4)*gap)}
   fun DrawScope.piece(c:Offset,r:Float,white:Boolean,on:Boolean=false,available:Boolean=false,variation:Float=0f){
    // Two-part luxury checker: a cast ornamental metal body around a deep fabric inset.
-   val gold=if(white)Color(0xffc6a15d)else Color(0xff765238);val goldLight=if(white)Color(0xffffe3a0)else Color(0xffc18a5b);val goldDark=if(white)Color(0xff68431f)else Color(0xff29170f)
-   val inset=if(white)Color(0xff741f2d)else Color(0xff21191a);val insetLight=if(white)Color(0xffa74450)else Color(0xff574044);val topC=c-Offset(0f,r*.070f)
+   val gold=when(theme){BoardTheme.MARBLE_STONE->if(white)Color(0xffdddcd5)else Color(0xff52606a);BoardTheme.SMOKED_GLASS->if(white)Color(0xff8edee5)else Color(0xff174b61);else->if(white)Color(0xffc6a15d)else Color(0xff765238)};val goldLight=when(theme){BoardTheme.MARBLE_STONE->if(white)Color.White else Color(0xffa7bac4);BoardTheme.SMOKED_GLASS->if(white)Color(0xffd6ffff)else Color(0xff5eb3ca);else->if(white)Color(0xffffe3a0)else Color(0xffc18a5b)};val goldDark=when(theme){BoardTheme.MARBLE_STONE->if(white)Color(0xff777a7d)else Color(0xff182127);BoardTheme.SMOKED_GLASS->if(white)Color(0xff276c78)else Color(0xff071a25);else->if(white)Color(0xff68431f)else Color(0xff29170f)}
+   val inset=when(theme){BoardTheme.MARBLE_STONE->if(white)Color(0xfff1efe7)else Color(0xff26343d);BoardTheme.SMOKED_GLASS->if(white)Color(0xff77dbe3)else Color(0xff0a3044);else->if(white)Color(0xff741f2d)else Color(0xff21191a)};val insetLight=when(theme){BoardTheme.MARBLE_STONE->if(white)Color.White else Color(0xff637681);BoardTheme.SMOKED_GLASS->if(white)Color(0xffc9ffff)else Color(0xff28748e);else->if(white)Color(0xffa74450)else Color(0xff574044)};val topC=c-Offset(0f,r*.070f)
    if(theme==BoardTheme.PREMIUM_WOOD){
     // Persian khatam-style checker for the walnut board: lacquer shell, geometric inlay and deep gloss.
     val shell=if(white)Color(0xffeee7d5)else Color(0xff141315);val shellMid=if(white)Color(0xffc9c0aa)else Color(0xff363034);val shellDark=if(white)Color(0xff756d61)else Color(0xff050506);val ink=if(white)Color(0xff27383a)else Color(0xffeee2ad);val ivory=Color(0xffffedbd);val turquoise=Color(0xff557f7a);val gilt=Color(0xffc9a24e)
@@ -156,6 +156,18 @@ fun boardPalette(t:BoardTheme)=when(t){
     drawArc(Color.White.copy(if(white).48f else .28f),202f,113f,false,Offset(topC.x-r*.86f,topC.y-r*.86f),Size(r*1.72f,r*1.72f),style=Stroke(r*.045f));drawOval(Color.White.copy(if(white).25f else .16f),Offset(topC.x-r*.48f,topC.y-r*.49f),Size(r*.45f,r*.13f));drawArc(Color.Black.copy(.40f),20f,145f,false,Offset(topC.x-r*.88f,topC.y-r*.88f),Size(r*1.76f,r*1.76f),style=Stroke(r*.050f))
     if(available&&!on){drawCircle(Brush.radialGradient(listOf(Color(0xffbaff88).copy(.30f+.18f*pulse),Color(0xff55d66b).copy(.18f),Color.Transparent),topC,r*.92f),r*.82f,topC);drawCircle(Color(0xff7ee779).copy(.62f+.28f*pulse),r*.78f,topC,style=Stroke(r*.055f))};if(on){drawCircle(Color.Black.copy(.30f),r*1.10f,c,style=Stroke(5f));drawCircle(p.accent,r*1.08f,c,style=Stroke(3f))};return
    }
+   if(theme==BoardTheme.BRUSHED_METAL){
+    // Precision-machined gold/silver counters designed specifically for the metal chassis.
+    val metal=if(white)Color(0xffd79a42)else Color(0xffc7c9ca);val hi=if(white)Color(0xffffd68b)else Color(0xfff7f8f6);val low=if(white)Color(0xff6e3513)else Color(0xff46494c)
+    drawOval(Color.Black.copy(.18f),Offset(c.x-r*1.06f,c.y-r*.58f),Size(r*2.12f,r*1.82f));drawOval(Color.Black.copy(.38f),Offset(c.x-r*.94f,c.y-r*.47f),Size(r*1.88f,r*1.58f));drawCircle(low,r,c+Offset(0f,r*.10f));drawCircle(Brush.verticalGradient(listOf(hi,metal,low)),r*.97f,c)
+    drawCircle(Brush.sweepGradient(listOf(hi,metal,low,metal,hi,metal,low,metal,hi),topC),r*.90f,topC);drawCircle(low.copy(.80f),r*.78f,topC,style=Stroke(r*.055f));drawCircle(hi.copy(.72f),r*.71f,topC,style=Stroke(r*.025f))
+    // Radial machining marks and a knurled side band catch the board's warm light.
+    repeat(24){i->val a=Math.toRadians(i*15.0);val v=Offset(cos(a).toFloat(),sin(a).toFloat());drawLine((if(i%2==0)hi else low).copy(.20f),topC+v*r*.10f,topC+v*r*.68f,r*.010f)}
+    repeat(18){i->val a=Math.toRadians(i*20.0);val q=Offset(topC.x+cos(a).toFloat()*r*.82f,topC.y+sin(a).toFloat()*r*.82f);drawCircle(if(i%2==0)hi.copy(.42f)else low.copy(.48f),r*.018f,q)}
+    drawCircle(Brush.radialGradient(listOf(Color.White.copy(.38f),Color.Transparent),topC-Offset(r*.28f,r*.30f),r*.65f),r*.62f,topC);drawArc(Color.White.copy(.52f),205f,105f,false,Offset(topC.x-r*.87f,topC.y-r*.87f),Size(r*1.74f,r*1.74f),style=Stroke(r*.035f));drawArc(Color.Black.copy(.40f),18f,142f,false,Offset(topC.x-r*.89f,topC.y-r*.89f),Size(r*1.78f,r*1.78f),style=Stroke(r*.045f))
+    if(available&&!on){drawCircle(Brush.radialGradient(listOf(Color(0xffbaff88).copy(.30f+.18f*pulse),Color(0xff55d66b).copy(.18f),Color.Transparent),topC,r*.92f),r*.82f,topC);drawCircle(Color(0xff7ee779).copy(.62f+.28f*pulse),r*.78f,topC,style=Stroke(r*.055f))};if(on){drawCircle(Color.Black.copy(.30f),r*1.10f,c,style=Stroke(5f));drawCircle(p.accent,r*1.08f,c,style=Stroke(3f))};return
+   }
+   // Marble and smoked-glass collections retain an ornamental two-part construction.
    // Thick sidewall and soft contact shadow make the ring read as a solid cast piece.
    drawOval(Color.Black.copy(.15f),Offset(c.x-r*1.05f,c.y-r*.59f),Size(r*2.10f,r*1.78f));drawOval(Color.Black.copy(.30f),Offset(c.x-r*.94f,c.y-r*.49f),Size(r*1.88f,r*1.55f))
    drawCircle(goldDark,r,c+Offset(0f,r*.085f));drawCircle(Brush.verticalGradient(listOf(goldLight,gold,goldDark)),r*.97f,c)
