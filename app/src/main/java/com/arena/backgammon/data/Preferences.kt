@@ -3,15 +3,15 @@ package com.arena.backgammon.data
 import android.content.Context
 import com.arena.backgammon.ai.Difficulty
 import com.arena.backgammon.ai.AiPersona
-enum class BoardTheme { PREMIUM_WOOD, BRUSHED_METAL, BURGUNDY_MARBLE, JADE_MARBLE, OBSIDIAN_IVORY, CRYSTAL_GLASS, ROYAL_SAPPHIRE }
-enum class PieceStyle { KHATAM, METAL, BURGUNDY_MARBLE, JADE, OBSIDIAN_IVORY, CRYSTAL, SAPPHIRE }
+enum class BoardTheme { PREMIUM_WOOD, BRUSHED_METAL, OBSIDIAN_IVORY, CRYSTAL_GLASS, ROYAL_SAPPHIRE }
+enum class PieceStyle { KHATAM, METAL, OBSIDIAN_IVORY, CRYSTAL, SAPPHIRE }
 enum class DiceStyle { CLASSIC, ONYX, CRYSTAL, GOLD, SILVER, MARBLE_LIGHT, MARBLE_DARK, GLASS_LIGHT, GLASS_DARK, BURGUNDY, JADE, SAPPHIRE }
 enum class TableScene { DARK_GRASS, STARRY_SKY, AUTUMN_SUNSET, PERSIAN_RUG, DARK_RIVER }
 enum class DoublesRate { NATURAL, REDUCED_20, REDUCED_50, NEVER }
 enum class ClockPreset(val bankMillis:Long,val turnMillis:Long){OFF(0,0),RAPID_60(60_000,10_000),STANDARD_180(180_000,20_000)}
 enum class GuidanceMode { SIMPLE, COACH }
-fun BoardTheme.defaultPieces()=when(this){BoardTheme.PREMIUM_WOOD->PieceStyle.KHATAM;BoardTheme.BRUSHED_METAL->PieceStyle.METAL;BoardTheme.BURGUNDY_MARBLE->PieceStyle.BURGUNDY_MARBLE;BoardTheme.JADE_MARBLE->PieceStyle.JADE;BoardTheme.OBSIDIAN_IVORY->PieceStyle.OBSIDIAN_IVORY;BoardTheme.CRYSTAL_GLASS->PieceStyle.CRYSTAL;BoardTheme.ROYAL_SAPPHIRE->PieceStyle.SAPPHIRE}
-fun PieceStyle.materialTheme()=when(this){PieceStyle.KHATAM->BoardTheme.PREMIUM_WOOD;PieceStyle.METAL->BoardTheme.BRUSHED_METAL;PieceStyle.BURGUNDY_MARBLE->BoardTheme.BURGUNDY_MARBLE;PieceStyle.JADE->BoardTheme.JADE_MARBLE;PieceStyle.OBSIDIAN_IVORY->BoardTheme.OBSIDIAN_IVORY;PieceStyle.CRYSTAL->BoardTheme.CRYSTAL_GLASS;PieceStyle.SAPPHIRE->BoardTheme.ROYAL_SAPPHIRE}
+fun BoardTheme.defaultPieces()=when(this){BoardTheme.PREMIUM_WOOD->PieceStyle.KHATAM;BoardTheme.BRUSHED_METAL->PieceStyle.METAL;BoardTheme.OBSIDIAN_IVORY->PieceStyle.OBSIDIAN_IVORY;BoardTheme.CRYSTAL_GLASS->PieceStyle.CRYSTAL;BoardTheme.ROYAL_SAPPHIRE->PieceStyle.SAPPHIRE}
+fun PieceStyle.materialTheme()=when(this){PieceStyle.KHATAM->BoardTheme.PREMIUM_WOOD;PieceStyle.METAL->BoardTheme.BRUSHED_METAL;PieceStyle.OBSIDIAN_IVORY->BoardTheme.OBSIDIAN_IVORY;PieceStyle.CRYSTAL->BoardTheme.CRYSTAL_GLASS;PieceStyle.SAPPHIRE->BoardTheme.ROYAL_SAPPHIRE}
 data class Settings(val sound:Boolean=true,val music:Boolean=false,val vibration:Boolean=true,val animations:Boolean=true,val theme:BoardTheme=BoardTheme.PREMIUM_WOOD,val pieces:PieceStyle=PieceStyle.KHATAM,val dice:DiceStyle=DiceStyle.CLASSIC,val difficulty:Difficulty=Difficulty.MEDIUM,val tableScene:TableScene=TableScene.DARK_GRASS,val doublesRate:DoublesRate=DoublesRate.NATURAL,val clockPreset:ClockPreset=ClockPreset.OFF,val aiPersona:AiPersona=AiPersona.MASTER,val guidanceMode:GuidanceMode=GuidanceMode.SIMPLE)
 class Preferences(ctx:Context){
  private val p=ctx.getSharedPreferences("settings",Context.MODE_PRIVATE)
