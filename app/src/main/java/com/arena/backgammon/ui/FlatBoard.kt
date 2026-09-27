@@ -140,6 +140,22 @@ fun boardPalette(t:BoardTheme)=when(t){
    // Two-part luxury checker: a cast ornamental metal body around a deep fabric inset.
    val gold=if(white)Color(0xffc6a15d)else Color(0xff765238);val goldLight=if(white)Color(0xffffe3a0)else Color(0xffc18a5b);val goldDark=if(white)Color(0xff68431f)else Color(0xff29170f)
    val inset=if(white)Color(0xff741f2d)else Color(0xff21191a);val insetLight=if(white)Color(0xffa74450)else Color(0xff574044);val topC=c-Offset(0f,r*.070f)
+   if(theme==BoardTheme.PREMIUM_WOOD){
+    // Persian khatam-style checker for the walnut board: lacquer shell, geometric inlay and deep gloss.
+    val shell=if(white)Color(0xffeee7d5)else Color(0xff141315);val shellMid=if(white)Color(0xffc9c0aa)else Color(0xff363034);val shellDark=if(white)Color(0xff756d61)else Color(0xff050506);val ink=if(white)Color(0xff27383a)else Color(0xffeee2ad);val ivory=Color(0xffffedbd);val turquoise=Color(0xff557f7a);val gilt=Color(0xffc9a24e)
+    drawOval(Color.Black.copy(.15f),Offset(c.x-r*1.06f,c.y-r*.59f),Size(r*2.12f,r*1.82f));drawOval(Color.Black.copy(.30f),Offset(c.x-r*.95f,c.y-r*.49f),Size(r*1.90f,r*1.58f))
+    drawCircle(shellDark,r,c+Offset(0f,r*.09f));drawCircle(Brush.verticalGradient(listOf(Color.White.copy(if(white).75f else .22f),shellMid,shellDark)),r*.97f,c)
+    drawCircle(Brush.radialGradient(listOf(Color.White.copy(if(white).82f else .30f),shell,shellMid,shellDark),topC-Offset(r*.30f,r*.34f),r*1.30f),r*.91f,topC)
+    drawCircle(Color.Black.copy(.48f),r*.77f,topC);drawCircle(Brush.radialGradient(listOf(shell.copy(.98f),shellMid.copy(.92f))),r*.73f,topC);drawCircle(gilt.copy(.85f),r*.70f,topC,style=Stroke(r*.028f))
+    // Three concentric rings of tiny triangular inlay remain legible at game scale.
+    repeat(12){i->val a=Math.toRadians(i*30.0-90.0);val ca=cos(a).toFloat();val sa=sin(a).toFloat();val q=Offset(topC.x+ca*r*.58f,topC.y+sa*r*.58f);val tang=Offset(-sa,ca);val radial=Offset(ca,sa);val tri=Path().apply{moveTo(q.x+radial.x*r*.085f,q.y+radial.y*r*.085f);lineTo(q.x-tang.x*r*.075f-radial.x*r*.050f,q.y-tang.y*r*.075f-radial.y*r*.050f);lineTo(q.x+tang.x*r*.075f-radial.x*r*.050f,q.y+tang.y*r*.075f-radial.y*r*.050f);close()};drawPath(tri,when(i%3){0->gilt;1->turquoise;else->ivory});drawPath(tri,Color.Black.copy(.42f),style=Stroke(r*.012f));drawCircle(if(i%2==0)ink else gilt,r*.018f,q)}
+    repeat(8){i->val a=Math.toRadians(i*45.0-90.0);val q=Offset(topC.x+cos(a).toFloat()*r*.38f,topC.y+sin(a).toFloat()*r*.38f);drawCircle(if(i%2==0)turquoise else gilt,r*.070f,q);drawCircle(ink.copy(.85f),r*.070f,q,style=Stroke(r*.014f));drawCircle(ivory,r*.020f,q)}
+    // Interlocked central eight-point star, the focal motif of the reference set.
+    val star=Path().apply{for(i in 0 until 16){val a=Math.toRadians(i*22.5-90.0);val rr=if(i%2==0)r*.31f else r*.145f;val x=topC.x+cos(a).toFloat()*rr;val y=topC.y+sin(a).toFloat()*rr;if(i==0)moveTo(x,y)else lineTo(x,y)};close()};drawPath(star,if(white)gilt else ivory);drawPath(star,ink,style=Stroke(r*.027f));drawCircle(turquoise,r*.090f,topC);drawCircle(ivory,r*.040f,topC)
+    // Lacquer reflection follows the curved cap without washing out the mosaic.
+    drawArc(Color.White.copy(if(white).48f else .28f),202f,113f,false,Offset(topC.x-r*.86f,topC.y-r*.86f),Size(r*1.72f,r*1.72f),style=Stroke(r*.045f));drawOval(Color.White.copy(if(white).25f else .16f),Offset(topC.x-r*.48f,topC.y-r*.49f),Size(r*.45f,r*.13f));drawArc(Color.Black.copy(.40f),20f,145f,false,Offset(topC.x-r*.88f,topC.y-r*.88f),Size(r*1.76f,r*1.76f),style=Stroke(r*.050f))
+    if(available&&!on){drawCircle(Brush.radialGradient(listOf(Color(0xffbaff88).copy(.30f+.18f*pulse),Color(0xff55d66b).copy(.18f),Color.Transparent),topC,r*.92f),r*.82f,topC);drawCircle(Color(0xff7ee779).copy(.62f+.28f*pulse),r*.78f,topC,style=Stroke(r*.055f))};if(on){drawCircle(Color.Black.copy(.30f),r*1.10f,c,style=Stroke(5f));drawCircle(p.accent,r*1.08f,c,style=Stroke(3f))};return
+   }
    // Thick sidewall and soft contact shadow make the ring read as a solid cast piece.
    drawOval(Color.Black.copy(.15f),Offset(c.x-r*1.05f,c.y-r*.59f),Size(r*2.10f,r*1.78f));drawOval(Color.Black.copy(.30f),Offset(c.x-r*.94f,c.y-r*.49f),Size(r*1.88f,r*1.55f))
    drawCircle(goldDark,r,c+Offset(0f,r*.085f));drawCircle(Brush.verticalGradient(listOf(goldLight,gold,goldDark)),r*.97f,c)
