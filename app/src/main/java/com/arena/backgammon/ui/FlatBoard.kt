@@ -130,22 +130,23 @@ fun boardPalette(t:BoardTheme)=when(t){
   for(c in 0..11){val x=if(c<6)playLeft+c*cw else barLeft+barW+(c-6)*cw;val color=if(c%2==0)p.pointA else p.pointB;val other=if(c%2==0)p.pointB else p.pointA;val top=Path().apply{moveTo(x+cw*.10f,rail);lineTo(x+cw*.90f,rail);lineTo(x+cw/2,size.height*.405f);close()};val bottom=Path().apply{moveTo(x+cw*.10f,size.height-rail);lineTo(x+cw*.90f,size.height-rail);lineTo(x+cw/2,size.height*.595f);close()};drawPath(top,Brush.verticalGradient(listOf(color.copy(.72f),color,color.copy(.76f)),rail,size.height*.43f));drawPath(bottom,Brush.verticalGradient(listOf(other.copy(.76f),other,other.copy(.72f)),size.height*.57f,size.height-rail));drawPath(top,Color.Black.copy(.18f),style=Stroke(1.3f));drawPath(bottom,Color.Black.copy(.18f),style=Stroke(1.3f));drawLine(Color.White.copy(.13f),Offset(x+cw*.10f,rail+1f),Offset(x+cw/2,size.height*.405f),1f);drawLine(Color.Black.copy(.13f),Offset(x+cw*.90f,rail+1f),Offset(x+cw/2,size.height*.405f),1f);drawLine(Color.White.copy(.10f),Offset(x+cw*.10f,size.height-rail-1f),Offset(x+cw/2,size.height*.595f),1f);drawLine(Color.Black.copy(.14f),Offset(x+cw*.90f,size.height-rail-1f),Offset(x+cw/2,size.height*.595f),1f)}
   fun center(point:Int,index:Int):Offset{val col=if(point<12)11-point else point-12;val x=if(col<6)playLeft+(col+.5f)*cw else barLeft+barW+(col-5.5f)*cw;val r=cw*.262f;val gap=min(r*1.72f,(size.height*.37f)/5);return Offset(x,if(point>=12)rail+r+index.coerceAtMost(4)*gap else size.height-rail-r-index.coerceAtMost(4)*gap)}
   fun DrawScope.piece(c:Offset,r:Float,white:Boolean,on:Boolean=false,available:Boolean=false,variation:Float=0f){
-   val materialBase=when(theme){BoardTheme.PREMIUM_WOOD->if(white)Color(0xffe2c58d)else Color(0xff603326);BoardTheme.MARBLE_STONE->if(white)Color(0xffe8e8e2)else Color(0xff34434d);BoardTheme.SMOKED_GLASS->if(white)Color(0xffb5edf0)else Color(0xff123b52)}
-   val styleTint=when(pieces){PieceStyle.IVORY->materialBase;PieceStyle.MARBLE->if(white)Color(0xffe3e2dc)else Color(0xff3c4650);PieceStyle.NEON->if(white)Color(0xffbceff0)else Color(0xff174760)}
-   // Deterministic ±3% material variation prevents cloned checkers without changing team colour.
-   val base=if(variation>=0)lerp(styleTint,Color.White,variation*.03f)else lerp(styleTint,Color.Black,-variation*.03f)
-   val edge=if(white)lerp(base,Color(0xff80572f),.43f)else lerp(base,Color.Black,.58f);val topC=c-Offset(0f,r*.055f)
-   // Layered ambient/contact shadows are softer than a single black outline.
-   drawOval(Color.Black.copy(.13f),Offset(c.x-r*1.02f,c.y-r*.63f),Size(r*2.04f,r*1.80f));drawOval(Color.Black.copy(.24f),Offset(c.x-r*.91f,c.y-r*.55f),Size(r*1.82f,r*1.63f))
-   drawCircle(edge,r,c+Offset(0f,r*.055f));drawCircle(Brush.verticalGradient(listOf(base,edge.copy(.88f))),r*.96f,c)
-   drawCircle(Brush.radialGradient(listOf(Color.White.copy(if(white).48f else .25f),base,edge),topC-Offset(r*.25f,r*.28f),r*1.18f),r*.90f,topC)
-   // One rim and one concave centre: no stacked-disc or attached-bubble appearance.
-   drawCircle(Color.White.copy(.30f),r*.86f,topC,style=Stroke(r*.038f));drawCircle(Color.Black.copy(.24f),r*.69f,topC,style=Stroke(r*.042f))
-   drawCircle(Brush.radialGradient(listOf(base.copy(.96f),base.copy(.83f),edge.copy(.74f)),topC-Offset(r*.10f,r*.10f),r*.55f),r*.47f,topC)
-   drawArc(Color.Black.copy(.30f),188f,164f,false,Offset(topC.x-r*.47f,topC.y-r*.47f),Size(r*.94f,r*.94f),style=Stroke(r*.045f));drawArc(Color.White.copy(.15f),8f,164f,false,Offset(topC.x-r*.44f,topC.y-r*.44f),Size(r*.88f,r*.88f),style=Stroke(r*.028f))
-   // A single subtle grain/vein per checker keeps the material natural and uncluttered.
-   val grainY=topC.y+r*variation*.12f;drawLine((if(white)Color(0xff76502d)else Color(0xffc08358)).copy(.10f),Offset(c.x-r*.48f,grainY),Offset(c.x+r*.46f,grainY+r*.035f*variation),r*.022f)
-   drawOval(Color.White.copy(.31f),Offset(topC.x-r*.39f,topC.y-r*.36f),Size(r*.35f,r*.13f))
+   // Two-part luxury checker: a cast ornamental metal body around a deep fabric inset.
+   val gold=if(white)Color(0xffc6a15d)else Color(0xff765238);val goldLight=if(white)Color(0xffffe3a0)else Color(0xffc18a5b);val goldDark=if(white)Color(0xff68431f)else Color(0xff29170f)
+   val inset=if(white)Color(0xff741f2d)else Color(0xff21191a);val insetLight=if(white)Color(0xffa74450)else Color(0xff574044);val topC=c-Offset(0f,r*.070f)
+   // Thick sidewall and soft contact shadow make the ring read as a solid cast piece.
+   drawOval(Color.Black.copy(.15f),Offset(c.x-r*1.05f,c.y-r*.59f),Size(r*2.10f,r*1.78f));drawOval(Color.Black.copy(.30f),Offset(c.x-r*.94f,c.y-r*.49f),Size(r*1.88f,r*1.55f))
+   drawCircle(goldDark,r,c+Offset(0f,r*.085f));drawCircle(Brush.verticalGradient(listOf(goldLight,gold,goldDark)),r*.97f,c)
+   drawCircle(Brush.radialGradient(listOf(goldLight,gold,goldDark),topC-Offset(r*.30f,r*.32f),r*1.28f),r*.91f,topC)
+   drawCircle(Color.Black.copy(.40f),r*.72f,topC,style=Stroke(r*.095f));drawCircle(goldLight.copy(.72f),r*.76f,topC,style=Stroke(r*.025f))
+   // Engraved floral/beaded band inspired by the supplied metal texture.
+   repeat(12){i->val a=Math.toRadians(i*30.0-90.0);val q=Offset(topC.x+cos(a).toFloat()*r*.71f,topC.y+sin(a).toFloat()*r*.71f);drawCircle(Color.Black.copy(.34f),r*.045f,q+Offset(r*.012f,r*.018f));drawCircle(goldLight.copy(.75f),r*.035f,q)}
+   repeat(8){i->val start=i*45f+8f;drawArc(Color.Black.copy(.32f),start,27f,false,Offset(topC.x-r*.66f,topC.y-r*.66f),Size(r*1.32f,r*1.32f),style=Stroke(r*.028f));drawArc(goldLight.copy(.48f),start+1f,23f,false,Offset(topC.x-r*.64f,topC.y-r*.64f),Size(r*1.28f,r*1.28f),style=Stroke(r*.018f))}
+   // The coloured centre is a separate recessed velvet/leather insert, not a painted flat circle.
+   drawCircle(Color.Black.copy(.55f),r*.55f,topC+Offset(0f,r*.025f));drawCircle(Brush.radialGradient(listOf(insetLight,inset,inset.copy(.82f),Color.Black.copy(.76f)),topC-Offset(r*.17f,r*.20f),r*.72f),r*.51f,topC)
+   drawCircle(insetLight.copy(.34f),r*.47f,topC,style=Stroke(r*.022f));drawOval(Color.White.copy(if(white).16f else .09f),Offset(topC.x-r*.34f,topC.y-r*.31f),Size(r*.29f,r*.10f))
+   // Fine crossed fibres provide a restrained textile texture in the inset.
+   repeat(3){i->val y=topC.y-r*.24f+i*r*.23f;drawLine(goldLight.copy(.055f),Offset(topC.x-r*.39f,y),Offset(topC.x+r*.39f,y+r*.05f),r*.014f)}
+   drawArc(Color.White.copy(.44f),202f,112f,false,Offset(topC.x-r*.86f,topC.y-r*.86f),Size(r*1.72f,r*1.72f),style=Stroke(r*.032f));drawArc(Color.Black.copy(.42f),18f,145f,false,Offset(topC.x-r*.88f,topC.y-r*.88f),Size(r*1.76f,r*1.76f),style=Stroke(r*.045f))
    if(available&&!on){drawCircle(Brush.radialGradient(listOf(Color(0xffbaff88).copy(.30f+.18f*pulse),Color(0xff55d66b).copy(.18f),Color.Transparent),topC,r*.92f),r*.82f,topC);drawCircle(Color(0xff7ee779).copy(.62f+.28f*pulse),r*.78f,topC,style=Stroke(r*.055f));drawArc(Color.White.copy(.36f),205f,125f,false,Offset(topC.x-r*.70f,topC.y-r*.70f),Size(r*1.40f,r*1.40f),style=Stroke(r*.032f))};if(on){drawCircle(Color.Black.copy(.30f),r*1.10f,c,style=Stroke(5f));drawCircle(p.accent,r*1.08f,c,style=Stroke(3f))}
   }
   val active=motion;val drawn=if(active==null)previous else state.position
