@@ -20,11 +20,11 @@ private data class CheckerMotion(val from:Int,val to:Int,val white:Boolean,val f
 data class BoardPalette(val frame:Color,val frameDark:Color,val field:Color,val pointA:Color,val pointB:Color,val light:Color,val dark:Color,val accent:Color)
 fun boardPalette(t:BoardTheme)=when(t){
  BoardTheme.PREMIUM_WOOD->BoardPalette(Color(0xff75402b),Color(0xff2f160d),Color(0xffc4936d),Color(0xffd8bd8d),Color(0xff6d2730),Color(0xffffdfa0),Color(0xff351a15),Color(0xffd7b25b))
- BoardTheme.BRUSHED_METAL->BoardPalette(Color(0xff777b7d),Color(0xff202426),Color(0xffa1a3a0),Color(0xffd6b879),Color(0xff732934),Color(0xffffe0a0),Color(0xff25282a),Color(0xffc89c52))
- BoardTheme.BURGUNDY_MARBLE->BoardPalette(Color(0xff6b252d),Color(0xff241014),Color(0xff7e252d),Color(0xffead9b5),Color(0xff252023),Color(0xffffdf9b),Color(0xff251416),Color(0xffb99355))
- BoardTheme.JADE_MARBLE->BoardPalette(Color(0xff244b40),Color(0xff0b1715),Color(0xff276653),Color(0xffe6e2cf),Color(0xff172324),Color(0xffd8f0df),Color(0xff0c1817),Color(0xff8fb9a6))
+ BoardTheme.BRUSHED_METAL->BoardPalette(Color(0xff9a6747),Color(0xff211b19),Color(0xff776d66),Color(0xffffcf79),Color(0xff171719),Color(0xffffe0a0),Color(0xff201b19),Color(0xffd59b50))
+ BoardTheme.BURGUNDY_MARBLE->BoardPalette(Color(0xff6a2930),Color(0xff211014),Color(0xff76252d),Color(0xffead8b1),Color(0xff211d20),Color(0xffffdf9b),Color(0xff241315),Color(0xffb99052))
+ BoardTheme.JADE_MARBLE->BoardPalette(Color(0xff173c33),Color(0xff081311),Color(0xff1f604d),Color(0xffeee9d7),Color(0xff111b1b),Color(0xffe4f5e7),Color(0xff091513),Color(0xff9ac3ae))
  BoardTheme.OBSIDIAN_IVORY->BoardPalette(Color(0xff303335),Color(0xff0c0e10),Color(0xff303334),Color(0xffe1d6bd),Color(0xff16191b),Color(0xffffedc8),Color(0xff0a0c0d),Color(0xffb79b6d))
- BoardTheme.CRYSTAL_GLASS->BoardPalette(Color(0xff8dbbc2),Color(0xff17282d),Color(0xff9fb7bb),Color(0xffeef4f2),Color(0xff242d32),Color.White,Color(0xff10191d),Color(0xffd5b778))
+ BoardTheme.CRYSTAL_GLASS->BoardPalette(Color(0xffb8d3d5),Color(0xff243236),Color(0xff9caeb1),Color(0xfff5f7f4),Color(0xff22292d),Color.White,Color(0xff10191d),Color(0xffe3bd78))
  BoardTheme.ROYAL_SAPPHIRE->BoardPalette(Color(0xff233b65),Color(0xff080f22),Color(0xff112b59),Color(0xffffe9c2),Color(0xff071b48),Color(0xffffdf92),Color(0xff071126),Color(0xffd5a84d))
 }
 

@@ -32,8 +32,8 @@ android {
         applicationId = "com.arena.backgammon"
         minSdk = 24
         targetSdk = 35
-        versionCode = 8
-        versionName = "1.0.0-rc8"
+        versionCode = 9
+        versionName = "1.0.0-rc9"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
