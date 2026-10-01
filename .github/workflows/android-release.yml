@@ -44,6 +44,17 @@ jobs:
             echo 'Signing secrets are not configured; producing unsigned validation binaries.'
           fi
 
+      - name: Validate release signing key
+        run: |
+          test -s "$ANDROID_KEYSTORE_PATH" || {
+            echo 'ERROR: ANDROID_KEYSTORE_BASE64 is missing or decoded to an empty file.'
+            exit 1
+          }
+          keytool -list \
+            -keystore "$ANDROID_KEYSTORE_PATH" \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -alias "$ANDROID_KEY_ALIAS" >/dev/null
+
       - name: Test, lint and build release
         run: |
           set -o pipefail
