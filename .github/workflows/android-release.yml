@@ -46,12 +46,11 @@ jobs:
       - name: Test, lint and build release
         run: |
           set -o pipefail
-          ./gradlew testReleaseUnitTest lintRelease bundleRelease assembleRelease --stacktrace 2>&1 | tee release-build.log
+          ./gradlew testMyketReleaseUnitTest testBazaarReleaseUnitTest lintMyketRelease lintBazaarRelease bundleMyketRelease bundleBazaarRelease assembleMyketRelease assembleBazaarRelease --stacktrace 2>&1 | tee release-build.log
 
       - name: Verify signing status
         run: |
-          APK=$(find app/build/outputs/apk/release -name '*.apk' | head -1)
-          if "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$APK"; then
+          if find app/build/outputs/apk/{myket,bazaar}/release -name '*.apk' -print0 | xargs -0 -n1 "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose; then
             echo '### ✅ Production-signed release generated' >> "$GITHUB_STEP_SUMMARY"
           else
             echo '### ⚠️ Unsigned release generated' >> "$GITHUB_STEP_SUMMARY"
@@ -72,7 +71,7 @@ jobs:
             exit 1
           }
 
-          AAB=$(find app/build/outputs/bundle/release -name '*.aab' -type f | head -1)
+          AAB=$(find app/build/outputs/bundle/bazaarRelease -name '*.aab' -type f | head -1)
 
           test -n "$AAB" || {
             echo 'ERROR: Release AAB was not found.'
@@ -104,10 +103,12 @@ jobs:
       - name: Upload release binaries
         uses: actions/upload-artifact@v5
         with:
-          name: AI-Backgammon-Release-Binaries
+          name: Smart-Backgammon-Marketplace-Release-Binaries
           path: |
-            app/build/outputs/bundle/release/*.aab
-            app/build/outputs/apk/release/*.apk
+            app/build/outputs/bundle/myketRelease/*.aab
+            app/build/outputs/bundle/bazaarRelease/*.aab
+            app/build/outputs/apk/myket/release/*.apk
+            app/build/outputs/apk/bazaar/release/*.apk
             app/build/outputs/cafebazaar/*.bin
           if-no-files-found: error
 

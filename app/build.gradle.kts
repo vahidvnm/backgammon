@@ -32,9 +32,28 @@ android {
         applicationId = "com.arena.backgammon"
         minSdk = 24
         targetSdk = 35
-        versionCode = 12
-        versionName = "1.0.0-rc12"
+        versionCode = 13
+        versionName = "1.0.0-rc13"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    flavorDimensions += "store"
+    productFlavors {
+        create("myket") {
+            dimension = "store"
+            buildConfigField("String", "STORE_NAME", "\"مایکت\"")
+            buildConfigField("String", "STORE_PACKAGE", "\"ir.mservices.market\"")
+            buildConfigField("String", "DETAILS_URI", "\"myket://details?id=com.arena.backgammon\"")
+            buildConfigField("String", "RATE_URI", "\"myket://comment?id=com.arena.backgammon\"")
+            buildConfigField("String", "UPDATE_URI", "\"myket://check-update?id=com.arena.backgammon\"")
+        }
+        create("bazaar") {
+            dimension = "store"
+            buildConfigField("String", "STORE_NAME", "\"کافه‌بازار\"")
+            buildConfigField("String", "STORE_PACKAGE", "\"com.farsitel.bazaar\"")
+            buildConfigField("String", "DETAILS_URI", "\"bazaar://details?id=com.arena.backgammon\"")
+            buildConfigField("String", "RATE_URI", "\"bazaar://details?id=com.arena.backgammon\"")
+            buildConfigField("String", "UPDATE_URI", "\"bazaar://details?id=com.arena.backgammon\"")
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

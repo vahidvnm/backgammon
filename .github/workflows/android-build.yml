@@ -25,10 +25,10 @@ jobs:
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"
-      - name: Build and test debug APK
+      - name: Build and test both marketplace variants
         run: |
           set -o pipefail
-          ./gradlew testDebugUnitTest lintDebug assembleDebug --stacktrace 2>&1 | tee build.log
+          ./gradlew testMyketDebugUnitTest testBazaarDebugUnitTest lintMyketDebug lintBazaarDebug assembleMyketDebug assembleBazaarDebug --stacktrace 2>&1 | tee build.log
       - name: Surface compiler diagnostics
         if: failure()
         run: |
@@ -49,6 +49,8 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v5
         with:
-          name: AI-Backgammon-Debug-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: Smart-Backgammon-Marketplace-Debug-APKs
+          path: |
+            app/build/outputs/apk/myket/debug/app-myket-debug.apk
+            app/build/outputs/apk/bazaar/debug/app-bazaar-debug.apk
           if-no-files-found: error
