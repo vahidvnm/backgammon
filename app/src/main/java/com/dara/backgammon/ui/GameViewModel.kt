@@ -1,15 +1,15 @@
-package com.arena.backgammon.ui
+package com.dara.backgammon.ui
 
 import android.app.Application
 import android.media.AudioManager
 import android.media.ToneGenerator
 import android.media.SoundPool
-import com.arena.backgammon.R
+import com.dara.backgammon.R
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.arena.backgammon.ai.*
-import com.arena.backgammon.core.*
-import com.arena.backgammon.data.*
+import com.dara.backgammon.ai.*
+import com.dara.backgammon.core.*
+import com.dara.backgammon.data.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

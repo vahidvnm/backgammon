@@ -1,5 +1,5 @@
 # Persisted settings and saved matches use enum names. Keep valueOf/values stable.
--keepclassmembers enum com.arena.backgammon.** {
+-keepclassmembers enum com.dara.backgammon.** {
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }

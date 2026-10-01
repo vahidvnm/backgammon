@@ -1,4 +1,4 @@
-package com.arena.backgammon
+package com.dara.backgammon
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -7,7 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import com.arena.backgammon.ui.BackgammonApp
+import com.dara.backgammon.ui.BackgammonApp
 
 class MainActivity:ComponentActivity(){
  override fun onCreate(savedInstanceState:Bundle?){super.onCreate(savedInstanceState);enableEdgeToEdge();immersive();setContent{BackgammonApp()}}

@@ -1,4 +1,4 @@
-package com.arena.backgammon.ui
+package com.dara.backgammon.ui
 
 import org.junit.Assert.*
 import org.junit.Test

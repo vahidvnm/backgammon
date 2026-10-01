@@ -1,4 +1,4 @@
-package com.arena.backgammon.ui
+package com.dara.backgammon.ui
 
 /** Deterministic layout policy shared by phones, tablets, foldables and desktop-sized previews. */
 data class BoardLayoutProfile(

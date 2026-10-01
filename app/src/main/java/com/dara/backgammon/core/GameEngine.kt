@@ -1,4 +1,4 @@
-package com.arena.backgammon.core
+package com.dara.backgammon.core
 
 enum class Player(val sign: Int) { WHITE(1), BLACK(-1); fun other() = if (this == WHITE) BLACK else WHITE }
 data class Move(val from: Int, val to: Int, val die: Int) { companion object { const val BAR = 24; const val OFF = 25 } }

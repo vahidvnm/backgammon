@@ -1,4 +1,4 @@
-package com.arena.backgammon.ui
+package com.dara.backgammon.ui
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
@@ -11,9 +11,9 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.*
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.input.pointer.pointerInput
-import com.arena.backgammon.R
-import com.arena.backgammon.core.*
-import com.arena.backgammon.data.*
+import com.dara.backgammon.R
+import com.dara.backgammon.core.*
+import com.dara.backgammon.data.*
 import kotlin.math.*
 
 private data class CheckerMotion(val from:Int,val to:Int,val white:Boolean,val fromIndex:Int=0,val toIndex:Int=0)

@@ -1,6 +1,6 @@
-package com.arena.backgammon.ai
+package com.dara.backgammon.ai
 
-import com.arena.backgammon.core.*
+import com.dara.backgammon.core.*
 import org.junit.Assert.*
 import org.junit.Test
 import kotlin.random.Random

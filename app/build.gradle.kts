@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.arena.backgammon"
+    namespace = "com.dara.backgammon"
     compileSdk = 35
 
     signingConfigs.create("stableDebug") {
@@ -29,7 +29,7 @@ android {
         }
     }
     defaultConfig {
-        applicationId = "com.arena.backgammon"
+        applicationId = "com.dara.backgammon"
         minSdk = 24
         targetSdk = 35
         versionCode = 13
@@ -42,17 +42,17 @@ android {
             dimension = "store"
             buildConfigField("String", "STORE_NAME", "\"مایکت\"")
             buildConfigField("String", "STORE_PACKAGE", "\"ir.mservices.market\"")
-            buildConfigField("String", "DETAILS_URI", "\"myket://details?id=com.arena.backgammon\"")
-            buildConfigField("String", "RATE_URI", "\"myket://comment?id=com.arena.backgammon\"")
-            buildConfigField("String", "UPDATE_URI", "\"myket://check-update?id=com.arena.backgammon\"")
+            buildConfigField("String", "DETAILS_URI", "\"myket://details?id=com.dara.backgammon\"")
+            buildConfigField("String", "RATE_URI", "\"myket://comment?id=com.dara.backgammon\"")
+            buildConfigField("String", "UPDATE_URI", "\"myket://check-update?id=com.dara.backgammon\"")
         }
         create("bazaar") {
             dimension = "store"
             buildConfigField("String", "STORE_NAME", "\"کافه‌بازار\"")
             buildConfigField("String", "STORE_PACKAGE", "\"com.farsitel.bazaar\"")
-            buildConfigField("String", "DETAILS_URI", "\"bazaar://details?id=com.arena.backgammon\"")
-            buildConfigField("String", "RATE_URI", "\"bazaar://details?id=com.arena.backgammon\"")
-            buildConfigField("String", "UPDATE_URI", "\"bazaar://details?id=com.arena.backgammon\"")
+            buildConfigField("String", "DETAILS_URI", "\"bazaar://details?id=com.dara.backgammon\"")
+            buildConfigField("String", "RATE_URI", "\"bazaar://details?id=com.dara.backgammon\"")
+            buildConfigField("String", "UPDATE_URI", "\"bazaar://details?id=com.dara.backgammon\"")
         }
     }
     compileOptions {

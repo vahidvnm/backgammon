@@ -1,8 +1,8 @@
-package com.arena.backgammon.data
+package com.dara.backgammon.data
 
 import android.content.Context
-import com.arena.backgammon.ai.Difficulty
-import com.arena.backgammon.ai.AiPersona
+import com.dara.backgammon.ai.Difficulty
+import com.dara.backgammon.ai.AiPersona
 enum class BoardTheme { PREMIUM_WOOD, BRUSHED_METAL, OBSIDIAN_IVORY, CRYSTAL_GLASS, ROYAL_SAPPHIRE }
 enum class PieceStyle { KHATAM, METAL, OBSIDIAN_IVORY, CRYSTAL, SAPPHIRE }
 enum class DiceStyle { CLASSIC, ONYX, CRYSTAL, GOLD, SILVER, MARBLE_LIGHT, MARBLE_DARK, GLASS_LIGHT, GLASS_DARK, BURGUNDY, JADE, SAPPHIRE }

@@ -58,7 +58,7 @@
 - [ ] Capture 4–8 real in-game screenshots without debug UI
 - [ ] Complete content-rating questionnaire
 - [ ] Set support email and website
-- [ ] Confirm package ID `com.arena.backgammon` before first publication
+- [ ] Confirm package ID `com.dara.backgammon` before first publication
 - [ ] Upload signed AAB to Play internal testing
 - [ ] Upload signed universal APK to Iranian stores
 - [ ] Complete closed testing requirements applicable to the Play developer account

@@ -1,4 +1,4 @@
-package com.arena.backgammon.ui
+package com.dara.backgammon.ui
 
 import android.os.*
 import androidx.compose.animation.*
@@ -25,15 +25,15 @@ import androidx.compose.ui.platform.*
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.input.pointer.pointerInput
-import com.arena.backgammon.R
-import com.arena.backgammon.BuildConfig
+import com.dara.backgammon.R
+import com.dara.backgammon.BuildConfig
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.arena.backgammon.ai.Difficulty
-import com.arena.backgammon.core.*
-import com.arena.backgammon.data.*
+import com.dara.backgammon.ai.Difficulty
+import com.dara.backgammon.core.*
+import com.dara.backgammon.data.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.cos

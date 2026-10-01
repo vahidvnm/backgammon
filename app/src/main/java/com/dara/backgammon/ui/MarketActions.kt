@@ -1,10 +1,10 @@
-package com.arena.backgammon.ui
+package com.dara.backgammon.ui
 
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import com.arena.backgammon.BuildConfig
+import com.dara.backgammon.BuildConfig
 
 object MarketActions {
     private fun open(context: Context, uri: String, action: String = Intent.ACTION_VIEW) {
