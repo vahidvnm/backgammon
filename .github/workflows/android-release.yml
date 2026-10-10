@@ -3,6 +3,7 @@ name: AI Backgammon Release
 on:
   workflow_dispatch:
   push:
+    branches: ['arena/01a0b377-backgammon']
     tags: ['v*']
 
 permissions:
