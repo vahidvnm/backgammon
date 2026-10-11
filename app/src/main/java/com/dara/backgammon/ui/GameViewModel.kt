@@ -71,7 +71,10 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
   _clock.value=_clock.value.copy(active=preset!=ClockPreset.OFF)
   ensureAiProgress()
  }
- fun onBackground(){appInForeground=false;if(_screen.value==Screen.GAME)saveSession()}
+ fun onBackground(){
+  appInForeground=false
+  if(_screen.value==Screen.GAME){cancelActiveTurn();saveSession()}
+ }
  private fun ensureAiProgress(){
   if(_screen.value==Screen.GAME&&mode==Mode.AI&&_game.value.winner==null&&_match.value.pendingDoubleBy==null&&_game.value.position.turn==Player.BLACK&&turnJob?.isActive!=true){
    _rolling.value=false;_match.value=_match.value.copy(thinking=false);turnJob=viewModelScope.launch{aiTurn()}
@@ -98,8 +101,13 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
  }
  fun undo(){
   if(history.isEmpty())return
-  cancelActiveTurn();var restored:GameSnapshot
-  do{restored=history.removeLast()}while(history.isNotEmpty()&&!UndoPolicy.isRestoreBoundary(mode,restored.game))
+  cancelActiveTurn()
+  var restored=history.removeLast()
+  if(mode==Mode.AI){
+   // Discard AI snapshots, then rewind all human moves while preserving that turn's exact dice.
+   while(history.isNotEmpty()&&!UndoPolicy.isHumanRolledState(restored.game))restored=history.removeLast()
+   if(UndoPolicy.isHumanRolledState(restored.game))while(history.lastOrNull()?.game?.let(UndoPolicy::isHumanRolledState)==true)restored=history.removeLast()
+  }
   restore(restored);saveSession()
  }
  private fun playDiceSound()=audio.playDice(settings.value.sound)

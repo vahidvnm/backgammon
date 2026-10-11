@@ -37,7 +37,7 @@ class SavedMatchStore(context: Context) {
             put("clockWhite", clock.whiteMillis); put("clockBlack", clock.blackMillis)
             put("clockTurn", clock.turnMillis); put("clockActive", clock.active)
         }
-        preferences.edit().putString(KEY_STATE, json.toString()).apply()
+        check(preferences.edit().putString(KEY_STATE, json.toString()).commit())
     }.isSuccess
 
     fun load(fallbackClock: ClockState): SavedSession? {
