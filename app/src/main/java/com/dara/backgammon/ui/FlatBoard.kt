@@ -40,7 +40,7 @@ fun boardPalette(t:BoardTheme)=when(t){
   if(!previous.points.contentEquals(now.points)||previous.bar(mover)!=now.bar(mover)||previous.off(mover)!=now.off(mover)){
    val from=(0..23).firstOrNull{previous.points[it]*sign>now.points[it]*sign}?:if(previous.bar(mover)>now.bar(mover))Move.BAR else null
    val to=(0..23).firstOrNull{now.points[it]*sign>previous.points[it]*sign}?:if(now.off(mover)>previous.off(mover))Move.OFF else null
-   if(from!=null&&to!=null){val fromIndex=if(from in 0..23)(abs(previous.points[from])-1).coerceAtLeast(0)else 0;val toIndex=if(to in 0..23)(abs(now.points[to])-1).coerceAtLeast(0)else 0;motion=CheckerMotion(from,to,mover==Player.WHITE,fromIndex,toIndex);previous=now.copyDeep();travel.snapTo(if(animations)0f else 1f);if(animations)travel.animateTo(1f,tween(1080,easing=FastOutSlowInEasing));motion=null}else previous=now.copyDeep()
+   if(from!=null&&to!=null){val fromIndex=if(from in 0..23)(abs(previous.points[from])-1).coerceAtLeast(0)else 0;val toIndex=if(to in 0..23)(abs(now.points[to])-1).coerceAtLeast(0)else 0;motion=CheckerMotion(from,to,mover==Player.WHITE,fromIndex,toIndex);previous=now.copyDeep();travel.snapTo(if(animations)0f else 1f);if(animations)travel.animateTo(1f,tween(1000,easing=FastOutSlowInEasing));motion=null}else previous=now.copyDeep()
   }else previous=now.copyDeep()
  }
  val turnName=if(state.position.turn==Player.WHITE)"سفید" else "سیاه"
@@ -48,7 +48,7 @@ fun boardPalette(t:BoardTheme)=when(t){
  val boardDescription="تخته نرد؛ نوبت $turnName؛ سفید ${state.position.offWhite} مهره خارج و ${state.position.barWhite} مهره روی بار؛ سیاه ${state.position.offBlack} مهره خارج و ${state.position.barBlack} مهره روی بار؛ $selectedName"
  Canvas(modifier.semantics{contentDescription=boardDescription}.pointerInput(state,selected){detectTapGestures{tap->
   val rail=size.width*.032f;val barW=size.width*.062f;val playLeft=rail;val playRight=size.width-size.width*.060f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half
-  val bar=tap.x in (barLeft-barW*.28f)..(barLeft+barW*1.28f);val off=tap.x>playRight;val local=if(tap.x<barLeft)tap.x-playLeft else tap.x-(barLeft+barW)+half
+  val bar=tap.x in barLeft..(barLeft+barW);val off=tap.x>playRight;val local=if(tap.x<barLeft)tap.x-playLeft else tap.x-(barLeft+barW)+half
   val col=(local/(half/6)).toInt().coerceIn(0,11);val point=if(tap.y<size.height/2)12+col else 11-col;val target=when{off->Move.OFF;bar->Move.BAR;else->point};val choices=legal.filter{it.from==selected&&it.to==target};val compound=plans.any{it.to==target&&it.moves.size>1};if(selected!=null&&target!=Move.BAR&&compound&&combine(selected,target))Unit else if(choices.isNotEmpty())move(choices.maxBy{it.die})else if(selected!=null&&target!=Move.BAR&&combine(selected,target))Unit else {val owns=target==Move.BAR&&state.position.bar(state.position.turn)>0||target in 0..23&&state.position.points[target]*state.position.turn.sign>0;if(owns)select(target)}
  }}){
   val rail=size.width*.032f;val barW=size.width*.062f;val playLeft=rail;val playRight=size.width-size.width*.060f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half;val cw=half/6
@@ -163,7 +163,7 @@ fun boardPalette(t:BoardTheme)=when(t){
     val star=Path().apply{for(i in 0 until 16){val a=Math.toRadians(i*22.5-90.0);val rr=if(i%2==0)r*.31f else r*.145f;val x=topC.x+cos(a).toFloat()*rr;val y=topC.y+sin(a).toFloat()*rr;if(i==0)moveTo(x,y)else lineTo(x,y)};close()};drawPath(star,if(white)gilt else ivory);drawPath(star,ink,style=Stroke(r*.027f));drawCircle(turquoise,r*.090f,topC);drawCircle(ivory,r*.040f,topC)
     // Lacquer reflection follows the curved cap without washing out the mosaic.
     drawArc(Color.White.copy(if(white).48f else .28f),202f,113f,false,Offset(topC.x-r*.86f,topC.y-r*.86f),Size(r*1.72f,r*1.72f),style=Stroke(r*.045f));drawOval(Color.White.copy(if(white).25f else .16f),Offset(topC.x-r*.48f,topC.y-r*.49f),Size(r*.45f,r*.13f));drawArc(Color.Black.copy(.40f),20f,145f,false,Offset(topC.x-r*.88f,topC.y-r*.88f),Size(r*1.76f,r*1.76f),style=Stroke(r*.050f))
-    if(available&&!on){drawCircle(Brush.radialGradient(listOf(Color(0xffbaff88).copy(.30f+.18f*pulse),Color(0xff55d66b).copy(.18f),Color.Transparent),topC,r*.92f),r*.82f,topC);drawCircle(Color(0xff7ee779).copy(.62f+.28f*pulse),r*.78f,topC,style=Stroke(r*.055f))};if(on){drawCircle(Color.Black.copy(.30f),r*1.10f,c,style=Stroke(5f));drawCircle(p.accent,r*1.08f,c,style=Stroke(3f))};return
+    if(available&&!on){drawCircle(Brush.radialGradient(listOf(Color(0xffc8ff9c).copy(.48f+.28f*pulse),Color(0xff55e879).copy(.28f),Color.Transparent),topC,r*1.12f),r*1.02f,topC);drawCircle(Color(0xff9aff91).copy(.76f+.22f*pulse),r*.86f,topC,style=Stroke(r*.075f))};if(on){drawCircle(Color.Black.copy(.30f),r*1.10f,c,style=Stroke(5f));drawCircle(p.accent,r*1.08f,c,style=Stroke(3f))};return
    }
    if(checkerTheme==BoardTheme.BRUSHED_METAL){
     // Precision-machined gold/silver counters designed specifically for the metal chassis.
@@ -174,7 +174,7 @@ fun boardPalette(t:BoardTheme)=when(t){
     repeat(24){i->val a=Math.toRadians(i*15.0);val v=Offset(cos(a).toFloat(),sin(a).toFloat());drawLine((if(i%2==0)hi else low).copy(.20f),topC+v*r*.10f,topC+v*r*.68f,r*.010f)}
     repeat(18){i->val a=Math.toRadians(i*20.0);val q=Offset(topC.x+cos(a).toFloat()*r*.82f,topC.y+sin(a).toFloat()*r*.82f);drawCircle(if(i%2==0)hi.copy(.42f)else low.copy(.48f),r*.018f,q)}
     drawCircle(Brush.radialGradient(listOf(Color.White.copy(.38f),Color.Transparent),topC-Offset(r*.28f,r*.30f),r*.65f),r*.62f,topC);drawArc(Color.White.copy(.52f),205f,105f,false,Offset(topC.x-r*.87f,topC.y-r*.87f),Size(r*1.74f,r*1.74f),style=Stroke(r*.035f));drawArc(Color.Black.copy(.40f),18f,142f,false,Offset(topC.x-r*.89f,topC.y-r*.89f),Size(r*1.78f,r*1.78f),style=Stroke(r*.045f))
-    if(available&&!on){drawCircle(Brush.radialGradient(listOf(Color(0xffbaff88).copy(.30f+.18f*pulse),Color(0xff55d66b).copy(.18f),Color.Transparent),topC,r*.92f),r*.82f,topC);drawCircle(Color(0xff7ee779).copy(.62f+.28f*pulse),r*.78f,topC,style=Stroke(r*.055f))};if(on){drawCircle(Color.Black.copy(.30f),r*1.10f,c,style=Stroke(5f));drawCircle(p.accent,r*1.08f,c,style=Stroke(3f))};return
+    if(available&&!on){drawCircle(Brush.radialGradient(listOf(Color(0xffc8ff9c).copy(.48f+.28f*pulse),Color(0xff55e879).copy(.28f),Color.Transparent),topC,r*1.12f),r*1.02f,topC);drawCircle(Color(0xff9aff91).copy(.76f+.22f*pulse),r*.86f,topC,style=Stroke(r*.075f))};if(on){drawCircle(Color.Black.copy(.30f),r*1.10f,c,style=Stroke(5f));drawCircle(p.accent,r*1.08f,c,style=Stroke(3f))};return
    }
    // Marble and smoked-glass collections retain an ornamental two-part construction.
    // Thick sidewall and soft contact shadow make the ring read as a solid cast piece.
@@ -191,7 +191,7 @@ fun boardPalette(t:BoardTheme)=when(t){
    // Fine crossed fibres provide a restrained textile texture in the inset.
    repeat(3){i->val y=topC.y-r*.24f+i*r*.23f;drawLine(goldLight.copy(.055f),Offset(topC.x-r*.39f,y),Offset(topC.x+r*.39f,y+r*.05f),r*.014f)}
    drawArc(Color.White.copy(.44f),202f,112f,false,Offset(topC.x-r*.86f,topC.y-r*.86f),Size(r*1.72f,r*1.72f),style=Stroke(r*.032f));drawArc(Color.Black.copy(.42f),18f,145f,false,Offset(topC.x-r*.88f,topC.y-r*.88f),Size(r*1.76f,r*1.76f),style=Stroke(r*.045f))
-   if(available&&!on){drawCircle(Brush.radialGradient(listOf(Color(0xffbaff88).copy(.30f+.18f*pulse),Color(0xff55d66b).copy(.18f),Color.Transparent),topC,r*.92f),r*.82f,topC);drawCircle(Color(0xff7ee779).copy(.62f+.28f*pulse),r*.78f,topC,style=Stroke(r*.055f));drawArc(Color.White.copy(.36f),205f,125f,false,Offset(topC.x-r*.70f,topC.y-r*.70f),Size(r*1.40f,r*1.40f),style=Stroke(r*.032f))};if(on){drawCircle(Color.Black.copy(.30f),r*1.10f,c,style=Stroke(5f));drawCircle(p.accent,r*1.08f,c,style=Stroke(3f))}
+   if(available&&!on){drawCircle(Brush.radialGradient(listOf(Color(0xffc8ff9c).copy(.48f+.28f*pulse),Color(0xff55e879).copy(.28f),Color.Transparent),topC,r*1.12f),r*1.02f,topC);drawCircle(Color(0xff9aff91).copy(.76f+.22f*pulse),r*.86f,topC,style=Stroke(r*.075f));drawArc(Color.White.copy(.36f),205f,125f,false,Offset(topC.x-r*.70f,topC.y-r*.70f),Size(r*1.40f,r*1.40f),style=Stroke(r*.032f))};if(on){drawCircle(Color.Black.copy(.30f),r*1.10f,c,style=Stroke(5f));drawCircle(p.accent,r*1.08f,c,style=Stroke(3f))}
   }
   val active=motion;val drawn=if(active==null)previous else state.position
   for(pt in 0..23){val n=abs(drawn.points[pt]);for(i in 0 until min(n,5)){if(active?.to==pt&&i==min(n,5)-1)continue;piece(center(pt,i),cw*.262f,drawn.points[pt]>0,selected==pt&&i==min(n,5)-1,legal.any{it.from==pt}&&i==min(n,5)-1,(((pt*7+i*3)%7)-3)/3f)};if(n>5)drawCircle(p.accent,cw*.18f,center(pt,4))}
@@ -206,11 +206,11 @@ fun boardPalette(t:BoardTheme)=when(t){
    fun marker(point:Int):Offset=when(point){Move.BAR->Offset(barLeft+barW/2,size.height/2);Move.OFF->Offset(playRight+(size.width-playRight)/2,size.height/2);else->center(point,abs(state.position.points[point]).coerceAtMost(4))}
    val routePoints=mutableListOf(marker(plan.from)).apply{plan.moves.forEach{add(marker(it.to))}}
    if(guidance==GuidanceMode.COACH)for(i in 0 until routePoints.lastIndex)drawLine(Color(0xffffdf68).copy(.34f+.20f*pulse),routePoints[i],routePoints[i+1],3f,pathEffect=PathEffect.dashPathEffect(floatArrayOf(10f,7f)))
-   val c=routePoints.last();val direction=if(c.y<size.height/2)1f else -1f;val slide=((pulse-.58f)/.42f).coerceIn(0f,1f)*cw*.11f;val tipY=c.y-direction*(cw*.30f-slide);val tailY=tipY-direction*cw*.31f;val guide=p.accent.copy(.70f+.25f*pulse)
+   val c=routePoints.last();val direction=if(c.y<size.height/2)1f else -1f;val slide=((pulse-.58f)/.42f).coerceIn(0f,1f)*cw*.11f;val tipY=c.y-direction*(cw*.36f-slide);val tailY=tipY-direction*cw*.42f;val guide=p.accent.copy(.82f+.18f*pulse)
    // A gently sliding inlaid arrow invites the move without resembling another checker.
    drawLine(Color.Black.copy(.28f),Offset(c.x+1.5f,tailY+2f),Offset(c.x+1.5f,tipY-direction*cw*.06f+2f),5.5f)
    drawLine(guide,Offset(c.x,tailY),Offset(c.x,tipY-direction*cw*.06f),3.2f)
-   val arrow=Path().apply{moveTo(c.x,tipY);lineTo(c.x-cw*.105f,tipY-direction*cw*.14f);lineTo(c.x+cw*.105f,tipY-direction*cw*.14f);close()};drawPath(arrow,Color.Black.copy(.30f),style=Stroke(4.5f));drawPath(arrow,guide)
+   val arrow=Path().apply{moveTo(c.x,tipY);lineTo(c.x-cw*.145f,tipY-direction*cw*.19f);lineTo(c.x+cw*.145f,tipY-direction*cw*.19f);close()};drawPath(arrow,Color.Black.copy(.30f),style=Stroke(4.5f));drawPath(arrow,guide)
    repeat(plan.moves.size.coerceAtMost(4)){i->val x=c.x+(i-(plan.moves.size.coerceAtMost(4)-1)/2f)*cw*.065f;drawCircle(Color(0xffffe29a).copy(.88f),cw*.018f,Offset(x,tailY-direction*cw*.045f))}
   }
  }
