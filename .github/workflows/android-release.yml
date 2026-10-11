@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
   push:
     tags: ['v*']
-    branches: ['arena/01a0b377-backgammon']
 
 permissions:
   contents: read
