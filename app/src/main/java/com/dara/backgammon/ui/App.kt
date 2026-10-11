@@ -34,6 +34,9 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.dara.backgammon.ai.Difficulty
 import com.dara.backgammon.core.*
 import com.dara.backgammon.data.*
@@ -51,6 +54,12 @@ private fun Player.fa()=if(this==Player.WHITE)"سفید" else "سیاه"
 private fun DoublesRate.fa()=when(this){DoublesRate.NATURAL->"طبیعی";DoublesRate.REDUCED_20->"۲۰٪ کمتر";DoublesRate.REDUCED_50->"۵۰٪ کمتر";DoublesRate.NEVER->"بدون جفت"}
 private fun tabFa(key:String)=when(key){"GAME"->"بازی";"AUDIO"->"صدا";"CONTROLS"->"کنترل‌ها";"APPEARANCE"->"ظاهر";"GUIDANCE"->"راهنما";"ABOUT"->"درباره";else->key}
 @Composable fun BackgammonApp(vm:GameViewModel=viewModel()){
+ val lifecycleOwner=LocalLifecycleOwner.current
+ DisposableEffect(lifecycleOwner,vm){
+  val observer=LifecycleEventObserver{_,event->when(event){Lifecycle.Event.ON_START->vm.onForeground();Lifecycle.Event.ON_STOP->vm.onBackground();else->{}}}
+  lifecycleOwner.lifecycle.addObserver(observer)
+  onDispose{lifecycleOwner.lifecycle.removeObserver(observer)}
+ }
  val screen by vm.screen.collectAsStateWithLifecycle()
  MaterialTheme(colorScheme=darkColorScheme(primary=Gold,surface=Color(0xff11151b))){CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl){
   Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(Color(0xff31483b),Color(0xff101d17))))){
