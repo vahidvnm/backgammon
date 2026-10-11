@@ -97,7 +97,7 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
  }
  fun continueGame(){if(_hasSaved.value){clockTurn=_game.value.position.turn;_screen.value=Screen.GAME;if(mode==Mode.AI&&_game.value.winner==null&&_match.value.pendingDoubleBy==null&&_game.value.position.turn==Player.BLACK)turnJob=viewModelScope.launch{aiTurn()}}}
  fun setup(){_screen.value=Screen.SETUP}
- fun start(m:Mode){mode=m;history.clear();_match.value=MatchInfo();_game.value=TurnState();resetClock();_screen.value=Screen.GAME;saveSession()}
+ fun start(m:Mode){mode=m;history.clear();_match.value=MatchInfo(target=_settings.value.matchTarget);_game.value=TurnState();resetClock();_screen.value=Screen.GAME;saveSession()}
  fun menu(){if(_screen.value==Screen.GAME)saveSession();_screen.value=Screen.MENU}
  fun matchWinner():Player?=MatchRules.winner(_match.value.whiteScore,_match.value.blackScore,_match.value.target)
  fun restart(){
