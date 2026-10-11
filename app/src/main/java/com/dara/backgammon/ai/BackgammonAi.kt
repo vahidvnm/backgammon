@@ -35,7 +35,13 @@ object BackgammonAi {
     /** Lightweight cube intelligence: positive values favour [me]. */
     fun equity(position:Position,me:Player):Double{
         val mine=pip(position,me).coerceAtLeast(1);val theirs=pip(position,me.other()).coerceAtLeast(1)
-        return (theirs-mine).toDouble()/(mine+theirs)+(position.off(me)-position.off(me.other()))*.045+(position.bar(me.other())-position.bar(me))*.035
+        val race=(theirs-mine).toDouble()/(mine+theirs)
+        val borneOff=(position.off(me)-position.off(me.other()))*.045
+        val bar=(position.bar(me.other())-position.bar(me))*.035
+        val home=(homeStrength(position,me)-homeStrength(position,me.other()))*.006
+        val structure=(longestPrime(position,me)-longestPrime(position,me.other()))*.012
+        val exposure=(blots(position,me.other())-blots(position,me))*.006
+        return (race+borneOff+bar+home+structure+exposure).coerceIn(-1.0,1.0)
     }
     fun shouldOfferDouble(position:Position,me:Player)=equity(position,me)>.13
     fun shouldTakeDouble(position:Position,taker:Player)=equity(position,taker)>-.27
@@ -90,6 +96,23 @@ object BackgammonAi {
         val count=(p.points[i]*player.sign).coerceAtLeast(0)
         count*if(player==Player.WHITE)i+1 else 24-i
     }+p.bar(player)*25
+    private fun blots(p:Position,player:Player)=(0..23).count{p.points[it]*player.sign==1}
+    private fun homeStrength(p:Position,player:Player):Int {
+        val home=if(player==Player.WHITE)0..5 else 18..23
+        return home.sumOf{i->when(val count=p.points[i]*player.sign){in 2..15->minOf(count,3);else->0}}
+    }
+    private fun longestPrime(p:Position,player:Player):Int {
+        var best=0;var current=0
+        for(i in if(player==Player.WHITE)23 downTo 0 else 0..23){
+            if(p.points[i]*player.sign>=2){current++;best=maxOf(best,current)}else current=0
+        }
+        return best
+    }
+    private fun anchors(p:Position,player:Player):Int {
+        val opponentHome=if(player==Player.WHITE)18..23 else 0..5
+        return opponentHome.count{p.points[it]*player.sign>=2}
+    }
+    private fun stackWaste(p:Position,player:Player):Int=(0..23).sumOf{(p.points[it]*player.sign-3).coerceAtLeast(0)}
     private fun play(start:Position,moves:List<Move>)=moves.fold(start){p,m->GameEngine.apply(p,m)}
     private fun evaluate(p:Position,me:Player,before:Position=p):Double{
         val w=weights(p,me)
@@ -102,6 +125,13 @@ object BackgammonAi {
         }
         val newlyHit=(p.bar(me.other())-before.bar(me.other())).coerceAtLeast(0)
         score+=p.bar(me.other())*w.bar-p.bar(me)*22+newlyHit*w.hit
+        val prime=longestPrime(p,me);val opponentPrime=longestPrime(p,me.other())
+        score+=prime*prime*1.35-opponentPrime*opponentPrime*.75
+        score+=anchors(p,me)*3.2-anchors(p,me.other())*2.1
+        score+=homeStrength(p,me)*1.15-homeStrength(p,me.other())*.55
+        score-=stackWaste(p,me)*1.8
+        if(p.off(me)>0)score-=stackWaste(p,me)*1.4
+        if(p.off(me)>0&&p.off(me.other())==0)score+=8.0
         return score
     }
     private fun replySafety(p:Position,me:Player):Double{

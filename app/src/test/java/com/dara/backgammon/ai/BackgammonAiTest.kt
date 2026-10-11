@@ -42,4 +42,19 @@ class BackgammonAiTest {
         val leadingTake = BackgammonAi.shouldTakeDouble(position, Player.BLACK, leading)
         assertTrue(trailingTake || !leadingTake)
     }
+
+    @Test fun equityIsSymmetricBetweenPlayers() {
+        val board = IntArray(24).apply {
+            this[2] = 3; this[7] = 2; this[19] = -4; this[22] = -1
+        }
+        val position = Position(board, barWhite = 1, barBlack = 2, offWhite = 9, offBlack = 8)
+        assertEquals(BackgammonAi.equity(position, Player.WHITE), -BackgammonAi.equity(position, Player.BLACK), 1e-9)
+    }
+
+    @Test fun hardAiTakesAnAvailableDirectHit() {
+        val board = IntArray(24).apply { this[6] = 1; this[5] = -1 }
+        val position = Position(board, offWhite = 14, offBlack = 14)
+        val sequence = BackgammonAi.chooseSequence(position, listOf(1), Difficulty.HARD, random = Random(2))
+        assertEquals(Move(6, 5, 1), sequence.single())
+    }
 }
