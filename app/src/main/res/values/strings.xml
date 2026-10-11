@@ -10,4 +10,20 @@
     <string name="store_page_description">مشاهده صفحه رسمی برنامه</string>
     <string name="rate_title">ثبت امتیاز و دیدگاه</string>
     <string name="rate_description">ارسال نظر در %1$s</string>
+    <string name="tagline">راهبرد کلاسیک • تجربه‌ای هوشمند</string>
+    <string name="start_game">شروع بازی</string>
+    <string name="new_game">بازی جدید</string>
+    <string name="continue_game">ادامه بازی</string>
+    <string name="play_ai">بازی با هوش مصنوعی</string>
+    <string name="play_ai_description">انتخاب از پنج سطح دشواری</string>
+    <string name="play_local">بازی دونفره محلی</string>
+    <string name="play_local_description">بازی مشترک روی همین دستگاه</string>
+    <string name="themes">تخته‌ها و پوسته‌ها</string>
+    <string name="themes_short">پوسته‌ها</string>
+    <string name="settings">تنظیمات</string>
+    <string name="options">گزینه‌ها</string>
+    <string name="back">بازگشت</string>
+    <string name="sound_off_action">خاموش کردن صدا</string>
+    <string name="sound_on_action">روشن کردن صدا</string>
+    <string name="open_settings_action">باز کردن تنظیمات</string>
 </resources>
