@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">تخته نرد هوشمند</string>
+    <string name="about_publisher">طراحی، توسعه، ویرایش و عرضه: وحید مهرابادی</string>
+    <string name="about_version_store">نسخه %1$s • ویژه %2$s</string>
+    <string name="support_title">پشتیبانی</string>
+    <string name="support_description">ارسال پیام به پشتیبانی؛ نشانی ایمیل در برنامه نمایش داده نمی‌شود</string>
+    <string name="update_title">بررسی به‌روزرسانی</string>
+    <string name="update_description">بررسی نسخه جدید در %1$s</string>
+    <string name="store_page_title">صفحه برنامه در %1$s</string>
+    <string name="store_page_description">مشاهده صفحه رسمی برنامه</string>
+    <string name="rate_title">ثبت امتیاز و دیدگاه</string>
+    <string name="rate_description">ارسال نظر در %1$s</string>
 </resources>
