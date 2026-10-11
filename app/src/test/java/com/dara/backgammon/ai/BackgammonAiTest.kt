@@ -26,4 +26,20 @@ class BackgammonAiTest {
             assertTrue(BackgammonAi.chooseSequence(position, listOf(1, 2), Difficulty.EXPERT, persona).isEmpty())
         }
     }
+
+    @Test fun aiNeverOffersTheCubeDuringCrawford() {
+        val dominant = Position(points = IntArray(24).apply { this[0] = 15; this[23] = -15 }, turn = Player.BLACK)
+        val match = MatchInfo(blackScore = 4, whiteScore = 2, target = 5, crawfordUsed = true, crawfordGame = true)
+        assertFalse(BackgammonAi.shouldOfferDouble(dominant, Player.BLACK, match))
+    }
+
+    @Test fun matchScoreChangesCubeRiskTolerance() {
+        val position = Position()
+        val trailing = MatchInfo(blackScore = 1, whiteScore = 3, target = 5)
+        val leading = MatchInfo(blackScore = 3, whiteScore = 1, target = 5)
+        // At equal board equity a trailing player is never made more conservative than a leader.
+        val trailingTake = BackgammonAi.shouldTakeDouble(position, Player.BLACK, trailing)
+        val leadingTake = BackgammonAi.shouldTakeDouble(position, Player.BLACK, leading)
+        assertTrue(trailingTake || !leadingTake)
+    }
 }

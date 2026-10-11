@@ -40,6 +40,38 @@ object BackgammonAi {
     fun shouldOfferDouble(position:Position,me:Player)=equity(position,me)>.13
     fun shouldTakeDouble(position:Position,taker:Player)=equity(position,taker)>-.27
 
+    /** Match-aware cube decisions. Crawford and cube ownership are still enforced by the match controller. */
+    fun shouldOfferDouble(position:Position,me:Player,match:MatchInfo):Boolean {
+        if(match.crawfordGame||match.cube>=64)return false
+        val myScore=if(me==Player.WHITE)match.whiteScore else match.blackScore
+        val theirScore=if(me==Player.WHITE)match.blackScore else match.whiteScore
+        val myAway=(match.target-myScore).coerceAtLeast(1)
+        val theirAway=(match.target-theirScore).coerceAtLeast(1)
+        val threshold=when {
+            myAway==1 -> .20
+            theirAway==1 -> .09
+            myAway>theirAway -> .11
+            myAway<theirAway -> .15
+            else -> .13
+        }
+        return equity(position,me)>threshold
+    }
+
+    fun shouldTakeDouble(position:Position,taker:Player,match:MatchInfo):Boolean {
+        val myScore=if(taker==Player.WHITE)match.whiteScore else match.blackScore
+        val theirScore=if(taker==Player.WHITE)match.blackScore else match.whiteScore
+        val myAway=(match.target-myScore).coerceAtLeast(1)
+        val theirAway=(match.target-theirScore).coerceAtLeast(1)
+        val threshold=when {
+            myAway==1 -> -.18
+            theirAway==1 -> -.34
+            myAway>theirAway -> -.31
+            myAway<theirAway -> -.22
+            else -> -.27
+        }
+        return equity(position,taker)>threshold
+    }
+
     /** Chooses strategy from the position itself instead of forcing a personality. */
     private fun weights(p:Position,me:Player):StyleWeights {
         val myPip=pip(p,me);val theirPip=pip(p,me.other());val race=(0..23).none{i->p.points[i]*me.sign>0&&(0..23).any{j->p.points[j]*me.other().sign>0&&if(me==Player.WHITE)j<i else j>i}}
