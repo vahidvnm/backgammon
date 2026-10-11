@@ -30,7 +30,8 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
  private fun tickClock(delta:Long){
   val preset=_settings.value.clockPreset;if(!appInForeground||preset==ClockPreset.OFF||_screen.value!=Screen.GAME||_game.value.winner!=null)return
   val turn=_game.value.position.turn;val turnChanged=turn!=clockTurn
-  val shouldRun=interactionPhase() in setOf(InteractionPhase.WAITING_FOR_ROLL,InteractionPhase.WAITING_FOR_MOVE)
+  val phase=interactionPhase()
+  val shouldRun=ClockRunPolicy.shouldRun(mode,turn,phase in setOf(InteractionPhase.WAITING_FOR_ROLL,InteractionPhase.WAITING_FOR_MOVE),phase==InteractionPhase.GAME_OVER,phase==InteractionPhase.DOUBLE_OFFER)
   val tick=MatchClockEngine.tick(_clock.value,turn,turnChanged,shouldRun,delta,preset.turnMillis)
   if(turnChanged)clockTurn=turn
   _clock.value=tick.clock
