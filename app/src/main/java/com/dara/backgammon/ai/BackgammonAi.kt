@@ -135,12 +135,14 @@ object BackgammonAi {
         return score
     }
     private fun replySafety(p:Position,me:Player):Double{
-        val opponent=p.copy(turn=me.other());var danger=0.0
+        val opponent=p.copy(turn=me.other());val baseline=evaluate(p,me,p);var replyDelta=0.0
         for(a in 1..6)for(b in a..6){
             val sequences=GameEngine.sequences(opponent,GameEngine.rollValues(a,b))
-            val worst=sequences.minOfOrNull{evaluate(play(opponent,it),me,p)}?:evaluate(p,me,p)
-            danger+=worst*if(a==b)1.0 else 2.0
+            val worst=sequences.minOfOrNull{evaluate(play(opponent,it),me,p)}?:baseline
+            // Only the damage or benefit of the reply belongs here; adding the full board score
+            // would count the same static position twice and distort Expert decisions.
+            replyDelta+=(worst-baseline)*if(a==b)1.0 else 2.0
         }
-        return danger/36.0*weights(p,me).safety
+        return replyDelta/36.0*weights(p,me).safety
     }
 }

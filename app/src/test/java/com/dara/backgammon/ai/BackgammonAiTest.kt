@@ -57,4 +57,27 @@ class BackgammonAiTest {
         val sequence = BackgammonAi.chooseSequence(position, listOf(1), Difficulty.HARD, random = Random(2))
         assertEquals(Move(6, 5, 1), sequence.single())
     }
+
+    @Test fun everyDifficultyReturnsEngineApprovedSequencesDuringPlayouts() {
+        val random = Random(918273)
+        repeat(12) { gameIndex ->
+            var state = TurnState()
+            repeat(180) {
+                if (state.winner != null) return@repeat
+                val dice = GameEngine.rollValues(random.nextInt(1, 7), random.nextInt(1, 7))
+                val level = Difficulty.entries[(gameIndex + it) % Difficulty.entries.size]
+                val legalSequences = GameEngine.sequences(state.position, dice)
+                val chosen = BackgammonAi.chooseSequence(state.position, dice, level, random = random)
+                if (legalSequences.all { it.isEmpty() }) {
+                    assertTrue(chosen.isEmpty())
+                    state = TurnState(state.position.copy(turn = state.position.turn.other()))
+                } else {
+                    assertTrue("$level returned a sequence outside the rules engine", chosen in legalSequences)
+                    var next = state.copy(dice = dice, rolled = true)
+                    chosen.forEach { move -> next = GameEngine.afterMove(next, move) }
+                    state = if (next.winner != null) next else GameEngine.endTurn(next)
+                }
+            }
+        }
+    }
 }
