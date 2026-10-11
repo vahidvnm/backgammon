@@ -114,11 +114,17 @@ import kotlin.math.roundToInt
  val diceDescription=if(rolling)"تاس‌ها در حال چرخش" else if(finalDice.isEmpty())"تاس‌ها؛ برای پرتاب دوبار ضربه بزنید یا بکشید" else "نتیجه تاس: ${finalDice.joinToString(" و ")}"
  Box(modifier.size(230.dp,140.dp).semantics{contentDescription=diceDescription;if(!rolling&&finalDice.isEmpty())onClick("پرتاب تاس"){onThrow();true}}.graphicsLayer{translationX=drag.x;translationY=drag.y}.then(if(!rolling&&finalDice.isEmpty())Modifier.pointerInput(Unit){detectDragGestures(onDragEnd={if(drag.getDistance()>24f){throwVector=drag;onThrow()}else drag=Offset.Zero},onDragCancel={drag=Offset.Zero}){change,amount->change.consume();drag+=amount}}else Modifier)){
   if(canThrow)Canvas(Modifier.fillMaxSize()){
-   val ringTop=10f;val ringLeft=28f;val ringSize=Size(size.width-56f,size.height-20f);val glow=Color(0xffffd36f).copy(.52f+.38f*promptPulse)
-   drawArc(Color.Black.copy(.38f),28f,292f,false,Offset(ringLeft+2f,ringTop+3f),ringSize,style=Stroke(9f,cap=StrokeCap.Round))
-   drawArc(glow,28f,292f,false,Offset(ringLeft,ringTop),ringSize,style=Stroke(5f,cap=StrokeCap.Round))
-   val arrow=Path().apply{moveTo(size.width-31f,size.height*.34f);lineTo(size.width-48f,size.height*.28f);lineTo(size.width-43f,size.height*.44f);close()}
-   drawPath(arrow,Color.Black.copy(.42f),style=Stroke(5f));drawPath(arrow,glow)
+   // A tight circular arrow follows the actual dice positions instead of floating around the whole dice area.
+   val dieRadius=27f;val margin=4f;val c1=Offset(size.width/2+x1.value,size.height/2+y1.value);val c2=Offset(size.width/2+x2.value,size.height/2+y2.value)
+   val left=(minOf(c1.x,c2.x)-dieRadius-margin).coerceAtLeast(1f);val right=(maxOf(c1.x,c2.x)+dieRadius+margin).coerceAtMost(size.width-1f)
+   val top=(minOf(c1.y,c2.y)-dieRadius-margin).coerceAtLeast(1f);val bottom=(maxOf(c1.y,c2.y)+dieRadius+margin).coerceAtMost(size.height-1f)
+   val ringSize=Size(right-left,bottom-top);val glow=Color(0xffffd36f).copy(.58f+.38f*promptPulse);val start=35f;val sweep=285f
+   drawArc(Color.Black.copy(.48f),start,sweep,false,Offset(left+1.5f,top+2f),ringSize,style=Stroke(8f,cap=StrokeCap.Round))
+   drawArc(glow,start,sweep,false,Offset(left,top),ringSize,style=Stroke(4.5f,cap=StrokeCap.Round))
+   val end=Math.toRadians((start+sweep).toDouble());val rx=ringSize.width/2;val ry=ringSize.height/2;val tip=Offset(left+rx+rx*cos(end).toFloat(),top+ry+ry*sin(end).toFloat())
+   val tangent=Offset((-rx*sin(end)).toFloat(),(ry*cos(end)).toFloat());val length=tangent.getDistance().coerceAtLeast(1f);val unit=tangent/length;val normal=Offset(-unit.y,unit.x);val back=tip-unit*17f
+   val arrow=Path().apply{moveTo(tip.x,tip.y);lineTo(back.x+normal.x*9f,back.y+normal.y*9f);lineTo(back.x-normal.x*9f,back.y-normal.y*9f);close()}
+   drawPath(arrow,Color.Black.copy(.46f),style=Stroke(4f));drawPath(arrow,glow)
   }
   DieFace(finalDice.getOrElse(0){face1},style,rolling,Modifier.align(Alignment.Center).offset{x1.value.roundToInt().let{androidx.compose.ui.unit.IntOffset(it,y1.value.roundToInt())}}.rotate(r1.value));DieFace(finalDice.getOrElse(1){face2},style,rolling,Modifier.align(Alignment.Center).offset{x2.value.roundToInt().let{androidx.compose.ui.unit.IntOffset(it,y2.value.roundToInt())}}.rotate(r2.value));if(!rolling&&finalDice.size>2)DieFace(finalDice[2],style,false,Modifier.align(Alignment.Center).offset(x=(-34).dp,y=48.dp));if(!rolling&&finalDice.size>3)DieFace(finalDice[3],style,false,Modifier.align(Alignment.Center).offset(x=34.dp,y=48.dp))}
 }

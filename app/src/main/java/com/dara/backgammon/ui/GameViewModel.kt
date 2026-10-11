@@ -62,12 +62,22 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
  }
  private fun loadSession(){
   val saved=savedMatches.load(newClock())?:return
-  _game.value=saved.game;_match.value=saved.match;_clock.value=saved.clock;clockTurn=saved.game.position.turn
+  _game.value=saved.game;_match.value=saved.match;_clock.value=saved.clock.copy(active=_settings.value.clockPreset!=ClockPreset.OFF);clockTurn=saved.game.position.turn
   mode=saved.mode;_autoAssist.value=saved.autoAssist;_hasSaved.value=true
  }
- fun onForeground(){appInForeground=true;clockTurn=_game.value.position.turn}
+ fun onForeground(){
+  appInForeground=true;clockTurn=_game.value.position.turn
+  val preset=_settings.value.clockPreset
+  _clock.value=_clock.value.copy(active=preset!=ClockPreset.OFF)
+  ensureAiProgress()
+ }
  fun onBackground(){appInForeground=false;if(_screen.value==Screen.GAME)saveSession()}
- fun continueGame(){if(_hasSaved.value){clockTurn=_game.value.position.turn;_screen.value=Screen.GAME;if(mode==Mode.AI&&_game.value.winner==null&&_match.value.pendingDoubleBy==null&&_game.value.position.turn==Player.BLACK&&turnJob?.isActive!=true)turnJob=viewModelScope.launch{aiTurn()}}}
+ private fun ensureAiProgress(){
+  if(_screen.value==Screen.GAME&&mode==Mode.AI&&_game.value.winner==null&&_match.value.pendingDoubleBy==null&&_game.value.position.turn==Player.BLACK&&turnJob?.isActive!=true){
+   _rolling.value=false;_match.value=_match.value.copy(thinking=false);turnJob=viewModelScope.launch{aiTurn()}
+  }
+ }
+ fun continueGame(){if(_hasSaved.value){clockTurn=_game.value.position.turn;_screen.value=Screen.GAME;ensureAiProgress()}}
  fun setup(){_screen.value=Screen.SETUP}
  fun start(m:Mode){cancelActiveTurn();mode=m;history.clear();_match.value=MatchInfo(target=_settings.value.matchTarget);_game.value=TurnState();resetClock();_screen.value=Screen.GAME;saveSession()}
  fun menu(){cancelActiveTurn();if(_screen.value==Screen.GAME)saveSession();_screen.value=Screen.MENU}
@@ -81,7 +91,11 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
   }
   _game.value=TurnState();resetClock();saveSession()
  }
- fun update(s:Settings){val clockChanged=s.clockPreset!=_settings.value.clockPreset;_settings.value=s;prefs.save(s);if(clockChanged)resetClock()}
+ fun update(s:Settings){
+  val clockChanged=s.clockPreset!=_settings.value.clockPreset;_settings.value=s;prefs.save(s)
+  if(clockChanged)resetClock() else if(_clock.value.active!=(s.clockPreset!=ClockPreset.OFF))_clock.value=_clock.value.copy(active=s.clockPreset!=ClockPreset.OFF)
+  ensureAiProgress()
+ }
  fun undo(){
   if(history.isEmpty())return
   cancelActiveTurn();var restored:GameSnapshot
@@ -101,7 +115,7 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
   if(s.winner!=null)scoreGame()else autoEnd();return true
  }
  fun toggleAutoAssist(){_autoAssist.value=!_autoAssist.value;if(!_autoAssist.value){if(_game.value.position.turn==Player.WHITE)cancelActiveTurn()}else if(!_game.value.rolled&&_game.value.position.turn==Player.WHITE)autoRollWhite() else if(_game.value.rolled)autoAssistTurn()}
- private fun autoAssistTurn(){if(turnJob?.isActive==true)return;turnJob=viewModelScope.launch{var s=_game.value;val seq=withContext(Dispatchers.Default){BackgammonAi.chooseSequence(s.position,s.dice,settings.value.difficulty)};for(m in seq){if(!_autoAssist.value)break;rememberState();s=GameEngine.afterMove(s,m);_game.value=s;playCheckerSound();delay(if(settings.value.animations)1090 else 30)};if(_autoAssist.value&&s.winner==null&&s.rolled&&(s.dice.isEmpty()||GameEngine.legalMoves(s.position,s.dice).isEmpty())){delay(300);_game.value=GameEngine.endTurn(s);if(mode==Mode.AI)aiTurn()}}}
+ private fun autoAssistTurn(){if(turnJob?.isActive==true)return;turnJob=viewModelScope.launch{var s=_game.value;val seq=withContext(Dispatchers.Default){BackgammonAi.chooseSequence(s.position,s.dice,settings.value.difficulty)};for(m in seq){if(!_autoAssist.value)break;rememberState();s=GameEngine.afterMove(s,m);_game.value=s;playCheckerSound();delay(if(settings.value.animations)1000 else 30)};if(_autoAssist.value&&s.winner==null&&s.rolled&&(s.dice.isEmpty()||GameEngine.legalMoves(s.position,s.dice).isEmpty())){delay(300);_game.value=GameEngine.endTurn(s);if(mode==Mode.AI)aiTurn()}}}
  fun offerDouble(){val m=_match.value;val offerer=_game.value.position.turn;if(m.crawfordGame||_game.value.rolled||_rolling.value||m.pendingDoubleBy!=null||m.cube>=64||(m.cubeOwner!=null&&m.cubeOwner!=offerer))return;_match.value=m.copy(pendingDoubleBy=offerer);if(mode==Mode.AI&&offerer==Player.WHITE){turnJob=viewModelScope.launch{delay(650);if(BackgammonAi.shouldTakeDouble(_game.value.position,Player.BLACK,_match.value))acceptDouble()else declineDouble()}}}
  fun acceptDouble(){val m=_match.value;val offerer=m.pendingDoubleBy?:return;_match.value=m.copy(cube=m.cube*2,cubeOwner=offerer.other(),pendingDoubleBy=null);if(mode==Mode.AI&&offerer==Player.BLACK){turnJob=viewModelScope.launch{aiTurn(skipCubeOffer=true)}}}
  fun declineDouble(){val m=_match.value;val offerer=m.pendingDoubleBy?:return;val loser=offerer.other();_match.value=if(offerer==Player.WHITE)m.copy(whiteScore=m.whiteScore+m.cube,pendingDoubleBy=null,droppedBy=loser)else m.copy(blackScore=m.blackScore+m.cube,pendingDoubleBy=null,droppedBy=loser);_game.value=_game.value.copy(winner=offerer);_rolling.value=false}
@@ -121,7 +135,7 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
    }
    delay(520)
    val seq=withContext(Dispatchers.Default){BackgammonAi.chooseSequence(s.position,s.dice,settings.value.difficulty)}
-   for(m in seq){rememberState();s=GameEngine.afterMove(s,m);_game.value=s;playCheckerSound();delay(if(settings.value.animations)1090 else 30)}
+   for(m in seq){rememberState();s=GameEngine.afterMove(s,m);_game.value=s;playCheckerSound();delay(if(settings.value.animations)1000 else 30)}
    if(s.winner!=null)scoreGame() else if(s.rolled&&(s.dice.isEmpty()||GameEngine.legalMoves(s.position,s.dice).isEmpty()))_game.value=GameEngine.endTurn(s)
   }finally{
    _rolling.value=false;_match.value=_match.value.copy(thinking=false)

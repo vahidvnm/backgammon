@@ -40,7 +40,7 @@ fun boardPalette(t:BoardTheme)=when(t){
   if(!previous.points.contentEquals(now.points)||previous.bar(mover)!=now.bar(mover)||previous.off(mover)!=now.off(mover)){
    val from=(0..23).firstOrNull{previous.points[it]*sign>now.points[it]*sign}?:if(previous.bar(mover)>now.bar(mover))Move.BAR else null
    val to=(0..23).firstOrNull{now.points[it]*sign>previous.points[it]*sign}?:if(now.off(mover)>previous.off(mover))Move.OFF else null
-   if(from!=null&&to!=null){val fromIndex=if(from in 0..23)(abs(previous.points[from])-1).coerceAtLeast(0)else 0;val toIndex=if(to in 0..23)(abs(now.points[to])-1).coerceAtLeast(0)else 0;motion=CheckerMotion(from,to,mover==Player.WHITE,fromIndex,toIndex);previous=now.copyDeep();travel.snapTo(if(animations)0f else 1f);if(animations)travel.animateTo(1f,tween(1000,easing=FastOutSlowInEasing));motion=null}else previous=now.copyDeep()
+   if(from!=null&&to!=null){val fromIndex=if(from in 0..23)(abs(previous.points[from])-1).coerceAtLeast(0)else 0;val toIndex=if(to in 0..23)(abs(now.points[to])-1).coerceAtLeast(0)else 0;motion=CheckerMotion(from,to,mover==Player.WHITE,fromIndex,toIndex);previous=now.copyDeep();travel.snapTo(if(animations)0f else 1f);if(animations)travel.animateTo(1f,tween(920,easing=FastOutSlowInEasing));motion=null}else previous=now.copyDeep()
   }else previous=now.copyDeep()
  }
  val turnName=if(state.position.turn==Player.WHITE)"سفید" else "سیاه"
