@@ -58,6 +58,16 @@ class BackgammonAiTest {
         assertEquals(Move(6, 5, 1), sequence.single())
     }
 
+    @Test fun legalSequenceCacheReusesEquivalentDiceOrders() {
+        BackgammonAi.clearSequenceCache()
+        val first = BackgammonAi.chooseSequence(Position(), listOf(3, 1), Difficulty.HARD, random = Random(1))
+        val sizeAfterFirst = BackgammonAi.sequenceCacheSize()
+        val second = BackgammonAi.chooseSequence(Position(), listOf(1, 3), Difficulty.HARD, random = Random(1))
+        assertEquals(first.toSet(), second.toSet())
+        assertEquals(sizeAfterFirst, BackgammonAi.sequenceCacheSize())
+        assertEquals(1, sizeAfterFirst)
+    }
+
     @Test fun everyDifficultyReturnsEngineApprovedSequencesDuringPlayouts() {
         val random = Random(918273)
         repeat(12) { gameIndex ->

@@ -18,8 +18,19 @@ private data class StyleWeights(
 )
 
 object BackgammonAi {
+    private data class SequenceKey(val points:List<Int>,val barWhite:Int,val barBlack:Int,val offWhite:Int,val offBlack:Int,val turn:Player,val dice:List<Int>)
+    private val sequenceCache=object:LinkedHashMap<SequenceKey,List<List<Move>>>(256,.75f,true){
+        override fun removeEldestEntry(eldest:MutableMap.MutableEntry<SequenceKey,List<List<Move>>>?)=size>4096
+    }
+    private fun sequences(position:Position,dice:List<Int>):List<List<Move>>{
+        val key=SequenceKey(position.points.toList(),position.barWhite,position.barBlack,position.offWhite,position.offBlack,position.turn,dice.sorted())
+        return synchronized(sequenceCache){sequenceCache[key]}?:GameEngine.sequences(position,dice).also{computed->synchronized(sequenceCache){sequenceCache[key]=computed}}
+    }
+    internal fun clearSequenceCache()=synchronized(sequenceCache){sequenceCache.clear()}
+    internal fun sequenceCacheSize()=synchronized(sequenceCache){sequenceCache.size}
+
     fun chooseSequence(position:Position,dice:List<Int>,level:Difficulty,persona:AiPersona=AiPersona.MASTER,random:Random=Random.Default):List<Move>{
-        val choices=GameEngine.sequences(position,dice).filter{it.isNotEmpty()}
+        val choices=sequences(position,dice).filter{it.isNotEmpty()}
         if(choices.isEmpty())return emptyList()
         if(level==Difficulty.BEGINNER)return choices.random(random)
         val scored=choices.map{seq->seq to evaluate(play(position,seq),position.turn,position)}.sortedByDescending{it.second}
@@ -137,8 +148,8 @@ object BackgammonAi {
     private fun replySafety(p:Position,me:Player):Double{
         val opponent=p.copy(turn=me.other());val baseline=evaluate(p,me,p);var replyDelta=0.0
         for(a in 1..6)for(b in a..6){
-            val sequences=GameEngine.sequences(opponent,GameEngine.rollValues(a,b))
-            val worst=sequences.minOfOrNull{evaluate(play(opponent,it),me,p)}?:baseline
+            val replies=sequences(opponent,GameEngine.rollValues(a,b))
+            val worst=replies.minOfOrNull{evaluate(play(opponent,it),me,p)}?:baseline
             // Only the damage or benefit of the reply belongs here; adding the full board score
             // would count the same static position twice and distort Expert decisions.
             replyDelta+=(worst-baseline)*if(a==b)1.0 else 2.0

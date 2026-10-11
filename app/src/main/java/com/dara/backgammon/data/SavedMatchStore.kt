@@ -7,6 +7,7 @@ import com.dara.backgammon.core.Mode
 import com.dara.backgammon.core.Player
 import com.dara.backgammon.core.Position
 import com.dara.backgammon.core.SavedSession
+import com.dara.backgammon.core.SavedSessionValidator
 import com.dara.backgammon.core.TurnState
 import org.json.JSONObject
 
@@ -60,7 +61,6 @@ class SavedMatchStore(context: Context) {
             points, json.getInt("bw"), json.getInt("bb"), json.getInt("ow"),
             json.getInt("ob"), Player.valueOf(json.getString("turn"))
         )
-        require(validPosition(position))
 
         val dice = json.optString("dice").takeIf(String::isNotEmpty)
             ?.split(',')?.map(String::toInt) ?: emptyList()
@@ -76,8 +76,6 @@ class SavedMatchStore(context: Context) {
             crawfordUsed = json.optBoolean("crawfordUsed"),
             crawfordGame = json.optBoolean("crawfordGame")
         )
-        require(match.whiteScore >= 0 && match.blackScore >= 0)
-        require(match.target in 1..25 && match.cube in VALID_CUBES)
 
         val clock = if (json.optInt("schema", 1) >= 2) ClockState(
             json.optLong("clockWhite", fallbackClock.whiteMillis),
@@ -85,23 +83,15 @@ class SavedMatchStore(context: Context) {
             json.optLong("clockTurn", fallbackClock.turnMillis),
             json.optBoolean("clockActive", fallbackClock.active)
         ) else fallbackClock
-        require(clock.whiteMillis >= 0 && clock.blackMillis >= 0 && clock.turnMillis >= 0)
 
         val mode = runCatching { Mode.valueOf(json.optString("mode")) }.getOrDefault(Mode.AI)
-        return SavedSession(game, match, clock, mode, json.optBoolean("auto"))
-    }
-
-    private fun validPosition(position: Position): Boolean {
-        if (position.points.any { it !in -15..15 }) return false
-        if (listOf(position.barWhite, position.barBlack, position.offWhite, position.offBlack).any { it !in 0..15 }) return false
-        val white = position.points.sumOf { it.coerceAtLeast(0) } + position.barWhite + position.offWhite
-        val black = position.points.sumOf { (-it).coerceAtLeast(0) } + position.barBlack + position.offBlack
-        return white == 15 && black == 15
+        val session=SavedSession(game, match, clock, mode, json.optBoolean("auto"))
+        require(SavedSessionValidator.isValid(session))
+        return session
     }
 
     private companion object {
         const val KEY_STATE = "state"
         const val SCHEMA = 2
-        val VALID_CUBES = setOf(1, 2, 4, 8, 16, 32, 64)
     }
 }
