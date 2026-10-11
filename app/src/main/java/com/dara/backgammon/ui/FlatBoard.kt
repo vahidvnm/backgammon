@@ -11,6 +11,8 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.*
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.dara.backgammon.R
 import com.dara.backgammon.core.*
 import com.dara.backgammon.data.*
@@ -27,8 +29,8 @@ fun boardPalette(t:BoardTheme)=when(t){
 }
 
 /** Precise top-down board inspired by classic mobile layouts, drawn entirely with original vector assets. */
-@Composable fun FlatBoard(state:TurnState,theme:BoardTheme,pieces:PieceStyle,selected:Int?,legal:List<Move>,select:(Int)->Unit,move:(Move)->Unit,combine:(Int,Int)->Boolean={_,_->false},modifier:Modifier=Modifier,scene:TableScene=TableScene.DARK_GRASS,guidance:GuidanceMode=GuidanceMode.SIMPLE){
- val p=boardPalette(theme);val texture=ImageBitmap.imageResource(when(theme){BoardTheme.PREMIUM_WOOD->R.drawable.premium_walnut_texture;BoardTheme.BRUSHED_METAL->R.drawable.smoked_glass_texture;BoardTheme.OBSIDIAN_IVORY->R.drawable.ivory_marble_texture;BoardTheme.CRYSTAL_GLASS->R.drawable.smoked_glass_texture;BoardTheme.ROYAL_SAPPHIRE->R.drawable.premium_walnut_texture});val materialBrush=remember(texture){ShaderBrush(ImageShader(texture,TileMode.Mirror,TileMode.Mirror))};val pulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse")
+@Composable fun FlatBoard(state:TurnState,theme:BoardTheme,pieces:PieceStyle,selected:Int?,legal:List<Move>,select:(Int)->Unit,move:(Move)->Unit,combine:(Int,Int)->Boolean={_,_->false},modifier:Modifier=Modifier,scene:TableScene=TableScene.DARK_GRASS,guidance:GuidanceMode=GuidanceMode.SIMPLE,animations:Boolean=true){
+ val p=boardPalette(theme);val texture=ImageBitmap.imageResource(when(theme){BoardTheme.PREMIUM_WOOD->R.drawable.premium_walnut_texture;BoardTheme.BRUSHED_METAL->R.drawable.smoked_glass_texture;BoardTheme.OBSIDIAN_IVORY->R.drawable.ivory_marble_texture;BoardTheme.CRYSTAL_GLASS->R.drawable.smoked_glass_texture;BoardTheme.ROYAL_SAPPHIRE->R.drawable.premium_walnut_texture});val materialBrush=remember(texture){ShaderBrush(ImageShader(texture,TileMode.Mirror,TileMode.Mirror))};val animatedPulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse");val pulse=if(animations)animatedPulse else 1f
  val plans=if(selected==null)emptyList() else GameEngine.movePlans(state.position,state.dice,selected)
  val visiblePlans=plans
  val displayPlans=visiblePlans.groupBy{it.to}.values.mapNotNull{routes->routes.maxByOrNull{it.moves.size}}
@@ -38,10 +40,13 @@ fun boardPalette(t:BoardTheme)=when(t){
   if(!previous.points.contentEquals(now.points)||previous.bar(mover)!=now.bar(mover)||previous.off(mover)!=now.off(mover)){
    val from=(0..23).firstOrNull{previous.points[it]*sign>now.points[it]*sign}?:if(previous.bar(mover)>now.bar(mover))Move.BAR else null
    val to=(0..23).firstOrNull{now.points[it]*sign>previous.points[it]*sign}?:if(now.off(mover)>previous.off(mover))Move.OFF else null
-   if(from!=null&&to!=null){val fromIndex=if(from in 0..23)(abs(previous.points[from])-1).coerceAtLeast(0)else 0;val toIndex=if(to in 0..23)(abs(now.points[to])-1).coerceAtLeast(0)else 0;motion=CheckerMotion(from,to,mover==Player.WHITE,fromIndex,toIndex);previous=now.copyDeep();travel.snapTo(0f);travel.animateTo(1f,tween(1080,easing=FastOutSlowInEasing));motion=null}else previous=now.copyDeep()
+   if(from!=null&&to!=null){val fromIndex=if(from in 0..23)(abs(previous.points[from])-1).coerceAtLeast(0)else 0;val toIndex=if(to in 0..23)(abs(now.points[to])-1).coerceAtLeast(0)else 0;motion=CheckerMotion(from,to,mover==Player.WHITE,fromIndex,toIndex);previous=now.copyDeep();travel.snapTo(if(animations)0f else 1f);if(animations)travel.animateTo(1f,tween(1080,easing=FastOutSlowInEasing));motion=null}else previous=now.copyDeep()
   }else previous=now.copyDeep()
  }
- Canvas(modifier.pointerInput(state,selected){detectTapGestures{tap->
+ val turnName=if(state.position.turn==Player.WHITE)"سفید" else "سیاه"
+ val selectedName=when(selected){Move.BAR->"مهره روی بار";null->"هیچ مهره‌ای انتخاب نشده";else->"خانه ${(selected?:0)+1} انتخاب شده"}
+ val boardDescription="تخته نرد؛ نوبت $turnName؛ سفید ${state.position.offWhite} مهره خارج و ${state.position.barWhite} مهره روی بار؛ سیاه ${state.position.offBlack} مهره خارج و ${state.position.barBlack} مهره روی بار؛ $selectedName"
+ Canvas(modifier.semantics{contentDescription=boardDescription}.pointerInput(state,selected){detectTapGestures{tap->
   val rail=size.width*.032f;val barW=size.width*.062f;val playLeft=rail;val playRight=size.width-size.width*.060f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half
   val bar=tap.x in (barLeft-barW*.28f)..(barLeft+barW*1.28f);val off=tap.x>playRight;val local=if(tap.x<barLeft)tap.x-playLeft else tap.x-(barLeft+barW)+half
   val col=(local/(half/6)).toInt().coerceIn(0,11);val point=if(tap.y<size.height/2)12+col else 11-col;val target=when{off->Move.OFF;bar->Move.BAR;else->point};val choices=legal.filter{it.from==selected&&it.to==target};val compound=plans.any{it.to==target&&it.moves.size>1};if(selected!=null&&target!=Move.BAR&&compound&&combine(selected,target))Unit else if(choices.isNotEmpty())move(choices.maxBy{it.die})else if(selected!=null&&target!=Move.BAR&&combine(selected,target))Unit else {val owns=target==Move.BAR&&state.position.bar(state.position.turn)>0||target in 0..23&&state.position.points[target]*state.position.turn.sign>0;if(owns)select(target)}
