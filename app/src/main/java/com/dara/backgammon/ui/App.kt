@@ -97,6 +97,7 @@ internal fun tabFa(key:String)=when(key){"GAME"->"بازی";"AUDIO"->"صدا";"C
  }
  AnimatedVisibility(panel.isNotEmpty(),enter=fadeIn(tween(260))+scaleIn(tween(320),initialScale=.96f),exit=fadeOut(tween(220))+scaleOut(tween(220),targetScale=.97f)){if(panel=="settings")InGameSettingsStudio(settings,match,vm){panel=""}else GameDrawer(panel,settings,match,vm,{panel=""},{panel=it})}
  match.pendingDoubleBy?.takeIf{vm.mode==Mode.LOCAL||it==Player.BLACK}?.let{offerer->AlertDialog(onDismissRequest={},title={Text("پیشنهاد دوبرابر از ${offerer.fa()} تا ×${match.cube*2}")},text={Text("بازیکن ${offerer.other().fa()} می‌تواند پیشنهاد را قبول کند و مالک مکعب شود، یا آن را رد کند و بازی را با امتیاز فعلی واگذار کند.")},confirmButton={Button({vm.acceptDouble()}){Text("قبول")}},dismissButton={OutlinedButton({vm.declineDouble()}){Text("رد")}})}
+ game.winner?.let{w->VictoryCelebration(w,match.whiteScore,match.blackScore,Modifier.fillMaxSize())}
  game.winner?.let{w->
   val loser=w.other();val local=vm.mode==Mode.LOCAL;val won=w==Player.WHITE;val champion=vm.matchWinner()
   val result=if(match.timedOutBy!=null)"زمان بازیکن تمام شد" else if(match.droppedBy!=null)"پیشنهاد دوبرابر رد شد — بازی ${match.cube} امتیازی" else when{game.position.off(loser)>0->"برد معمولی";game.position.bar(loser)>0->"بک‌گمون";else->"گمون"}

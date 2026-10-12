@@ -6,7 +6,20 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.activity.compose.setContent
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.lifecycle.Lifecycle
+import com.dara.backgammon.core.Player
+import com.dara.backgammon.core.Position
+import com.dara.backgammon.core.TurnState
+import com.dara.backgammon.data.BoardTheme
+import com.dara.backgammon.data.PieceStyle
+import com.dara.backgammon.ui.FlatBoard
+import com.dara.backgammon.ui.VictoryCelebration
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
 import org.junit.Test
@@ -72,6 +85,28 @@ class BackgammonJourneyTest {
         compose.activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
         compose.waitForIdle()
         compose.onNode(hasContentDescription("تخته نرد", substring = true)).assertExists()
+    }
+
+    @Test fun borneOffCheckerAnimatesIntoTheStorageTray() {
+        lateinit var state: MutableState<TurnState>
+        compose.activity.setContent {
+            state = remember { mutableStateOf(TurnState(Position(IntArray(24).also { it[0] = 1 }, offWhite = 14, offBlack = 15, turn = Player.WHITE))) }
+            FlatBoard(state.value, BoardTheme.PREMIUM_WOOD, PieceStyle.KHATAM, null, emptyList(), {}, {}, modifier = Modifier.fillMaxSize())
+        }
+        compose.waitForIdle()
+        compose.activity.runOnUiThread { state.value = state.value.copy(position = Position(IntArray(24), offWhite = 15, offBlack = 15, turn = Player.WHITE)) }
+        compose.mainClock.advanceTimeBy(1_100)
+        compose.waitForIdle()
+        compose.onNode(hasContentDescription("سفید 15 مهره خارج", substring = true)).assertExists()
+    }
+
+    @Test fun victoryCelebrationRendersAnimatedScoreboard() {
+        compose.activity.setContent { VictoryCelebration(Player.WHITE, 5, 3, Modifier.fillMaxSize()) }
+        compose.mainClock.advanceTimeBy(2_500)
+        compose.waitForIdle()
+        compose.onNode(hasContentDescription("تابلوی پایان بازی", substring = true)).assertExists()
+        compose.onNodeWithText("5").assertExists()
+        compose.onNodeWithText("3").assertExists()
     }
 
     @Test fun setupAndSettingsSectionsRemainReachable() {

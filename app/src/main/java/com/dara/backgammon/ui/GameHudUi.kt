@@ -141,3 +141,18 @@ import kotlin.math.roundToInt
   spots.forEach{drawCircle(Color.Black.copy(.42f),4.2f*u,Offset((7+44*it.first)*u,(7+44*it.second)*u));drawCircle(ink,3.55f*u,Offset((7+44*it.first)*u,(7+44*it.second)*u));drawCircle(Color.White.copy(.22f),.9f*u,Offset((6.2f+44*it.first)*u,(6.2f+44*it.second)*u))};listOf(15f to 20f,42f to 18f,25f to 48f,45f to 40f).forEach{drawCircle(Color(0xff8e7253).copy(.10f),.7f*u,Offset(it.first*u,it.second*u))}
  }
 }
+
+@Composable internal fun VictoryCelebration(winner:Player,whiteScore:Int,blackScore:Int,modifier:Modifier=Modifier){
+ val progress by rememberInfiniteTransition(label="victory").animateFloat(0f,1f,infiniteRepeatable(tween(2200,easing=LinearEasing)),label="victoryBurst")
+ Box(modifier.semantics{contentDescription="تابلوی پایان بازی؛ ${winner.fa()} برنده؛ امتیاز $whiteScore به $blackScore"},contentAlignment=Alignment.TopCenter){
+  Canvas(Modifier.fillMaxSize()){
+   drawRect(Brush.radialGradient(listOf(Color.Transparent,Color.Black.copy(.70f)),Offset(size.width/2,size.height/2),size.maxDimension*.72f))
+   repeat(54){i->val seed=(i*47%101)/101f;val lane=(i*83%97)/97f;val y=((seed+progress)%1f)*size.height;val x=lane*size.width+sin((progress*6.28f+i))*18f;val color=listOf(Color(0xffffd15c),Color(0xfff6eee0),Color(0xff63d59a),Color(0xffd97872))[i%4];rotate((i*29f+progress*260f),Offset(x,y)){drawRoundRect(color.copy(.88f),Offset(x-3f,y-6f),Size(6f,12f),CornerRadius(2f))}}
+  }
+  Column(Modifier.padding(top=42.dp).width(300.dp).graphicsLayer{shadowElevation=28.dp.toPx();shape=RoundedCornerShape(20.dp);clip=false}.clip(RoundedCornerShape(20.dp)).background(Brush.verticalGradient(listOf(Color(0xf05f351f),Color(0xf0180d09)))).border(2.dp,Color(0xffffd47d),RoundedCornerShape(20.dp)).padding(16.dp),horizontalAlignment=Alignment.CenterHorizontally){
+   Text(if(winner==Player.WHITE)"پیروزی" else "پایان دست",color=Color(0xffffdf91),fontSize=25.sp,fontWeight=FontWeight.Black,letterSpacing=2.sp)
+   Text("♛",color=Color(0xffffca58),fontSize=35.sp)
+   Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color.Black.copy(.38f)).border(1.dp,Color.White.copy(.18f),RoundedCornerShape(12.dp)).padding(10.dp),horizontalArrangement=Arrangement.SpaceEvenly){Column(horizontalAlignment=Alignment.CenterHorizontally){Text("سفید",color=Color.White.copy(.72f),fontSize=9.sp);Text(whiteScore.toString(),color=Color.White,fontSize=27.sp,fontWeight=FontWeight.Black)};Text("—",color=Color(0xffffd47d),fontSize=24.sp);Column(horizontalAlignment=Alignment.CenterHorizontally){Text("سیاه",color=Color.White.copy(.72f),fontSize=9.sp);Text(blackScore.toString(),color=Color.White,fontSize=27.sp,fontWeight=FontWeight.Black)}}
+  }
+ }
+}
