@@ -18,10 +18,10 @@ class BackgammonJourneyTest {
         compose.onNodeWithText("بازی دونفره محلی").assertExists().performClick()
         compose.onNode(hasContentDescription("تاس‌ها؛ برای پرتاب دوبار ضربه بزنید یا بکشید"))
             .assertExists().performClick()
-        compose.waitUntil(timeoutMillis = 8_000) {
-            compose.onAllNodes(hasContentDescription("نتیجه تاس", substring = true))
-                .fetchSemanticsNodes().isNotEmpty()
-        }
+        // Compose animations use the test clock; advance it just like two seconds of real play.
+        compose.mainClock.advanceTimeBy(2_200)
+        compose.waitForIdle()
+        compose.onNode(hasContentDescription("نتیجه تاس", substring = true)).assertExists()
         compose.activityRule.scenario.recreate()
         compose.waitForIdle()
         compose.onNode(hasContentDescription("نتیجه تاس", substring = true)).assertExists()
