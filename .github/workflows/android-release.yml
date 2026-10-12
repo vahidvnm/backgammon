@@ -1,15 +1,17 @@
-name: AI Backgammon Release
+name: Marketplace Release - Myket and Bazaar
 
 on:
   workflow_dispatch:
   push:
     tags: ['v*']
+    branches: ['arena/01a0b377-backgammon']
 
 permissions:
   contents: read
 
 jobs:
   release:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') || startsWith(github.event.head_commit.message, '[release]')
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
