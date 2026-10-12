@@ -18,10 +18,8 @@ import com.dara.backgammon.core.Position
 import com.dara.backgammon.core.TurnState
 import com.dara.backgammon.data.BoardTheme
 import com.dara.backgammon.data.PieceStyle
-import com.dara.backgammon.data.DiceStyle
 import com.dara.backgammon.data.Preferences
 import com.dara.backgammon.data.TableScene
-import com.dara.backgammon.ui.AnimatedDice
 import com.dara.backgammon.ui.FlatBoard
 import com.dara.backgammon.ui.VictoryCelebration
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -95,13 +93,6 @@ class BackgammonJourneyTest {
     @Test fun newInstallDefaultsToPersianRug() {
         compose.activity.getSharedPreferences("settings", 0).edit().clear().commit()
         assertEquals(TableScene.PERSIAN_RUG, Preferences(compose.activity).load().tableScene)
-    }
-
-    @Test fun firstThrowHintIsExplicitAndCanBeHiddenForever() {
-        compose.activity.setContent { AnimatedDice(emptyList(), DiceStyle.CLASSIC, false, true, {}, Modifier.fillMaxSize()) }
-        compose.onNode(hasContentDescription("راهنمای پیکان اولین پرتاب", substring = true)).assertExists()
-        compose.activity.setContent { AnimatedDice(emptyList(), DiceStyle.CLASSIC, false, false, {}, Modifier.fillMaxSize()) }
-        compose.onNode(hasContentDescription("راهنمای پیکان اولین پرتاب", substring = true)).assertDoesNotExist()
     }
 
     @Test fun borneOffCheckerAnimatesIntoTheStorageTray() {

@@ -20,7 +20,5 @@ class Preferences(ctx:Context){
   val clock=if(!p.getBoolean("clockOptInDefaultV2",false)){p.edit().putBoolean("clockOptInDefaultV2",true).apply();ClockPreset.OFF}else enum("clockPreset",ClockPreset.OFF)
   return Settings(p.getBoolean("sound",true),p.getBoolean("music",false),p.getBoolean("vibration",true),p.getBoolean("animations",true),enum("theme",BoardTheme.PREMIUM_WOOD),enum("pieces",PieceStyle.KHATAM),enum("dice",DiceStyle.CLASSIC),enum("difficulty",Difficulty.MEDIUM),enum("tableScene",TableScene.PERSIAN_RUG),enum("doublesRate",DoublesRate.REDUCED_50),clock,enum("aiPersona",AiPersona.MASTER),enum("guidanceMode",GuidanceMode.SIMPLE),p.getInt("matchTarget",5).takeIf{it in listOf(3,5,7,9,11)}?:5)
  }
- fun shouldShowDiceGestureHint()=!p.getBoolean("diceGestureHintSeenV1",false)
- fun markDiceGestureHintSeen(){p.edit().putBoolean("diceGestureHintSeenV1",true).commit()}
  fun save(s:Settings){p.edit().putBoolean("sound",s.sound).putBoolean("music",s.music).putBoolean("vibration",s.vibration).putBoolean("animations",s.animations).putString("theme",s.theme.name).putString("pieces",s.pieces.name).putString("dice",s.dice.name).putString("difficulty",s.difficulty.name).putString("tableScene",s.tableScene.name).putString("doublesRate",s.doublesRate.name).putString("clockPreset",s.clockPreset.name).putString("aiPersona",s.aiPersona.name).putString("guidanceMode",s.guidanceMode.name).putInt("matchTarget",s.matchTarget).commit()}
 }
