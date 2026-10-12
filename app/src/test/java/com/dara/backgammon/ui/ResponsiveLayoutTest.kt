@@ -30,6 +30,12 @@ class ResponsiveLayoutTest {
         assertFalse(p.compact)
     }
 
+    @Test fun hudAxisCompensatesForRightBearOffTray() {
+        val offset = boardAxisOffsetDp(1536f, .88f)
+        assertTrue(offset < 0f)
+        assertEquals(-18.93f, offset, .15f)
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun invalidViewportIsRejected() {
         boardLayoutProfile(0f, 400f)

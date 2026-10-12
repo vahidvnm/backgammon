@@ -75,7 +75,7 @@ internal fun tabFa(key:String)=when(key){"GAME"->"بازی";"AUDIO"->"صدا";"C
  val palette=boardPalette(settings.theme);val background=when(settings.tableScene){TableScene.DARK_GRASS->R.drawable.table_dark_grass;TableScene.STARRY_SKY->R.drawable.table_starry_sky;TableScene.AUTUMN_SUNSET->R.drawable.table_autumn_sunset;TableScene.PERSIAN_RUG->R.drawable.table_persian_rug;TableScene.DARK_RIVER->R.drawable.table_dark_river}
  fun cycleScene(step:Int){val all=TableScene.entries;val next=all[(all.indexOf(settings.tableScene)+step+all.size)%all.size];vm.update(settings.copy(tableScene=next))}
  BoxWithConstraints(Modifier.fillMaxSize()){
-  val layout=boardLayoutProfile(maxWidth.value,maxHeight.value);val shell=boardPalette(settings.theme)
+  val layout=boardLayoutProfile(maxWidth.value,maxHeight.value);val shell=boardPalette(settings.theme);val boardAxisOffset=boardAxisOffsetDp(maxWidth.value,layout.widthFraction).dp
   Image(painterResource(background),null,Modifier.fillMaxSize(),contentScale=ContentScale.Crop);Box(Modifier.fillMaxSize().background(Color.Black.copy(.06f)))
   Box(Modifier.align(Alignment.Center).fillMaxWidth(layout.widthFraction).fillMaxHeight(layout.heightFraction).absoluteOffset(y=13.dp).clip(RoundedCornerShape(15.dp)).background(shell.frameDark).border(2.dp,Color.Black.copy(.75f),RoundedCornerShape(15.dp)))
   Box(Modifier.align(Alignment.Center).fillMaxWidth(layout.widthFraction).fillMaxHeight(layout.heightFraction).absoluteOffset(y=7.dp).clip(RoundedCornerShape(14.dp)).background(Brush.verticalGradient(listOf(shell.frame,shell.frameDark))))
@@ -84,13 +84,13 @@ internal fun tabFa(key:String)=when(key){"GAME"->"بازی";"AUDIO"->"صدا";"C
    if(clock.active)ClockSettingsButton({panel="settings"},Modifier.align(Alignment.TopStart).padding(start=8.dp,top=1.dp)) else TopGameBar(settings.difficulty,false,if(match.thinking)"هوش مصنوعی در حال فکر" else if(rolling)"پرتاب تاس" else if(vm.mode==Mode.LOCAL)"نوبت ${game.position.turn.fa()}" else if(game.position.turn==Player.WHITE)"نوبت شما" else "نوبت هوش مصنوعی",{panel="settings"},Modifier.align(Alignment.TopCenter))
    val canDouble=!match.crawfordGame&&match.cube<64&&!game.rolled&&!rolling&&!match.thinking&&game.winner==null&&(vm.mode==Mode.LOCAL||game.position.turn==Player.WHITE)&&match.pendingDoubleBy==null&&(match.cubeOwner==null||match.cubeOwner==game.position.turn)
    val cubeY by animateDpAsState(if(match.cubeOwner==Player.WHITE&&match.pendingDoubleBy==null)maxHeight-45.dp else 6.dp,tween(620,easing=FastOutSlowInEasing),label="cubeDock")
-   AxleDoublingCube(match.cube,match.cubeOwner,match.pendingDoubleBy,canDouble,{vm.offerDouble()},Modifier.align(Alignment.TopCenter).offset(y=cubeY))
+   AxleDoublingCube(match.cube,match.cubeOwner,match.pendingDoubleBy,canDouble,{vm.offerDouble()},Modifier.align(Alignment.TopCenter).offset(x=boardAxisOffset,y=cubeY))
    Row(Modifier.align(Alignment.Center).absoluteOffset(x=layout.actionOffsetDp.dp),horizontalArrangement=Arrangement.spacedBy(6.dp),verticalAlignment=Alignment.CenterVertically){if(vm.mode==Mode.AI&&((game.rolled&&!rolling&&game.position.turn==Player.WHITE)||autoAssist))EngravedWoodAction(if(autoAssist)"خودکار روشن" else "خودکار خاموش"){vm.toggleAutoAssist()};BarEngraving("بازگردانی"){vm.undo()}}
 
   }
-  if(clock.active)MatchClocks(clock,game.position.turn,Modifier.align(Alignment.TopCenter).fillMaxWidth(.62f).padding(top=7.dp))
+  if(clock.active)MatchClocks(clock,game.position.turn,Modifier.align(Alignment.TopCenter).offset(x=boardAxisOffset).fillMaxWidth(.62f).padding(top=7.dp))
   if(match.crawfordGame)Text("دست کراوفورد • مکعب غیرفعال",Modifier.align(Alignment.BottomCenter).padding(bottom=4.dp).background(Color.Black.copy(.62f),RoundedCornerShape(8.dp)).padding(horizontal=10.dp,vertical=4.dp),color=Color(0xffffd99a),fontSize=10.sp,fontWeight=FontWeight.Bold)
-  CarvedScoreCounter(match.whiteScore,match.blackScore,Modifier.align(Alignment.TopCenter).padding(top=2.dp))
+  CarvedScoreCounter(match.whiteScore,match.blackScore,Modifier.align(Alignment.TopCenter).offset(x=boardAxisOffset).padding(top=2.dp))
   if(game.dice.isNotEmpty()||rolling||(!game.rolled&&!(vm.mode==Mode.AI&&game.position.turn==Player.BLACK))) AnimatedDice(game.dice,when(settings.theme){BoardTheme.PREMIUM_WOOD->if(game.position.turn==Player.WHITE)DiceStyle.CLASSIC else DiceStyle.ONYX;BoardTheme.BRUSHED_METAL->if(game.position.turn==Player.WHITE)DiceStyle.GOLD else DiceStyle.SILVER;BoardTheme.OBSIDIAN_IVORY->if(game.position.turn==Player.WHITE)DiceStyle.MARBLE_LIGHT else DiceStyle.MARBLE_DARK;BoardTheme.CRYSTAL_GLASS->if(game.position.turn==Player.WHITE)DiceStyle.GLASS_LIGHT else DiceStyle.GLASS_DARK;BoardTheme.ROYAL_SAPPHIRE->if(game.position.turn==Player.WHITE)DiceStyle.GLASS_LIGHT else DiceStyle.SAPPHIRE},rolling,{vm.roll();haptic()},Modifier.align(Alignment.Center).absoluteOffset(x=layout.diceOffsetDp.dp))
   SceneArrow("‹",Modifier.align(Alignment.CenterStart).padding(start=8.dp)){cycleScene(-1)}
   SceneArrow("›",Modifier.align(Alignment.CenterEnd).padding(end=8.dp)){cycleScene(1)}
