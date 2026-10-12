@@ -18,9 +18,14 @@ import com.dara.backgammon.core.Position
 import com.dara.backgammon.core.TurnState
 import com.dara.backgammon.data.BoardTheme
 import com.dara.backgammon.data.PieceStyle
+import com.dara.backgammon.data.DiceStyle
+import com.dara.backgammon.data.Preferences
+import com.dara.backgammon.data.TableScene
+import com.dara.backgammon.ui.AnimatedDice
 import com.dara.backgammon.ui.FlatBoard
 import com.dara.backgammon.ui.VictoryCelebration
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,7 +40,7 @@ class BackgammonJourneyTest {
     }
 
     private fun rollAndSettle() {
-        compose.onNodeWithContentDescription("تاس‌ها؛ برای پرتاب دوبار ضربه بزنید یا بکشید").performClick()
+        compose.onNode(hasContentDescription("تاس‌ها؛ برای پرتاب دوبار ضربه بزنید یا بکشید", substring = true)).performClick()
         compose.mainClock.advanceTimeBy(2_200)
         Thread.sleep(2_000)
         compose.waitForIdle()
@@ -56,7 +61,7 @@ class BackgammonJourneyTest {
             rollAndSettle()
             compose.onNodeWithContentDescription("بازگردانی").performClick()
             compose.waitForIdle()
-            compose.onNodeWithContentDescription("تاس‌ها؛ برای پرتاب دوبار ضربه بزنید یا بکشید").assertExists()
+            compose.onNode(hasContentDescription("تاس‌ها؛ برای پرتاب دوبار ضربه بزنید یا بکشید", substring = true)).assertExists()
             compose.onNode(hasContentDescription("تخته نرد", substring = true)).assertExists()
         }
     }
@@ -85,6 +90,18 @@ class BackgammonJourneyTest {
         compose.activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
         compose.waitForIdle()
         compose.onNode(hasContentDescription("تخته نرد", substring = true)).assertExists()
+    }
+
+    @Test fun newInstallDefaultsToPersianRug() {
+        compose.activity.getSharedPreferences("settings", 0).edit().clear().commit()
+        assertEquals(TableScene.PERSIAN_RUG, Preferences(compose.activity).load().tableScene)
+    }
+
+    @Test fun firstThrowHintIsExplicitAndCanBeHiddenForever() {
+        compose.activity.setContent { AnimatedDice(emptyList(), DiceStyle.CLASSIC, false, true, {}, Modifier.fillMaxSize()) }
+        compose.onNode(hasContentDescription("راهنمای پیکان اولین پرتاب", substring = true)).assertExists()
+        compose.activity.setContent { AnimatedDice(emptyList(), DiceStyle.CLASSIC, false, false, {}, Modifier.fillMaxSize()) }
+        compose.onNode(hasContentDescription("راهنمای پیکان اولین پرتاب", substring = true)).assertDoesNotExist()
     }
 
     @Test fun borneOffCheckerAnimatesIntoTheStorageTray() {

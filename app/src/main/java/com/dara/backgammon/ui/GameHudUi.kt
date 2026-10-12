@@ -93,7 +93,7 @@ import kotlin.math.roundToInt
 
 
 
-@Composable internal fun AnimatedDice(finalDice:List<Int>,style:DiceStyle,rolling:Boolean,onThrow:()->Unit,modifier:Modifier=Modifier){
+@Composable internal fun AnimatedDice(finalDice:List<Int>,style:DiceStyle,rolling:Boolean,showGestureHint:Boolean,onThrow:()->Unit,modifier:Modifier=Modifier){
  var drag by remember{mutableStateOf(Offset.Zero)};var throwVector by remember{mutableStateOf(Offset.Zero)}
  val x1=remember{Animatable(-90f)};val y1=remember{Animatable(-45f)};val r1=remember{Animatable(0f)}
  val x2=remember{Animatable(90f)};val y2=remember{Animatable(-35f)};val r2=remember{Animatable(0f)}
@@ -112,14 +112,14 @@ import kotlin.math.roundToInt
  }
  val canThrow=!rolling&&finalDice.isEmpty()
  val promptPulse by rememberInfiniteTransition(label="dicePrompt").animateFloat(.48f,1f,infiniteRepeatable(tween(720),RepeatMode.Reverse),label="dicePromptPulse")
- val diceDescription=if(rolling)"تاس‌ها در حال چرخش" else if(finalDice.isEmpty())"تاس‌ها؛ برای پرتاب دوبار ضربه بزنید یا بکشید" else "نتیجه تاس: ${finalDice.joinToString(" و ")}"
+ val diceDescription=if(rolling)"تاس‌ها در حال چرخش" else if(finalDice.isEmpty())"تاس‌ها؛ برای پرتاب دوبار ضربه بزنید یا بکشید${if(showGestureHint)"؛ راهنمای پیکان اولین پرتاب" else ""}" else "نتیجه تاس: ${finalDice.joinToString(" و ")}"
  Box(modifier.size(230.dp,140.dp).semantics{contentDescription=diceDescription;if(!rolling&&finalDice.isEmpty())onClick("پرتاب تاس"){onThrow();true}}.graphicsLayer{translationX=drag.x;translationY=drag.y}.then(if(!rolling&&finalDice.isEmpty())Modifier.pointerInput(Unit){detectDragGestures(onDragEnd={if(drag.getDistance()>24f){throwVector=drag;onThrow()}else drag=Offset.Zero},onDragCancel={drag=Offset.Zero}){change,amount->change.consume();drag+=amount}}else Modifier)){
-  if(canThrow)Canvas(Modifier.fillMaxSize()){
+  if(canThrow&&showGestureHint)Canvas(Modifier.fillMaxSize()){
    // A tight circular arrow follows the actual dice positions instead of floating around the whole dice area.
    val dieRadius=27f;val margin=4f;val c1=Offset(size.width/2+x1.value,size.height/2+y1.value);val c2=Offset(size.width/2+x2.value,size.height/2+y2.value)
    val left=(minOf(c1.x,c2.x)-dieRadius-margin).coerceAtLeast(1f);val right=(maxOf(c1.x,c2.x)+dieRadius+margin).coerceAtMost(size.width-1f)
    val top=(minOf(c1.y,c2.y)-dieRadius-margin).coerceAtLeast(1f);val bottom=(maxOf(c1.y,c2.y)+dieRadius+margin).coerceAtMost(size.height-1f)
-   val ringSize=Size(right-left,bottom-top);val glow=Color(0xffffd36f).copy(.58f+.38f*promptPulse);val start=35f;val sweep=285f
+   val ringSize=Size(right-left,bottom-top);val glow=Color(0xffffd36f).copy(.62f+.34f*promptPulse);val start=145f;val sweep=225f
    drawArc(Color.Black.copy(.48f),start,sweep,false,Offset(left+1.5f,top+2f),ringSize,style=Stroke(8f,cap=StrokeCap.Round))
    drawArc(glow,start,sweep,false,Offset(left,top),ringSize,style=Stroke(4.5f,cap=StrokeCap.Round))
    val end=Math.toRadians((start+sweep).toDouble());val rx=ringSize.width/2;val ry=ringSize.height/2;val tip=Offset(left+rx+rx*cos(end).toFloat(),top+ry+ry*sin(end).toFloat())
