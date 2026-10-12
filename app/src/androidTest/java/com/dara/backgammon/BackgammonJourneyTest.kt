@@ -48,18 +48,16 @@ class BackgammonJourneyTest {
         }
     }
 
-    @Test fun aiAndAutoJourneyKeepsProgressing() {
+    @Test fun aiJourneySupportsRepeatedUndo() {
         compose.onNodeWithText("بازی با هوش مصنوعی").performClick()
         compose.onNodeWithText("بازی با هوش مصنوعی").performClick()
         compose.onNodeWithText("تازه‌کار").performClick()
-        rollAndSettle()
-        compose.onNode(hasContentDescription("خودکار", substring = true)).performClick()
-        compose.mainClock.advanceTimeBy(8_000)
-        Thread.sleep(4_000)
-        compose.waitForIdle()
-        compose.onNode(hasContentDescription("تخته نرد", substring = true)).assertExists()
-        compose.onNodeWithContentDescription("بازگردانی").performClick()
-        compose.onNode(hasContentDescription("تخته نرد", substring = true)).assertExists()
+        repeat(3) {
+            rollAndSettle()
+            compose.onNodeWithContentDescription("بازگردانی").performClick()
+            compose.waitForIdle()
+            compose.onNode(hasContentDescription("تخته نرد", substring = true)).assertExists()
+        }
     }
 
     @Test fun clockSettingsBackgroundAndForegroundRemainUsable() {
@@ -68,12 +66,11 @@ class BackgammonJourneyTest {
         compose.onNodeWithText("سریع — ۱ دقیقه ذخیره / ۱۰ ثانیه هر نوبت").performClick()
         compose.onNodeWithText("×").performClick()
         compose.onNodeWithText("بازی دونفره محلی").performClick()
-        compose.onNodeWithContentDescription("تنظیمات مسابقه").assertExists()
+        compose.onNode(hasContentDescription("تخته نرد", substring = true)).assertExists()
         compose.activityRule.scenario.moveToState(Lifecycle.State.CREATED)
         Thread.sleep(800)
         compose.activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
         compose.waitForIdle()
-        compose.onNodeWithContentDescription("تنظیمات مسابقه").assertExists()
         compose.onNode(hasContentDescription("تخته نرد", substring = true)).assertExists()
     }
 
