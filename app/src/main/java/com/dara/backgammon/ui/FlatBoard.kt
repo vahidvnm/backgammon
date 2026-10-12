@@ -56,22 +56,24 @@ fun boardPalette(t:BoardTheme)=when(t){
   val isGlass=theme==BoardTheme.CRYSTAL_GLASS;val glass=Brush.linearGradient(listOf(Color.White.copy(.34f),Color(0xffb7f4ff).copy(.18f),Color(0xff24333b).copy(.24f),Color.White.copy(.20f)))
   if(isGlass)drawRoundRect(glass,cornerRadius=CornerRadius(13f))else drawRoundRect(materialBrush,cornerRadius=CornerRadius(13f));drawRoundRect(p.frame.copy(if(isGlass).18f else .50f),cornerRadius=CornerRadius(13f))
   drawRoundRect(Brush.verticalGradient(listOf(Color.White.copy(.24f),Color.Transparent,p.frameDark.copy(.22f))),cornerRadius=CornerRadius(13f),style=Stroke(4f))
-  val wall=rail*.42f
-  // A continuous dark vertical wall surrounds the carved playing bed.
-  drawRect(Brush.verticalGradient(listOf(p.frameDark.copy(.82f),p.frameDark.copy(.48f))),Offset(playLeft-wall,rail-wall),Size(playRight-playLeft+wall*2,size.height-rail*2+wall*2))
+  val wall=rail*.68f
+  // Deep continuous inner walls: the field is visibly routed below a thick, tiered chassis.
+  drawRect(Color.Black.copy(.42f),Offset(playLeft-wall-3f,rail-wall+4f),Size(playRight-playLeft+(wall+3f)*2,size.height-rail*2+wall*2))
+  drawRect(Brush.verticalGradient(listOf(p.frameDark.copy(.96f),p.frameDark.copy(.66f),p.frameDark.copy(.88f))),Offset(playLeft-wall,rail-wall),Size(playRight-playLeft+wall*2,size.height-rail*2+wall*2))
   if(isGlass)drawRect(Brush.linearGradient(listOf(Color.White.copy(.18f),Color(0xff91dfe9).copy(.08f),Color.Black.copy(.12f))),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2))else drawRect(materialBrush,Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2));drawRect(p.field.copy(if(isGlass).20f else .32f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2));drawRect(Color(0xffffead0).copy(if(theme==BoardTheme.PREMIUM_WOOD).055f else .025f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2))
   // Short directional contact shadows reveal the vertical wall without painting a broad brown band.
-  val lip=16f
-  // Visible sloped walls make the bed read as wood removed from a solid slab.
-  drawRect(Brush.verticalGradient(listOf(p.frameDark.copy(.78f),p.frame.copy(.34f),Color.Transparent)),Offset(playLeft,rail),Size(playRight-playLeft,lip))
-  drawRect(Brush.verticalGradient(listOf(Color.Transparent,p.frame.copy(.24f),p.frameDark.copy(.72f))),Offset(playLeft,size.height-rail-lip),Size(playRight-playLeft,lip))
-  drawRect(Brush.horizontalGradient(listOf(p.frameDark.copy(.72f),p.frame.copy(.26f),Color.Transparent)),Offset(playLeft,rail),Size(lip,size.height-rail*2))
-  drawRect(Brush.horizontalGradient(listOf(Color.Transparent,p.frame.copy(.20f),p.frameDark.copy(.68f))),Offset(playRight-lip,rail),Size(lip,size.height-rail*2))
+  val lip=(rail*.58f).coerceIn(15f,27f)
+  // Long shadow falloff and narrow highlight catches reveal the vertical step without adding outline clutter.
+  drawRect(Brush.verticalGradient(listOf(Color.Black.copy(.78f),p.frameDark.copy(.62f),p.frame.copy(.22f),Color.Transparent)),Offset(playLeft,rail),Size(playRight-playLeft,lip))
+  drawRect(Brush.verticalGradient(listOf(Color.Transparent,p.frame.copy(.18f),p.frameDark.copy(.58f),Color.Black.copy(.76f))),Offset(playLeft,size.height-rail-lip),Size(playRight-playLeft,lip))
+  drawRect(Brush.horizontalGradient(listOf(Color.Black.copy(.76f),p.frameDark.copy(.56f),p.frame.copy(.18f),Color.Transparent)),Offset(playLeft,rail),Size(lip,size.height-rail*2))
+  drawRect(Brush.horizontalGradient(listOf(Color.Transparent,p.frame.copy(.16f),p.frameDark.copy(.54f),Color.Black.copy(.72f))),Offset(playRight-lip,rail),Size(lip,size.height-rail*2))
   drawLine(Color.White.copy(.30f),Offset(playLeft+3f,rail+3f),Offset(playRight-3f,rail+3f),2f)
   drawLine(Color.White.copy(.20f),Offset(playLeft+3f,rail+3f),Offset(playLeft+3f,size.height-rail-3f),2f)
   drawLine(Color.Black.copy(.30f),Offset(playLeft+4f,size.height-rail-3f),Offset(playRight-4f,size.height-rail-3f),2f)
   // A full-height timber beam physically joins the upper and lower rails.
-  drawRect(Color.Black.copy(.34f),Offset(barLeft+barW+2f,0f),Size(7f,size.height))
+  drawRect(Brush.horizontalGradient(listOf(Color.Black.copy(.72f),Color.Black.copy(.28f),Color.Transparent)),Offset(barLeft+barW,0f),Size(14f,size.height))
+  drawRect(Color.Black.copy(.30f),Offset(barLeft-5f,0f),Size(5f,size.height))
   if(isGlass)drawRect(glass,Offset(barLeft,0f),Size(barW,size.height))else drawRect(materialBrush,Offset(barLeft,0f),Size(barW,size.height))
   drawRect(Brush.horizontalGradient(listOf(p.frame.copy(.86f),p.frame.copy(.50f),p.frameDark.copy(.62f))),Offset(barLeft,0f),Size(barW,size.height))
   if(theme==BoardTheme.PREMIUM_WOOD)for(g in 1..5){val gx=barLeft+barW*g/6f;val grain=Path().apply{moveTo(gx,0f);cubicTo(gx+sin(g*1.3f)*3f,size.height*.30f,gx+cos(g*1.7f)*3f,size.height*.70f,gx,size.height)};drawPath(grain,p.frameDark.copy(.15f),style=Stroke(1f))}
@@ -158,7 +160,7 @@ fun boardPalette(t:BoardTheme)=when(t){
    if(checkerTheme==BoardTheme.PREMIUM_WOOD){
     // Persian khatam-style checker for the walnut board: lacquer shell, geometric inlay and deep gloss.
     val shell=if(white)Color(0xffeee7d5)else Color(0xff141315);val shellMid=if(white)Color(0xffc9c0aa)else Color(0xff363034);val shellDark=if(white)Color(0xff756d61)else Color(0xff050506);val ink=if(white)Color(0xff27383a)else Color(0xffeee2ad);val ivory=Color(0xffffedbd);val turquoise=Color(0xff557f7a);val gilt=Color(0xffc9a24e)
-    drawOval(Color.Black.copy(.15f),Offset(c.x-r*1.06f,c.y-r*.59f),Size(r*2.12f,r*1.82f));drawOval(Color.Black.copy(.30f),Offset(c.x-r*.95f,c.y-r*.49f),Size(r*1.90f,r*1.58f))
+    drawOval(Color.Black.copy(.23f),Offset(c.x-r*1.06f,c.y-r*.59f),Size(r*2.12f,r*1.82f));drawOval(Color.Black.copy(.38f),Offset(c.x-r*.95f,c.y-r*.49f),Size(r*1.90f,r*1.58f))
     drawCircle(shellDark,r,c+Offset(0f,r*.09f));drawCircle(Brush.verticalGradient(listOf(Color.White.copy(if(white).75f else .22f),shellMid,shellDark)),r*.97f,c)
     drawCircle(Brush.radialGradient(listOf(Color.White.copy(if(white).82f else .30f),shell,shellMid,shellDark),topC-Offset(r*.30f,r*.34f),r*1.30f),r*.91f,topC)
     drawCircle(Color.Black.copy(.48f),r*.77f,topC);drawCircle(Brush.radialGradient(listOf(shell.copy(.98f),shellMid.copy(.92f))),r*.73f,topC);drawCircle(gilt.copy(.85f),r*.70f,topC,style=Stroke(r*.028f))
@@ -184,7 +186,7 @@ fun boardPalette(t:BoardTheme)=when(t){
    }
    // Marble and smoked-glass collections retain an ornamental two-part construction.
    // Thick sidewall and soft contact shadow make the ring read as a solid cast piece.
-   drawOval(Color.Black.copy(.15f),Offset(c.x-r*1.05f,c.y-r*.59f),Size(r*2.10f,r*1.78f));drawOval(Color.Black.copy(.30f),Offset(c.x-r*.94f,c.y-r*.49f),Size(r*1.88f,r*1.55f))
+   drawOval(Color.Black.copy(.23f),Offset(c.x-r*1.05f,c.y-r*.59f),Size(r*2.10f,r*1.78f));drawOval(Color.Black.copy(.38f),Offset(c.x-r*.94f,c.y-r*.49f),Size(r*1.88f,r*1.55f))
    drawCircle(goldDark,r,c+Offset(0f,r*.085f));drawCircle(Brush.verticalGradient(listOf(goldLight,gold,goldDark)),r*.97f,c)
    drawCircle(Brush.radialGradient(listOf(goldLight,gold,goldDark),topC-Offset(r*.30f,r*.32f),r*1.28f),r*.91f,topC)
    drawCircle(Color.Black.copy(.40f),r*.72f,topC,style=Stroke(r*.095f));drawCircle(goldLight.copy(.72f),r*.76f,topC,style=Stroke(r*.025f))
