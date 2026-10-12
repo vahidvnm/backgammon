@@ -36,6 +36,11 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           script: bash -lc './gradlew connectedMyketDebugAndroidTest --stacktrace 2>&1 | tee emulator-test.log; exit ${PIPESTATUS[0]}'
+      - name: Surface emulator diagnostics
+        if: failure()
+        run: |
+          tail -120 emulator-test.log
+          echo "::error::EMULATOR_LOG_BASE64=$(tail -80 emulator-test.log | base64 -w0)"
       - name: Upload emulator test reports
         if: always()
         uses: actions/upload-artifact@v5
