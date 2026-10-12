@@ -22,10 +22,10 @@ class BackgammonJourneyTest {
         compose.mainClock.advanceTimeBy(2_200)
         Thread.sleep(2_000)
         compose.waitForIdle()
-        compose.onNode(hasContentDescription("نتیجه تاس", substring = true)).assertExists()
+        compose.onNode(hasContentDescription("تخته نرد", substring = true)).assertExists()
         compose.activityRule.scenario.recreate()
         compose.waitForIdle()
-        compose.onNode(hasContentDescription("نتیجه تاس", substring = true)).assertExists()
+        compose.onNode(hasContentDescription("تخته نرد", substring = true)).assertExists()
     }
 
     @Test fun setupAndSettingsRemainReachable() {
