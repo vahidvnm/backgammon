@@ -18,8 +18,9 @@ class BackgammonJourneyTest {
         compose.onNodeWithText("بازی دونفره محلی").assertExists().performClick()
         compose.onNode(hasContentDescription("تاس‌ها؛ برای پرتاب دوبار ضربه بزنید یا بکشید"))
             .assertExists().performClick()
-        // Compose animations use the test clock; advance it just like two seconds of real play.
+        // The ViewModel deliberately uses a real coroutine delay to synchronize dice audio and motion.
         compose.mainClock.advanceTimeBy(2_200)
+        Thread.sleep(2_000)
         compose.waitForIdle()
         compose.onNode(hasContentDescription("نتیجه تاس", substring = true)).assertExists()
         compose.activityRule.scenario.recreate()
