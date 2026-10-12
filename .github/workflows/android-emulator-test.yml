@@ -35,13 +35,14 @@ jobs:
           target: google_apis
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
-          script: ./gradlew connectedMyketDebugAndroidTest --stacktrace
+          script: bash -lc './gradlew connectedMyketDebugAndroidTest --stacktrace 2>&1 | tee emulator-test.log; exit ${PIPESTATUS[0]}'
       - name: Upload emulator test reports
         if: always()
         uses: actions/upload-artifact@v5
         with:
           name: Backgammon-Android-Emulator-Reports
           path: |
+            emulator-test.log
             app/build/reports/androidTests/
             app/build/outputs/androidTest-results/
           if-no-files-found: warn
