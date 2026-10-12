@@ -40,7 +40,8 @@ jobs:
         if: failure()
         run: |
           tail -120 emulator-test.log
-          echo "::error::EMULATOR_LOG_BASE64=$(tail -80 emulator-test.log | base64 -w0)"
+          grep -E -B12 -A25 '(^e: |error:|FAILURE:|What went wrong|Execution failed|FAILED)' emulator-test.log > emulator-errors.log || true
+          echo "::error::EMULATOR_LOG_BASE64=$(head -120 emulator-errors.log | base64 -w0)"
       - name: Upload emulator test reports
         if: always()
         uses: actions/upload-artifact@v5
