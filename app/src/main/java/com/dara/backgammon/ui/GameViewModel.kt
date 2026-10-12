@@ -113,13 +113,13 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
  private fun playDiceSound()=audio.playDice(settings.value.sound)
  private fun playCheckerSound()=audio.playChecker(settings.value.sound,settings.value.theme)
  private fun configuredRoll():List<Int> = DicePolicy.roll(settings.value.doublesRate)
- fun roll(){if(!humanCanRoll())return;rememberState();val values=configuredRoll();_game.value=_game.value.copy(dice=values,rolled=false);_rolling.value=true;turnJob=viewModelScope.launch{playDiceSound();delay(if(settings.value.animations)1700 else 80);_game.value=_game.value.copy(dice=values,rolled=true);_rolling.value=false;turnJob=null;if(_autoAssist.value)autoAssistTurn()else autoEnd()}}
- private fun autoRollWhite(){if(!_autoAssist.value||_rolling.value||_game.value.winner!=null||_match.value.pendingDoubleBy!=null||_game.value.position.turn!=Player.WHITE||_game.value.rolled)return;rememberState();val values=configuredRoll();_game.value=_game.value.copy(dice=values,rolled=false);_rolling.value=true;turnJob=viewModelScope.launch{playDiceSound();delay(if(settings.value.animations)1700 else 80);_game.value=_game.value.copy(dice=values,rolled=true);_rolling.value=false;turnJob=null;autoAssistTurn()}}
- fun move(m:Move){if(!humanCanMove()||m !in GameEngine.legalMoves(_game.value.position,_game.value.dice))return;rememberState();_game.value=GameEngine.afterMove(_game.value,m);playCheckerSound();if(_game.value.winner!=null)scoreGame();else autoEnd()}
+ fun roll(){if(!humanCanRoll())return;rememberState();val values=configuredRoll();_game.value=_game.value.copy(dice=values,rolled=false);_rolling.value=true;turnJob=viewModelScope.launch{playDiceSound();delay(if(settings.value.animations)1700 else 80);_game.value=_game.value.copy(dice=values,rolled=true);_rolling.value=false;turnJob=null;saveSession();if(_autoAssist.value)autoAssistTurn()else autoEnd()}}
+ private fun autoRollWhite(){if(!_autoAssist.value||_rolling.value||_game.value.winner!=null||_match.value.pendingDoubleBy!=null||_game.value.position.turn!=Player.WHITE||_game.value.rolled)return;rememberState();val values=configuredRoll();_game.value=_game.value.copy(dice=values,rolled=false);_rolling.value=true;turnJob=viewModelScope.launch{playDiceSound();delay(if(settings.value.animations)1700 else 80);_game.value=_game.value.copy(dice=values,rolled=true);_rolling.value=false;turnJob=null;saveSession();autoAssistTurn()}}
+ fun move(m:Move){if(!humanCanMove()||m !in GameEngine.legalMoves(_game.value.position,_game.value.dice))return;rememberState();_game.value=GameEngine.afterMove(_game.value,m);playCheckerSound();saveSession();if(_game.value.winner!=null)scoreGame();else autoEnd()}
  fun moveCombined(from:Int,to:Int):Boolean{
   if(!humanCanMove())return false
   val chosen=GameEngine.movePlans(_game.value.position,_game.value.dice,from).filter{it.moves.size>1&&it.to==to}.maxByOrNull{it.moves.size}?:return false
-  rememberState();var s=_game.value;chosen.moves.forEach{s=GameEngine.afterMove(s,it)};_game.value=s;playCheckerSound()
+  rememberState();var s=_game.value;chosen.moves.forEach{s=GameEngine.afterMove(s,it)};_game.value=s;playCheckerSound();saveSession()
   if(s.winner!=null)scoreGame()else autoEnd();return true
  }
  fun toggleAutoAssist(){_autoAssist.value=!_autoAssist.value;if(!_autoAssist.value){if(_game.value.position.turn==Player.WHITE)cancelActiveTurn()}else if(!_game.value.rolled&&_game.value.position.turn==Player.WHITE)autoRollWhite() else if(_game.value.rolled)autoAssistTurn()}
