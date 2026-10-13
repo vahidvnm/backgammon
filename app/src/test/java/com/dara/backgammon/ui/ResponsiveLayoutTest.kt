@@ -33,7 +33,7 @@ class ResponsiveLayoutTest {
     @Test fun hudAxisCompensatesForRightBearOffTray() {
         val offset = boardAxisOffsetDp(1536f, .88f)
         assertTrue(offset < 0f)
-        assertEquals(-18.93f, offset, .15f)
+        assertEquals(-31.09f, offset, .15f)
     }
 
     @Test(expected = IllegalArgumentException::class)

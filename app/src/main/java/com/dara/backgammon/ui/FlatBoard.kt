@@ -72,8 +72,9 @@ fun boardPalette(t:BoardTheme)=when(t){
   drawLine(Color.White.copy(.20f),Offset(playLeft+3f,rail+3f),Offset(playLeft+3f,size.height-rail-3f),2f)
   drawLine(Color.Black.copy(.30f),Offset(playLeft+4f,size.height-rail-3f),Offset(playRight-4f,size.height-rail-3f),2f)
   // A full-height timber beam physically joins the upper and lower rails.
-  drawRect(Brush.horizontalGradient(listOf(Color.Black.copy(.72f),Color.Black.copy(.28f),Color.Transparent)),Offset(barLeft+barW,0f),Size(14f,size.height))
-  drawRect(Color.Black.copy(.30f),Offset(barLeft-5f,0f),Size(5f,size.height))
+  // Symmetric soft shadows make the centre bridge read as a raised wooden beam.
+  drawRect(Brush.horizontalGradient(listOf(Color.Transparent,Color.Black.copy(.30f),Color.Black.copy(.70f))),Offset(barLeft-16f,0f),Size(16f,size.height))
+  drawRect(Brush.horizontalGradient(listOf(Color.Black.copy(.70f),Color.Black.copy(.30f),Color.Transparent)),Offset(barLeft+barW,0f),Size(16f,size.height))
   if(isGlass)drawRect(glass,Offset(barLeft,0f),Size(barW,size.height))else drawRect(materialBrush,Offset(barLeft,0f),Size(barW,size.height))
   drawRect(Brush.horizontalGradient(listOf(p.frame.copy(.86f),p.frame.copy(.50f),p.frameDark.copy(.62f))),Offset(barLeft,0f),Size(barW,size.height))
   if(theme==BoardTheme.PREMIUM_WOOD)for(g in 1..5){val gx=barLeft+barW*g/6f;val grain=Path().apply{moveTo(gx,0f);cubicTo(gx+sin(g*1.3f)*3f,size.height*.30f,gx+cos(g*1.7f)*3f,size.height*.70f,gx,size.height)};drawPath(grain,p.frameDark.copy(.15f),style=Stroke(1f))}
@@ -97,7 +98,7 @@ fun boardPalette(t:BoardTheme)=when(t){
   // Material grain follows the construction direction of each physical timber member.
   when(theme){
    BoardTheme.PREMIUM_WOOD->{
-    for(i in 0..20){val y=rail+(size.height-rail*2)*i/20f;val alpha=if(i%4==0).14f else .055f;val leftGrain=Path().apply{moveTo(playLeft,y);cubicTo(playLeft+half*.30f,y+sin(i*1.7f)*4f,playLeft+half*.72f,y+cos(i*1.3f)*4f,barLeft,y)};val rightGrain=Path().apply{moveTo(barLeft+barW,y);cubicTo(barLeft+barW+half*.30f,y+cos(i*1.5f)*4f,barLeft+barW+half*.70f,y+sin(i*1.2f)*4f,playRight,y)};drawPath(leftGrain,p.frameDark.copy(alpha),style=Stroke(if(i%4==0)1.4f else .7f));drawPath(rightGrain,p.frameDark.copy(alpha),style=Stroke(if(i%4==0)1.4f else .7f))}
+    for(i in 0..10){val y=rail+(size.height-rail*2)*i/10f;val alpha=if(i%4==0).09f else .035f;val leftGrain=Path().apply{moveTo(playLeft,y);cubicTo(playLeft+half*.30f,y+sin(i*1.7f)*4f,playLeft+half*.72f,y+cos(i*1.3f)*4f,barLeft,y)};val rightGrain=Path().apply{moveTo(barLeft+barW,y);cubicTo(barLeft+barW+half*.30f,y+cos(i*1.5f)*4f,barLeft+barW+half*.70f,y+sin(i*1.2f)*4f,playRight,y)};drawPath(leftGrain,p.frameDark.copy(alpha),style=Stroke(if(i%4==0)1.4f else .7f));drawPath(rightGrain,p.frameDark.copy(alpha),style=Stroke(if(i%4==0)1.4f else .7f))}
     for(i in 1..5){val y=rail*i/6f;drawLine(p.frameDark.copy(.13f),Offset(10f,y),Offset(size.width-10f,y+sin(i.toFloat())*2f),1f);drawLine(Color.White.copy(.055f),Offset(10f,size.height-y),Offset(size.width-10f,size.height-y+cos(i.toFloat())*2f),1f)}
     for(i in 1..4){val x=playLeft*i/5f;val side=Path().apply{moveTo(x,8f);cubicTo(x+2f,size.height*.3f,x-2f,size.height*.7f,x,size.height-8f)};drawPath(side,p.frameDark.copy(.11f),style=Stroke(1f))}
     for(i in 1..4){val x=playRight+(size.width-playRight)*i/5f;drawLine(p.frameDark.copy(.10f),Offset(x,7f),Offset(x+sin(i.toFloat())*2f,size.height-7f),1f)}
@@ -113,7 +114,7 @@ fun boardPalette(t:BoardTheme)=when(t){
    BoardTheme.CRYSTAL_GLASS->{val sheen=Brush.linearGradient(listOf(Color.White.copy(.24f),Color(0xff9beaf0).copy(.06f),Color.Transparent,Color(0xffffd9a2).copy(.10f)));drawRect(sheen,Offset(playLeft,rail),Size(half,size.height-rail*2));drawRect(sheen,Offset(barLeft+barW,rail),Size(half,size.height-rail*2));for(i in 0..9){val x=playLeft+i*(playRight-playLeft)/9f;drawLine(Color.White.copy(if(i%3==0).18f else .07f),Offset(x,rail),Offset(x+110f,size.height-rail),if(i%3==0)1.8f else .8f);drawLine(Color(0xff7de8f2).copy(.08f),Offset(x+45f,rail),Offset(x-30f,size.height-rail),1f)};drawRoundRect(Color.White.copy(.20f),Offset(3f,3f),Size(size.width-6f,size.height-6f),CornerRadius(12f),style=Stroke(2f))}
   }
   // Fine routed ornament inspired by traditional luxury boards, kept inside the timber rails.
-  if(theme==BoardTheme.PREMIUM_WOOD||theme==BoardTheme.ROYAL_SAPPHIRE){
+  if(theme==BoardTheme.ROYAL_SAPPHIRE){
    val ornamentDark=p.frameDark.copy(.38f);val ornamentLight=p.accent.copy(.34f);val oy=rail*.43f;val step=(playRight-playLeft)/18f
    drawLine(ornamentDark,Offset(playLeft+8f,oy+1.5f),Offset(playRight-8f,oy+1.5f),2.2f);drawLine(ornamentLight,Offset(playLeft+8f,oy),Offset(playRight-8f,oy),1f)
    drawLine(ornamentDark,Offset(playLeft+8f,size.height-oy+1.5f),Offset(playRight-8f,size.height-oy+1.5f),2.2f);drawLine(ornamentLight,Offset(playLeft+8f,size.height-oy),Offset(playRight-8f,size.height-oy),1f)
