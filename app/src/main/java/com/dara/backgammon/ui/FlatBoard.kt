@@ -51,6 +51,7 @@ fun boardPalette(t:BoardTheme)=when(t){
   val geometry=BoardGeometry.from(size.width.toFloat(),size.height.toFloat());val target=geometry.targetAt(tap);val choices=legal.filter{it.from==selected&&it.to==target};val compound=plans.any{it.to==target&&it.moves.size>1};if(selected!=null&&target!=Move.BAR&&compound&&combine(selected,target))Unit else if(choices.isNotEmpty())move(choices.maxBy{it.die})else if(selected!=null&&target!=Move.BAR&&combine(selected,target))Unit else {val owns=target==Move.BAR&&state.position.bar(state.position.turn)>0||target in 0..23&&state.position.points[target]*state.position.turn.sign>0;if(owns)select(target)}
  }}){
   val geometry=BoardGeometry.from(size.width,size.height);val rail=geometry.rail;val barW=geometry.barWidth;val playLeft=geometry.playLeft;val playRight=geometry.playRight;val half=geometry.half;val barLeft=geometry.barLeft;val cw=geometry.columnWidth
+  val trayX=playRight+size.width*.006f;val trayW=size.width-playRight-size.width*.012f;val trayH=size.height*.40f;val topWellY=rail*1.55f;val bottomWellY=size.height-rail*1.55f-trayH
   // Theme-specific masters preserve one calibrated physical geometry while restoring each material identity.
   // The retired procedural chassis is deliberately not rendered underneath: this saves substantial Canvas work.
   drawImage(boardSurface,dstSize=IntSize(size.width.roundToInt(),size.height.roundToInt()),alpha=if(theme==BoardTheme.CRYSTAL_GLASS).92f else 1f)
