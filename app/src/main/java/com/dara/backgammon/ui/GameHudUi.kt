@@ -74,10 +74,12 @@ import kotlin.math.roundToInt
 
 @Composable internal fun SceneArrow(text:String,modifier:Modifier=Modifier,go:()->Unit){Box(modifier.size(38.dp,72.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xff17110e).copy(.64f)).border(1.dp,Color.White.copy(.38f),RoundedCornerShape(18.dp)).clickable(onClick=go),contentAlignment=Alignment.Center){Text(text,color=Color.White,fontSize=34.sp,fontWeight=FontWeight.Light)}}
 @Composable internal fun BarEngraving(text:String,modifier:Modifier=Modifier,go:()->Unit){
- val shape=RoundedCornerShape(7.dp)
- Box(modifier.size(90.dp,36.dp).semantics{role=Role.Button;contentDescription=text}.graphicsLayer{shadowElevation=8.dp.toPx();this.shape=shape;clip=false}.clip(shape).background(Brush.verticalGradient(listOf(Color(0xff8b5937),Color(0xff59301f),Color(0xff2d160f)))).border(1.dp,Color(0xffffc77b).copy(.55f),shape).clickable(onClick=go),contentAlignment=Alignment.Center){
-  Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.TopCenter).background(Color.White.copy(.22f)));Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.BottomCenter).background(Color.Black.copy(.35f)))
-  Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)){Text("↶",color=Color(0xffffd493),fontSize=16.sp,fontWeight=FontWeight.Bold);Text(text,color=Color(0xffffe1b0),fontSize=11.sp,fontWeight=FontWeight.Black)}
+ val shape=RoundedCornerShape(6.dp)
+ Box(modifier.size(90.dp,34.dp).semantics{role=Role.Button;contentDescription=text}.clip(shape).background(Color.Black.copy(.10f)).clickable(onClick=go),contentAlignment=Alignment.Center){
+  // Opposing one-pixel highlights create a recess cut into the existing board wood, not a plaque.
+  Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.TopCenter).background(Color.Black.copy(.28f)));Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.BottomCenter).background(Color.White.copy(.14f)))
+  Row(Modifier.offset(y=1.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)){Text("↶",color=Color.White.copy(.18f),fontSize=15.sp,fontWeight=FontWeight.Bold);Text(text,color=Color.White.copy(.16f),fontSize=11.sp,fontWeight=FontWeight.Black)}
+  Row(Modifier.offset(y=(-.5).dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)){Text("↶",color=Color(0xff29140d),fontSize=15.sp,fontWeight=FontWeight.Bold);Text(text,color=Color(0xff29140d),fontSize=11.sp,fontWeight=FontWeight.Black)}
  }
 }
 @Composable internal fun AxleDoublingCube(value:Int,owner:Player?,pending:Player?,enabled:Boolean,go:()->Unit,modifier:Modifier=Modifier){
@@ -90,10 +92,11 @@ import kotlin.math.roundToInt
  }
 }
 @Composable internal fun EngravedWoodAction(text:String,modifier:Modifier=Modifier,go:()->Unit){
- val shape=RoundedCornerShape(7.dp);val enabled=text.contains("روشن");val led=if(enabled)Color(0xff72e889)else Color(0xffe57062)
- Box(modifier.size(104.dp,36.dp).semantics{role=Role.Button;contentDescription=text}.graphicsLayer{shadowElevation=8.dp.toPx();this.shape=shape;clip=false}.clip(shape).background(Brush.verticalGradient(listOf(Color(0xff8b5937),Color(0xff59301f),Color(0xff2d160f)))).border(1.dp,if(enabled)Color(0xff9bf0a5).copy(.7f)else Color(0xffffc77b).copy(.55f),shape).clickable(onClick=go),contentAlignment=Alignment.Center){
-  Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.TopCenter).background(Color.White.copy(.22f)));Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.BottomCenter).background(Color.Black.copy(.35f)))
-  Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){Box(Modifier.size(8.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Brush.radialGradient(listOf(Color.White,led,led.copy(.35f)))).border(.5.dp,Color.Black.copy(.45f),androidx.compose.foundation.shape.CircleShape));Text(text,color=Color(0xffffe1b0),fontSize=11.sp,fontWeight=FontWeight.Black)}
+ val shape=RoundedCornerShape(6.dp);val enabled=text.contains("روشن");val mark=if(enabled)"●" else "○"
+ Box(modifier.size(104.dp,34.dp).semantics{role=Role.Button;contentDescription=text}.clip(shape).background(Color.Black.copy(.10f)).clickable(onClick=go),contentAlignment=Alignment.Center){
+  Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.TopCenter).background(Color.Black.copy(.28f)));Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.BottomCenter).background(Color.White.copy(.14f)))
+  Row(Modifier.offset(y=1.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){Text(mark,color=Color.White.copy(.17f),fontSize=10.sp);Text(text,color=Color.White.copy(.16f),fontSize=11.sp,fontWeight=FontWeight.Black)}
+  Row(Modifier.offset(y=(-.5).dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){Text(mark,color=Color(0xff29140d),fontSize=10.sp);Text(text,color=Color(0xff29140d),fontSize=11.sp,fontWeight=FontWeight.Black)}
  }
 }
 
