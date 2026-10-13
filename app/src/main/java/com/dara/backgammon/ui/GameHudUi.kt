@@ -74,10 +74,10 @@ import kotlin.math.roundToInt
 
 @Composable internal fun SceneArrow(text:String,modifier:Modifier=Modifier,go:()->Unit){Box(modifier.size(38.dp,72.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xff17110e).copy(.64f)).border(1.dp,Color.White.copy(.38f),RoundedCornerShape(18.dp)).clickable(onClick=go),contentAlignment=Alignment.Center){Text(text,color=Color.White,fontSize=34.sp,fontWeight=FontWeight.Light)}}
 @Composable internal fun BarEngraving(text:String,modifier:Modifier=Modifier,go:()->Unit){
- val shape=RoundedCornerShape(4.dp)
- Box(modifier.width(72.dp).height(29.dp).semantics{role=Role.Button;contentDescription=text}.graphicsLayer{shadowElevation=7.dp.toPx();this.shape=shape;clip=false}.clip(shape).background(Brush.verticalGradient(listOf(Color(0xff1e0d07).copy(.72f),Color(0xff5b301d).copy(.66f),Color(0xff9a623a).copy(.28f)))).border(1.5.dp,Color(0xff1b0b06).copy(.88f),shape).clickable(onClick=go),contentAlignment=Alignment.Center){
-  Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.TopCenter).background(Color.Black.copy(.45f)));Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.BottomCenter).background(Color(0xffd7a16d).copy(.24f)))
-  Text(text,Modifier.offset(y=1.dp),color=Color(0xffffd49a).copy(.28f),fontSize=10.sp,fontWeight=FontWeight.Black,letterSpacing=1.4.sp);Text(text,Modifier.offset(y=(-.5).dp),color=Color(0xff1c0d08),fontSize=10.sp,fontWeight=FontWeight.Black,letterSpacing=1.4.sp)
+ val shape=RoundedCornerShape(7.dp)
+ Box(modifier.size(90.dp,36.dp).semantics{role=Role.Button;contentDescription=text}.graphicsLayer{shadowElevation=8.dp.toPx();this.shape=shape;clip=false}.clip(shape).background(Brush.verticalGradient(listOf(Color(0xff8b5937),Color(0xff59301f),Color(0xff2d160f)))).border(1.dp,Color(0xffffc77b).copy(.55f),shape).clickable(onClick=go),contentAlignment=Alignment.Center){
+  Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.TopCenter).background(Color.White.copy(.22f)));Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.BottomCenter).background(Color.Black.copy(.35f)))
+  Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)){Text("↶",color=Color(0xffffd493),fontSize=16.sp,fontWeight=FontWeight.Bold);Text(text,color=Color(0xffffe1b0),fontSize=11.sp,fontWeight=FontWeight.Black)}
  }
 }
 @Composable internal fun AxleDoublingCube(value:Int,owner:Player?,pending:Player?,enabled:Boolean,go:()->Unit,modifier:Modifier=Modifier){
@@ -89,7 +89,13 @@ import kotlin.math.roundToInt
   Box(Modifier.size(36.dp).graphicsLayer{rotationY=rotation.value;cameraDistance=10f*density;shadowElevation=8.dp.toPx();shape=octagon;clip=false}.clip(octagon).background(Brush.linearGradient(listOf(Color(0xfffff0c7),Color(0xffd1a963),Color(0xff76502f)))).border(if(enabled||pending!=null||accepted)2.dp else 1.dp,glow.copy(glowAlpha),octagon),contentAlignment=Alignment.Center){Canvas(Modifier.fillMaxSize()){val c=Offset(size.width/2,size.height/2);for(i in 0 until 8){val a=Math.toRadians((i*45.0-90));val b=Math.toRadians((i*45.0-67.5));val p1=Offset(c.x+cos(a).toFloat()*size.width*.46f,c.y+sin(a).toFloat()*size.height*.46f);val p2=Offset(c.x+cos(b).toFloat()*size.width*.35f,c.y+sin(b).toFloat()*size.height*.35f);drawLine(Color(0xff5d3822).copy(.28f),p1,p2,1f)}};Text("${shown}x",color=if(accepted)Color(0xff176b2d)else Color(0xff342015),fontSize=12.sp,fontWeight=FontWeight.Black,style=androidx.compose.ui.text.TextStyle(shadow=androidx.compose.ui.graphics.Shadow(Color.White.copy(.42f),Offset(-1f,-1f),1f)))}
  }
 }
-@Composable internal fun EngravedWoodAction(text:String,modifier:Modifier=Modifier,go:()->Unit){val shape=RoundedCornerShape(7.dp);Box(modifier.width(86.dp).height(48.dp).semantics{role=Role.Button;contentDescription=text}.clickable(onClick=go),contentAlignment=Alignment.Center){Box(Modifier.width(78.dp).height(29.dp).clip(shape).background(Brush.verticalGradient(listOf(Color.Black.copy(.28f),Color(0xff6a3b25).copy(.72f),Color.White.copy(.08f)))).border(1.dp,Color(0xff2b140c).copy(.72f),shape),contentAlignment=Alignment.Center){Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.TopCenter).background(Color.Black.copy(.48f)));Text(text,Modifier.offset(y=1.dp),color=Color.White.copy(.13f),fontSize=10.sp,fontWeight=FontWeight.Black,letterSpacing=.7.sp);Text(text,Modifier.offset(y=(-.4).dp),color=Color(0xff251109),fontSize=10.sp,fontWeight=FontWeight.Black,letterSpacing=.7.sp)}}}
+@Composable internal fun EngravedWoodAction(text:String,modifier:Modifier=Modifier,go:()->Unit){
+ val shape=RoundedCornerShape(7.dp);val enabled=text.contains("روشن");val led=if(enabled)Color(0xff72e889)else Color(0xffe57062)
+ Box(modifier.size(104.dp,36.dp).semantics{role=Role.Button;contentDescription=text}.graphicsLayer{shadowElevation=8.dp.toPx();this.shape=shape;clip=false}.clip(shape).background(Brush.verticalGradient(listOf(Color(0xff8b5937),Color(0xff59301f),Color(0xff2d160f)))).border(1.dp,if(enabled)Color(0xff9bf0a5).copy(.7f)else Color(0xffffc77b).copy(.55f),shape).clickable(onClick=go),contentAlignment=Alignment.Center){
+  Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.TopCenter).background(Color.White.copy(.22f)));Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.BottomCenter).background(Color.Black.copy(.35f)))
+  Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){Box(Modifier.size(8.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Brush.radialGradient(listOf(Color.White,led,led.copy(.35f)))).border(.5.dp,Color.Black.copy(.45f),androidx.compose.foundation.shape.CircleShape));Text(text,color=Color(0xffffe1b0),fontSize=11.sp,fontWeight=FontWeight.Black)}
+ }
+}
 
 
 
