@@ -10,6 +10,7 @@ import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.*
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -30,7 +31,7 @@ fun boardPalette(t:BoardTheme)=when(t){
 
 /** Precise top-down board inspired by classic mobile layouts, drawn entirely with original vector assets. */
 @Composable fun FlatBoard(state:TurnState,theme:BoardTheme,pieces:PieceStyle,selected:Int?,legal:List<Move>,select:(Int)->Unit,move:(Move)->Unit,combine:(Int,Int)->Boolean={_,_->false},modifier:Modifier=Modifier,scene:TableScene=TableScene.DARK_GRASS,guidance:GuidanceMode=GuidanceMode.SIMPLE,animations:Boolean=true){
- val p=boardPalette(theme);val texture=ImageBitmap.imageResource(when(theme){BoardTheme.PREMIUM_WOOD->R.drawable.premium_walnut_texture;BoardTheme.BRUSHED_METAL->R.drawable.smoked_glass_texture;BoardTheme.OBSIDIAN_IVORY->R.drawable.ivory_marble_texture;BoardTheme.CRYSTAL_GLASS->R.drawable.smoked_glass_texture;BoardTheme.ROYAL_SAPPHIRE->R.drawable.premium_walnut_texture});val materialBrush=remember(texture){ShaderBrush(ImageShader(texture,TileMode.Mirror,TileMode.Mirror))};val animatedPulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse");val pulse=if(animations)animatedPulse else 1f
+ val p=boardPalette(theme);val texture=ImageBitmap.imageResource(when(theme){BoardTheme.PREMIUM_WOOD->R.drawable.premium_walnut_texture;BoardTheme.BRUSHED_METAL->R.drawable.smoked_glass_texture;BoardTheme.OBSIDIAN_IVORY->R.drawable.ivory_marble_texture;BoardTheme.CRYSTAL_GLASS->R.drawable.smoked_glass_texture;BoardTheme.ROYAL_SAPPHIRE->R.drawable.premium_walnut_texture});val finalWoodBoard=ImageBitmap.imageResource(R.drawable.empty_board_final_surface);val materialBrush=remember(texture){ShaderBrush(ImageShader(texture,TileMode.Mirror,TileMode.Mirror))};val animatedPulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse");val pulse=if(animations)animatedPulse else 1f
  val plans=if(selected==null)emptyList() else GameEngine.movePlans(state.position,state.dice,selected)
  val visiblePlans=plans
  val displayPlans=visiblePlans.groupBy{it.to}.values.mapNotNull{routes->routes.maxByOrNull{it.moves.size}}
@@ -146,6 +147,9 @@ fun boardPalette(t:BoardTheme)=when(t){
   val ambient=when(scene){TableScene.DARK_GRASS->Color(0xff6e9270);TableScene.STARRY_SKY->Color(0xff6f9ed2);TableScene.AUTUMN_SUNSET->Color(0xffffb268);TableScene.PERSIAN_RUG->Color(0xffd69a78);TableScene.DARK_RIVER->Color(0xff60a59c)}
   drawRect(Brush.linearGradient(listOf(ambient.copy(.075f),Color.Transparent,ambient.copy(.035f)),Offset(playLeft,rail),Offset(playRight,size.height-rail)),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2),blendMode=BlendMode.Softlight)
   for(c in 0..11){val x=if(c<6)playLeft+c*cw else barLeft+barW+(c-6)*cw;val color=if(c%2==0)p.pointA else p.pointB;val other=if(c%2==0)p.pointB else p.pointA;val top=Path().apply{moveTo(x+cw*.10f,rail);lineTo(x+cw*.90f,rail);lineTo(x+cw/2,size.height*.405f);close()};val bottom=Path().apply{moveTo(x+cw*.10f,size.height-rail);lineTo(x+cw*.90f,size.height-rail);lineTo(x+cw/2,size.height*.595f);close()};drawPath(top,Brush.verticalGradient(listOf(color.copy(.72f),color,color.copy(.76f)),rail,size.height*.43f));drawPath(bottom,Brush.verticalGradient(listOf(other.copy(.76f),other,other.copy(.72f)),size.height*.57f,size.height-rail));drawPath(top,Color.Black.copy(.18f),style=Stroke(1.3f));drawPath(bottom,Color.Black.copy(.18f),style=Stroke(1.3f));drawLine(Color.White.copy(.13f),Offset(x+cw*.10f,rail+1f),Offset(x+cw/2,size.height*.405f),1f);drawLine(Color.Black.copy(.13f),Offset(x+cw*.90f,rail+1f),Offset(x+cw/2,size.height*.405f),1f);drawLine(Color.White.copy(.10f),Offset(x+cw*.10f,size.height-rail-1f),Offset(x+cw/2,size.height*.595f),1f);drawLine(Color.Black.copy(.14f),Offset(x+cw*.90f,size.height-rail-1f),Offset(x+cw/2,size.height*.595f),1f)}
+  // The approved empty-board master replaces every procedural wood/frame layer for the primary theme.
+  // Dynamic checkers, dice, controls, guidance and hit geometry remain independent above it.
+  if(theme==BoardTheme.PREMIUM_WOOD)drawImage(finalWoodBoard,dstSize=IntSize(size.width.roundToInt(),size.height.roundToInt()))
   // Directional room light and an inner vignette separate the carved bed, points and raised joinery.
   drawRect(Brush.radialGradient(listOf(Color.White.copy(.13f),Color.Transparent),Offset(size.width*.36f,size.height*.20f),size.width*.62f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2),blendMode=BlendMode.Softlight)
   drawRect(Brush.verticalGradient(listOf(Color.Black.copy(.22f),Color.Transparent,Color.Transparent,Color.Black.copy(.25f)),rail,size.height-rail),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2),blendMode=BlendMode.Multiply)
