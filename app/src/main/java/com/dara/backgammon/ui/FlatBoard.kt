@@ -147,18 +147,10 @@ fun boardPalette(t:BoardTheme)=when(t){
   val ambient=when(scene){TableScene.DARK_GRASS->Color(0xff6e9270);TableScene.STARRY_SKY->Color(0xff6f9ed2);TableScene.AUTUMN_SUNSET->Color(0xffffb268);TableScene.PERSIAN_RUG->Color(0xffd69a78);TableScene.DARK_RIVER->Color(0xff60a59c)}
   drawRect(Brush.linearGradient(listOf(ambient.copy(.075f),Color.Transparent,ambient.copy(.035f)),Offset(playLeft,rail),Offset(playRight,size.height-rail)),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2),blendMode=BlendMode.Softlight)
   for(c in 0..11){val x=if(c<6)playLeft+c*cw else barLeft+barW+(c-6)*cw;val color=if(c%2==0)p.pointA else p.pointB;val other=if(c%2==0)p.pointB else p.pointA;val top=Path().apply{moveTo(x+cw*.10f,rail);lineTo(x+cw*.90f,rail);lineTo(x+cw/2,size.height*.405f);close()};val bottom=Path().apply{moveTo(x+cw*.10f,size.height-rail);lineTo(x+cw*.90f,size.height-rail);lineTo(x+cw/2,size.height*.595f);close()};drawPath(top,Brush.verticalGradient(listOf(color.copy(.72f),color,color.copy(.76f)),rail,size.height*.43f));drawPath(bottom,Brush.verticalGradient(listOf(other.copy(.76f),other,other.copy(.72f)),size.height*.57f,size.height-rail));drawPath(top,Color.Black.copy(.18f),style=Stroke(1.3f));drawPath(bottom,Color.Black.copy(.18f),style=Stroke(1.3f));drawLine(Color.White.copy(.13f),Offset(x+cw*.10f,rail+1f),Offset(x+cw/2,size.height*.405f),1f);drawLine(Color.Black.copy(.13f),Offset(x+cw*.90f,rail+1f),Offset(x+cw/2,size.height*.405f),1f);drawLine(Color.White.copy(.10f),Offset(x+cw*.10f,size.height-rail-1f),Offset(x+cw/2,size.height*.595f),1f);drawLine(Color.Black.copy(.14f),Offset(x+cw*.90f,size.height-rail-1f),Offset(x+cw/2,size.height*.595f),1f)}
-  // The approved empty-board master replaces every procedural wood/frame layer for the primary theme.
-  // Dynamic checkers, dice, controls, guidance and hit geometry remain independent above it.
-  if(theme==BoardTheme.PREMIUM_WOOD)drawImage(finalWoodBoard,dstSize=IntSize(size.width.roundToInt(),size.height.roundToInt()))
-  // Keep the approved photographed surface pristine. Legacy themes still receive their synthetic
-  // edge lighting, but stacking it over the master image creates dirty seams near all four rails.
-  if(theme!=BoardTheme.PREMIUM_WOOD){
-   drawRect(Brush.radialGradient(listOf(Color.White.copy(.13f),Color.Transparent),Offset(size.width*.36f,size.height*.20f),size.width*.62f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2),blendMode=BlendMode.Softlight)
-   drawRect(Brush.verticalGradient(listOf(Color.Black.copy(.22f),Color.Transparent,Color.Transparent,Color.Black.copy(.25f)),rail,size.height-rail),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2),blendMode=BlendMode.Multiply)
-   drawRect(Brush.horizontalGradient(listOf(Color.Black.copy(.17f),Color.Transparent,Color.Black.copy(.16f)),playLeft,playRight),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2),blendMode=BlendMode.Multiply)
-   drawLine(Color.White.copy(.18f),Offset(playLeft+lip,rail+lip),Offset(playRight-lip,rail+lip),1.4f)
-   drawLine(Color.Black.copy(.30f),Offset(playLeft+lip,size.height-rail-lip),Offset(playRight-lip,size.height-rail-lip),2f)
-  }
+  // One approved physical board is shared by every selectable material theme. Themes now style
+  // the live pieces and accessories only; no selection may reveal the retired procedural board.
+  // Controls, checkers, dice, guidance and hit geometry remain independent layers above this image.
+  drawImage(finalWoodBoard,dstSize=IntSize(size.width.roundToInt(),size.height.roundToInt()))
   fun center(point:Int,index:Int):Offset{val col=if(point<12)11-point else point-12;val x=if(col<6)playLeft+(col+.5f)*cw else barLeft+barW+(col-5.5f)*cw;val r=cw*.262f;val gap=min(r*1.72f,(size.height*.37f)/5);return Offset(x,if(point>=12)rail+r+index.coerceAtMost(4)*gap else size.height-rail-r-index.coerceAtMost(4)*gap)}
   val checkerTheme=pieces.materialTheme()
   fun DrawScope.piece(c:Offset,r:Float,white:Boolean,on:Boolean=false,available:Boolean=false,variation:Float=0f){
