@@ -150,12 +150,15 @@ fun boardPalette(t:BoardTheme)=when(t){
   // The approved empty-board master replaces every procedural wood/frame layer for the primary theme.
   // Dynamic checkers, dice, controls, guidance and hit geometry remain independent above it.
   if(theme==BoardTheme.PREMIUM_WOOD)drawImage(finalWoodBoard,dstSize=IntSize(size.width.roundToInt(),size.height.roundToInt()))
-  // Directional room light and an inner vignette separate the carved bed, points and raised joinery.
-  drawRect(Brush.radialGradient(listOf(Color.White.copy(.13f),Color.Transparent),Offset(size.width*.36f,size.height*.20f),size.width*.62f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2),blendMode=BlendMode.Softlight)
-  drawRect(Brush.verticalGradient(listOf(Color.Black.copy(.22f),Color.Transparent,Color.Transparent,Color.Black.copy(.25f)),rail,size.height-rail),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2),blendMode=BlendMode.Multiply)
-  drawRect(Brush.horizontalGradient(listOf(Color.Black.copy(.17f),Color.Transparent,Color.Black.copy(.16f)),playLeft,playRight),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2),blendMode=BlendMode.Multiply)
-  drawLine(Color.White.copy(.18f),Offset(playLeft+lip,rail+lip),Offset(playRight-lip,rail+lip),1.4f)
-  drawLine(Color.Black.copy(.30f),Offset(playLeft+lip,size.height-rail-lip),Offset(playRight-lip,size.height-rail-lip),2f)
+  // Keep the approved photographed surface pristine. Legacy themes still receive their synthetic
+  // edge lighting, but stacking it over the master image creates dirty seams near all four rails.
+  if(theme!=BoardTheme.PREMIUM_WOOD){
+   drawRect(Brush.radialGradient(listOf(Color.White.copy(.13f),Color.Transparent),Offset(size.width*.36f,size.height*.20f),size.width*.62f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2),blendMode=BlendMode.Softlight)
+   drawRect(Brush.verticalGradient(listOf(Color.Black.copy(.22f),Color.Transparent,Color.Transparent,Color.Black.copy(.25f)),rail,size.height-rail),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2),blendMode=BlendMode.Multiply)
+   drawRect(Brush.horizontalGradient(listOf(Color.Black.copy(.17f),Color.Transparent,Color.Black.copy(.16f)),playLeft,playRight),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2),blendMode=BlendMode.Multiply)
+   drawLine(Color.White.copy(.18f),Offset(playLeft+lip,rail+lip),Offset(playRight-lip,rail+lip),1.4f)
+   drawLine(Color.Black.copy(.30f),Offset(playLeft+lip,size.height-rail-lip),Offset(playRight-lip,size.height-rail-lip),2f)
+  }
   fun center(point:Int,index:Int):Offset{val col=if(point<12)11-point else point-12;val x=if(col<6)playLeft+(col+.5f)*cw else barLeft+barW+(col-5.5f)*cw;val r=cw*.262f;val gap=min(r*1.72f,(size.height*.37f)/5);return Offset(x,if(point>=12)rail+r+index.coerceAtMost(4)*gap else size.height-rail-r-index.coerceAtMost(4)*gap)}
   val checkerTheme=pieces.materialTheme()
   fun DrawScope.piece(c:Offset,r:Float,white:Boolean,on:Boolean=false,available:Boolean=false,variation:Float=0f){

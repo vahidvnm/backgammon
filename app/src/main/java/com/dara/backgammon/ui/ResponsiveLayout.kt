@@ -9,9 +9,9 @@ data class BoardLayoutProfile(
     val compact: Boolean
 )
 
-/** Aligns HUD hardware with the physical centre bar; the right bear-off tray makes it left of screen centre. */
+/** Aligns HUD hardware with the approved board image's physical centre bar. */
 fun boardAxisOffsetDp(screenWidthDp: Float, boardWidthFraction: Float): Float =
-    -screenWidthDp * boardWidthFraction * .023f
+    -screenWidthDp * boardWidthFraction * .012f
 
 fun boardLayoutProfile(widthDp: Float, heightDp: Float): BoardLayoutProfile {
     require(widthDp > 0 && heightDp > 0)
