@@ -44,7 +44,8 @@ import kotlin.math.roundToInt
  }}
 }
 @Composable internal fun ClockFace(label:String,time:String,active:Boolean,turnMillis:Long){
- val shape=RoundedCornerShape(13.dp);val edge=if(active)Color(0xffffd58a)else Color.White.copy(.26f)
+ val urgent=active&&turnMillis in 1..4_999;val urgency by rememberInfiniteTransition(label="clockUrgency").animateFloat(.48f,1f,infiniteRepeatable(tween(420),RepeatMode.Reverse),label="clockUrgencyAlpha")
+ val shape=RoundedCornerShape(13.dp);val edge=if(urgent)Color(0xffff665d).copy(urgency) else if(active)Color(0xffffd58a)else Color.White.copy(.26f)
  Box(Modifier.width(126.dp).height(46.dp).semantics{contentDescription="زمان بازیکن $label، $time، زمان نوبت ${(turnMillis/1000).coerceAtLeast(0)} ثانیه";stateDescription=if(active)"نوبت فعال" else "غیرفعال"}.graphicsLayer{shadowElevation=12.dp.toPx();this.shape=shape;clip=false}){
   Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth(.90f).height(12.dp).clip(RoundedCornerShape(bottomStart=8.dp,bottomEnd=8.dp)).background(Brush.verticalGradient(listOf(Color(0xff9b633d),Color(0xff3a190f)))).border(.7.dp,Color(0xffd99b64).copy(.55f),RoundedCornerShape(bottomStart=8.dp,bottomEnd=8.dp)))
   Box(Modifier.fillMaxWidth().height(42.dp).clip(shape).background(Brush.linearGradient(if(active)listOf(Color(0xdde8e1d5),Color(0xb8a6b0ac),Color(0xd84d413a))else listOf(Color(0xcac7cbc8),Color(0x9d7c8583),Color(0xc637302e)))).border(if(active)1.5.dp else 1.dp,edge,shape).padding(horizontal=7.dp)){

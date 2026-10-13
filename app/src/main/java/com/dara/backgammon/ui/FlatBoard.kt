@@ -31,7 +31,7 @@ fun boardPalette(t:BoardTheme)=when(t){
 
 /** Precise top-down board inspired by classic mobile layouts, drawn entirely with original vector assets. */
 @Composable fun FlatBoard(state:TurnState,theme:BoardTheme,pieces:PieceStyle,selected:Int?,legal:List<Move>,select:(Int)->Unit,move:(Move)->Unit,combine:(Int,Int)->Boolean={_,_->false},modifier:Modifier=Modifier,scene:TableScene=TableScene.DARK_GRASS,guidance:GuidanceMode=GuidanceMode.SIMPLE,animations:Boolean=true){
- val p=boardPalette(theme);val texture=ImageBitmap.imageResource(when(theme){BoardTheme.PREMIUM_WOOD->R.drawable.premium_walnut_texture;BoardTheme.BRUSHED_METAL->R.drawable.smoked_glass_texture;BoardTheme.OBSIDIAN_IVORY->R.drawable.ivory_marble_texture;BoardTheme.CRYSTAL_GLASS->R.drawable.smoked_glass_texture;BoardTheme.ROYAL_SAPPHIRE->R.drawable.premium_walnut_texture});val finalWoodBoard=ImageBitmap.imageResource(R.drawable.empty_board_final_surface);val materialBrush=remember(texture){ShaderBrush(ImageShader(texture,TileMode.Mirror,TileMode.Mirror))};val animatedPulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse");val pulse=if(animations)animatedPulse else 1f
+ val p=boardPalette(theme);val boardSurface=ImageBitmap.imageResource(when(theme){BoardTheme.PREMIUM_WOOD->R.drawable.empty_board_final_surface;BoardTheme.BRUSHED_METAL->R.drawable.empty_board_brushed_metal;BoardTheme.OBSIDIAN_IVORY->R.drawable.empty_board_obsidian_ivory;BoardTheme.CRYSTAL_GLASS->R.drawable.empty_board_crystal_glass;BoardTheme.ROYAL_SAPPHIRE->R.drawable.empty_board_royal_sapphire});val animatedPulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse");val pulse=if(animations)animatedPulse else 1f
  val plans=if(selected==null)emptyList() else GameEngine.movePlans(state.position,state.dice,selected)
  val visiblePlans=plans
  val displayPlans=visiblePlans.groupBy{it.to}.values.mapNotNull{routes->routes.maxByOrNull{it.moves.size}}
@@ -48,110 +48,21 @@ fun boardPalette(t:BoardTheme)=when(t){
  val selectedName=when(selected){Move.BAR->"مهره روی بار";null->"هیچ مهره‌ای انتخاب نشده";else->"خانه ${(selected?:0)+1} انتخاب شده"}
  val boardDescription="تخته نرد؛ نوبت $turnName؛ سفید ${state.position.offWhite} مهره خارج و ${state.position.barWhite} مهره روی بار؛ سیاه ${state.position.offBlack} مهره خارج و ${state.position.barBlack} مهره روی بار؛ $selectedName"
  Canvas(modifier.semantics{contentDescription=boardDescription}.pointerInput(state,selected){detectTapGestures{tap->
-  val rail=size.width*.032f;val barW=size.width*.062f;val playLeft=rail;val playRight=size.width-size.width*.060f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half
-  val bar=tap.x in barLeft..(barLeft+barW);val off=tap.x>playRight;val local=if(tap.x<barLeft)tap.x-playLeft else tap.x-(barLeft+barW)+half
-  val col=(local/(half/6)).toInt().coerceIn(0,11);val point=if(tap.y<size.height/2)12+col else 11-col;val target=when{off->Move.OFF;bar->Move.BAR;else->point};val choices=legal.filter{it.from==selected&&it.to==target};val compound=plans.any{it.to==target&&it.moves.size>1};if(selected!=null&&target!=Move.BAR&&compound&&combine(selected,target))Unit else if(choices.isNotEmpty())move(choices.maxBy{it.die})else if(selected!=null&&target!=Move.BAR&&combine(selected,target))Unit else {val owns=target==Move.BAR&&state.position.bar(state.position.turn)>0||target in 0..23&&state.position.points[target]*state.position.turn.sign>0;if(owns)select(target)}
+  val geometry=BoardGeometry.from(size.width.toFloat(),size.height.toFloat());val target=geometry.targetAt(tap);val choices=legal.filter{it.from==selected&&it.to==target};val compound=plans.any{it.to==target&&it.moves.size>1};if(selected!=null&&target!=Move.BAR&&compound&&combine(selected,target))Unit else if(choices.isNotEmpty())move(choices.maxBy{it.die})else if(selected!=null&&target!=Move.BAR&&combine(selected,target))Unit else {val owns=target==Move.BAR&&state.position.bar(state.position.turn)>0||target in 0..23&&state.position.points[target]*state.position.turn.sign>0;if(owns)select(target)}
  }}){
-  val rail=size.width*.032f;val barW=size.width*.062f;val playLeft=rail;val playRight=size.width-size.width*.060f;val half=(playRight-playLeft-barW)/2;val barLeft=playLeft+half;val cw=half/6
-  // Each chassis keeps the same original geometry; crystal uses transparent layered optics instead of a recoloured opaque texture.
-  val isGlass=theme==BoardTheme.CRYSTAL_GLASS;val glass=Brush.linearGradient(listOf(Color.White.copy(.34f),Color(0xffb7f4ff).copy(.18f),Color(0xff24333b).copy(.24f),Color.White.copy(.20f)))
-  if(isGlass)drawRoundRect(glass,cornerRadius=CornerRadius(13f))else drawRoundRect(materialBrush,cornerRadius=CornerRadius(13f));drawRoundRect(p.frame.copy(if(isGlass).18f else .50f),cornerRadius=CornerRadius(13f))
-  drawRoundRect(Brush.verticalGradient(listOf(Color.White.copy(.24f),Color.Transparent,p.frameDark.copy(.22f))),cornerRadius=CornerRadius(13f),style=Stroke(4f))
-  val wall=rail*.68f
-  // Deep continuous inner walls: the field is visibly routed below a thick, tiered chassis.
-  drawRect(Color.Black.copy(.42f),Offset(playLeft-wall-3f,rail-wall+4f),Size(playRight-playLeft+(wall+3f)*2,size.height-rail*2+wall*2))
-  drawRect(Brush.verticalGradient(listOf(p.frameDark.copy(.96f),p.frameDark.copy(.66f),p.frameDark.copy(.88f))),Offset(playLeft-wall,rail-wall),Size(playRight-playLeft+wall*2,size.height-rail*2+wall*2))
-  if(isGlass)drawRect(Brush.linearGradient(listOf(Color.White.copy(.18f),Color(0xff91dfe9).copy(.08f),Color.Black.copy(.12f))),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2))else drawRect(materialBrush,Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2));drawRect(p.field.copy(if(isGlass).20f else .32f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2));drawRect(Color(0xffffead0).copy(if(theme==BoardTheme.PREMIUM_WOOD).055f else .025f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2))
-  // Short directional contact shadows reveal the vertical wall without painting a broad brown band.
-  val lip=(rail*.58f).coerceIn(15f,27f)
-  // Long shadow falloff and narrow highlight catches reveal the vertical step without adding outline clutter.
-  drawRect(Brush.verticalGradient(listOf(Color.Black.copy(.78f),p.frameDark.copy(.62f),p.frame.copy(.22f),Color.Transparent)),Offset(playLeft,rail),Size(playRight-playLeft,lip))
-  drawRect(Brush.verticalGradient(listOf(Color.Transparent,p.frame.copy(.18f),p.frameDark.copy(.58f),Color.Black.copy(.76f))),Offset(playLeft,size.height-rail-lip),Size(playRight-playLeft,lip))
-  drawRect(Brush.horizontalGradient(listOf(Color.Black.copy(.76f),p.frameDark.copy(.56f),p.frame.copy(.18f),Color.Transparent)),Offset(playLeft,rail),Size(lip,size.height-rail*2))
-  drawRect(Brush.horizontalGradient(listOf(Color.Transparent,p.frame.copy(.16f),p.frameDark.copy(.54f),Color.Black.copy(.72f))),Offset(playRight-lip,rail),Size(lip,size.height-rail*2))
-  drawLine(Color.White.copy(.30f),Offset(playLeft+3f,rail+3f),Offset(playRight-3f,rail+3f),2f)
-  drawLine(Color.White.copy(.20f),Offset(playLeft+3f,rail+3f),Offset(playLeft+3f,size.height-rail-3f),2f)
-  drawLine(Color.Black.copy(.30f),Offset(playLeft+4f,size.height-rail-3f),Offset(playRight-4f,size.height-rail-3f),2f)
-  // A full-height timber beam physically joins the upper and lower rails.
-  // Symmetric soft shadows make the centre bridge read as a raised wooden beam.
-  drawRect(Brush.horizontalGradient(listOf(Color.Transparent,Color.Black.copy(.30f),Color.Black.copy(.70f))),Offset(barLeft-16f,0f),Size(16f,size.height))
-  drawRect(Brush.horizontalGradient(listOf(Color.Black.copy(.70f),Color.Black.copy(.30f),Color.Transparent)),Offset(barLeft+barW,0f),Size(16f,size.height))
-  if(isGlass)drawRect(glass,Offset(barLeft,0f),Size(barW,size.height))else drawRect(materialBrush,Offset(barLeft,0f),Size(barW,size.height))
-  drawRect(Brush.horizontalGradient(listOf(p.frame.copy(.86f),p.frame.copy(.50f),p.frameDark.copy(.62f))),Offset(barLeft,0f),Size(barW,size.height))
-  if(theme==BoardTheme.PREMIUM_WOOD)for(g in 1..5){val gx=barLeft+barW*g/6f;val grain=Path().apply{moveTo(gx,0f);cubicTo(gx+sin(g*1.3f)*3f,size.height*.30f,gx+cos(g*1.7f)*3f,size.height*.70f,gx,size.height)};drawPath(grain,p.frameDark.copy(.15f),style=Stroke(1f))}
-  drawRect(Brush.horizontalGradient(listOf(Color.White.copy(.26f),Color.Transparent)),Offset(barLeft,0f),Size(5f,size.height))
-  drawRect(Brush.horizontalGradient(listOf(Color.Transparent,p.frameDark.copy(.64f))),Offset(barLeft+barW-8f,0f),Size(8f,size.height))
-  drawLine(Color.White.copy(.20f),Offset(barLeft+3f,2f),Offset(barLeft+barW-5f,2f),2f)
-  drawLine(p.frameDark.copy(.62f),Offset(barLeft+3f,size.height-3f),Offset(barLeft+barW-4f,size.height-3f),3f)
-  // Routed inner panel, side walls and ornaments turn the centre bar into carved joinery.
-  drawRoundRect(Color.Black.copy(.28f),Offset(barLeft+barW*.18f,rail*.72f),Size(barW*.67f,size.height-rail*1.44f),CornerRadius(barW*.19f),style=Stroke(4f))
-  drawRoundRect(Color.White.copy(.12f),Offset(barLeft+barW*.22f,rail*.82f),Size(barW*.56f,size.height-rail*1.64f),CornerRadius(barW*.16f),style=Stroke(1.4f))
-  fun DrawScope.barDiamond(y:Float){val cx=barLeft+barW/2;val r=barW*.13f;val d=Path().apply{moveTo(cx,y-r);lineTo(cx+r,y);lineTo(cx,y+r);lineTo(cx-r,y);close()};drawPath(d,Color.Black.copy(.30f));drawPath(d,p.accent.copy(.32f),style=Stroke(1.5f))}
-  barDiamond(size.height*.14f);barDiamond(size.height*.86f)
-  // Two small recessed dice-rest pockets decorate the important central bridge.
-  fun DrawScope.diceBay(y:Float,alternate:Boolean){val side=barW*.48f;val x=barLeft+(barW-side)/2;drawRoundRect(Color.Black.copy(.35f),Offset(x+2f,y-side/2+3f),Size(side,side),CornerRadius(side*.20f));drawRoundRect(Brush.radialGradient(listOf(p.frame.copy(.20f),p.frameDark.copy(.42f))),Offset(x,y-side/2),Size(side,side),CornerRadius(side*.20f));drawRoundRect(Color.White.copy(.13f),Offset(x+2f,y-side/2+2f),Size(side-4f,side-4f),CornerRadius(side*.17f),style=Stroke(1.2f));val pip=side*.055f;val cx=x+side/2;if(alternate){drawCircle(p.frameDark.copy(.62f),pip,Offset(cx-side*.19f,y-side*.19f));drawCircle(p.frameDark.copy(.62f),pip,Offset(cx+side*.19f,y+side*.19f))}else{drawCircle(p.frameDark.copy(.62f),pip,Offset(cx,y))}}
-  diceBay(size.height*.455f,false);diceBay(size.height*.545f,true)
-  // Bear-off rail is another wood member, not a translucent overlay.
-  if(isGlass)drawRect(glass,Offset(playRight,0f),Size(size.width-playRight,size.height))else drawRect(materialBrush,Offset(playRight,0f),Size(size.width-playRight,size.height));drawRect(p.frame.copy(.46f),Offset(playRight,0f),Size(size.width-playRight,size.height))
-  drawRect(Brush.horizontalGradient(listOf(p.frameDark.copy(.52f),Color.Transparent)),Offset(playRight,0f),Size(7f,size.height))
-  // Layered bevels and deterministic grain give the frame and playing bed physical depth.
-  drawLine(Color.White.copy(.18f),Offset(10f,5f),Offset(size.width-10f,5f),2f);drawLine(p.frameDark.copy(.38f),Offset(10f,size.height-5f),Offset(size.width-10f,size.height-5f),3f)
-  // Material grain follows the construction direction of each physical timber member.
+  val geometry=BoardGeometry.from(size.width,size.height);val rail=geometry.rail;val barW=geometry.barWidth;val playLeft=geometry.playLeft;val playRight=geometry.playRight;val half=geometry.half;val barLeft=geometry.barLeft;val cw=geometry.columnWidth
+  // Theme-specific masters preserve one calibrated physical geometry while restoring each material identity.
+  // The retired procedural chassis is deliberately not rendered underneath: this saves substantial Canvas work.
+  drawImage(boardSurface,dstSize=IntSize(size.width.roundToInt(),size.height.roundToInt()),alpha=if(theme==BoardTheme.CRYSTAL_GLASS).92f else 1f)
+  // Restrained material cues sit inside the field only, so the approved clean rails remain untouched.
   when(theme){
-   BoardTheme.PREMIUM_WOOD->{
-    for(i in 0..10){val y=rail+(size.height-rail*2)*i/10f;val alpha=if(i%4==0).09f else .035f;val leftGrain=Path().apply{moveTo(playLeft,y);cubicTo(playLeft+half*.30f,y+sin(i*1.7f)*4f,playLeft+half*.72f,y+cos(i*1.3f)*4f,barLeft,y)};val rightGrain=Path().apply{moveTo(barLeft+barW,y);cubicTo(barLeft+barW+half*.30f,y+cos(i*1.5f)*4f,barLeft+barW+half*.70f,y+sin(i*1.2f)*4f,playRight,y)};drawPath(leftGrain,p.frameDark.copy(alpha),style=Stroke(if(i%4==0)1.4f else .7f));drawPath(rightGrain,p.frameDark.copy(alpha),style=Stroke(if(i%4==0)1.4f else .7f))}
-    for(i in 1..5){val y=rail*i/6f;drawLine(p.frameDark.copy(.13f),Offset(10f,y),Offset(size.width-10f,y+sin(i.toFloat())*2f),1f);drawLine(Color.White.copy(.055f),Offset(10f,size.height-y),Offset(size.width-10f,size.height-y+cos(i.toFloat())*2f),1f)}
-    for(i in 1..4){val x=playLeft*i/5f;val side=Path().apply{moveTo(x,8f);cubicTo(x+2f,size.height*.3f,x-2f,size.height*.7f,x,size.height-8f)};drawPath(side,p.frameDark.copy(.11f),style=Stroke(1f))}
-    for(i in 1..4){val x=playRight+(size.width-playRight)*i/5f;drawLine(p.frameDark.copy(.10f),Offset(x,7f),Offset(x+sin(i.toFloat())*2f,size.height-7f),1f)}
-   }
-   BoardTheme.BRUSHED_METAL->{
-    // Fine directional machining, panel seams and fasteners create a fabricated metal chassis.
-    for(i in 0..34){val y=rail+(size.height-rail*2)*i/34f;val a=if(i%6==0).16f else .055f;drawLine(if(i%2==0)Color.White.copy(a)else Color.Black.copy(a),Offset(playLeft+3f,y),Offset(playRight-3f,y+sin(i*.73f)*1.2f),if(i%6==0)1.2f else .65f)}
-    for(x in listOf(playLeft,barLeft,barLeft+barW,playRight)){drawLine(Color.Black.copy(.38f),Offset(x+2f,rail),Offset(x+2f,size.height-rail),2.6f);drawLine(Color.White.copy(.22f),Offset(x+4f,rail+2f),Offset(x+4f,size.height-rail-2f),1f)}
-    for(x in listOf(playLeft+rail*.45f,playRight-rail*.45f))for(y in listOf(rail*.45f,size.height-rail*.45f)){drawCircle(Color.Black.copy(.48f),5.2f,Offset(x+1.5f,y+1.8f));drawCircle(Brush.radialGradient(listOf(Color.White.copy(.70f),p.frame,p.frameDark)),4.3f,Offset(x,y));drawLine(Color.Black.copy(.48f),Offset(x-2.2f,y),Offset(x+2.2f,y),.9f)}
-   }
-   BoardTheme.OBSIDIAN_IVORY->{for(i in 0..8){val x=playLeft+(playRight-playLeft)*i/8f;if(x !in barLeft..(barLeft+barW)){val vein=Path().apply{moveTo(x,rail);cubicTo(x+sin(i*2f)*32f,size.height*.30f,x+cos(i*1.3f)*46f,size.height*.68f,x+sin(i*.7f)*25f,size.height-rail)};drawPath(vein,Color.White.copy(if(i%3==0).22f else .09f),style=Stroke(if(i%3==0)2.3f else 1f));drawPath(vein,Color(0xff505860).copy(.07f),style=Stroke(4f))}}}
-   BoardTheme.ROYAL_SAPPHIRE->{val sheen=Brush.linearGradient(listOf(Color(0xffffd77c).copy(.10f),Color.Transparent,Color(0xff31589b).copy(.16f)));drawRect(sheen,Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2));for(i in 0..16){val x=playLeft+(playRight-playLeft)*i/16f;drawLine(if(i%2==0)p.accent.copy(.18f)else Color.White.copy(.05f),Offset(x,rail),Offset(x+sin(i.toFloat())*8f,size.height-rail),.8f)}}
-   BoardTheme.CRYSTAL_GLASS->{val sheen=Brush.linearGradient(listOf(Color.White.copy(.24f),Color(0xff9beaf0).copy(.06f),Color.Transparent,Color(0xffffd9a2).copy(.10f)));drawRect(sheen,Offset(playLeft,rail),Size(half,size.height-rail*2));drawRect(sheen,Offset(barLeft+barW,rail),Size(half,size.height-rail*2));for(i in 0..9){val x=playLeft+i*(playRight-playLeft)/9f;drawLine(Color.White.copy(if(i%3==0).18f else .07f),Offset(x,rail),Offset(x+110f,size.height-rail),if(i%3==0)1.8f else .8f);drawLine(Color(0xff7de8f2).copy(.08f),Offset(x+45f,rail),Offset(x-30f,size.height-rail),1f)};drawRoundRect(Color.White.copy(.20f),Offset(3f,3f),Size(size.width-6f,size.height-6f),CornerRadius(12f),style=Stroke(2f))}
+   BoardTheme.BRUSHED_METAL->for(i in 1..18){val y=rail+(size.height-rail*2)*i/19f;drawLine(if(i%3==0)Color.White.copy(.10f)else Color.Black.copy(.055f),Offset(playLeft+4f,y),Offset(playRight-4f,y),.7f)}
+   BoardTheme.OBSIDIAN_IVORY->for(i in 1..5){val x=playLeft+(playRight-playLeft)*i/6f;val vein=Path().apply{moveTo(x,rail+5f);cubicTo(x-22f,size.height*.34f,x+28f,size.height*.66f,x-7f,size.height-rail-5f)};drawPath(vein,Color.White.copy(.065f),style=Stroke(1f))}
+   BoardTheme.CRYSTAL_GLASS->{for(i in 0..5){val x=playLeft+i*(playRight-playLeft)/5f;drawLine(Color.White.copy(.12f),Offset(x,rail+3f),Offset(x+size.width*.15f,size.height-rail-3f),1.2f)};drawRect(Color(0xff8debf5).copy(.055f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2))}
+   BoardTheme.ROYAL_SAPPHIRE->{drawLine(Color(0xffffd878).copy(.32f),Offset(playLeft+5f,rail+4f),Offset(playRight-5f,rail+4f),1.2f);drawLine(Color(0xffffd878).copy(.22f),Offset(playLeft+5f,size.height-rail-4f),Offset(playRight-5f,size.height-rail-4f),1.2f)}
+   BoardTheme.PREMIUM_WOOD->Unit
   }
-  // Fine routed ornament inspired by traditional luxury boards, kept inside the timber rails.
-  if(theme==BoardTheme.ROYAL_SAPPHIRE){
-   val ornamentDark=p.frameDark.copy(.38f);val ornamentLight=p.accent.copy(.34f);val oy=rail*.43f;val step=(playRight-playLeft)/18f
-   drawLine(ornamentDark,Offset(playLeft+8f,oy+1.5f),Offset(playRight-8f,oy+1.5f),2.2f);drawLine(ornamentLight,Offset(playLeft+8f,oy),Offset(playRight-8f,oy),1f)
-   drawLine(ornamentDark,Offset(playLeft+8f,size.height-oy+1.5f),Offset(playRight-8f,size.height-oy+1.5f),2.2f);drawLine(ornamentLight,Offset(playLeft+8f,size.height-oy),Offset(playRight-8f,size.height-oy),1f)
-   fun railDiamond(x:Float,y:Float):Path{val r=min(rail*.12f,6f);return Path().apply{moveTo(x,y-r);lineTo(x+r,y);lineTo(x,y+r);lineTo(x-r,y);close()}}
-   for(i in 1..17){val x=playLeft+i*step;drawPath(railDiamond(x,oy),ornamentDark);drawPath(railDiamond(x,oy),ornamentLight,style=Stroke(1f));drawPath(railDiamond(x,size.height-oy),ornamentDark);drawPath(railDiamond(x,size.height-oy),ornamentLight,style=Stroke(1f))}
-   fun cornerFlourish(cx:Float,cy:Float,sx:Float,sy:Float){val a=rail*.42f;val curl=Path().apply{moveTo(cx,cy+sy*a);cubicTo(cx+sx*a*.15f,cy+sy*a*.25f,cx+sx*a*.70f,cy+sy*a*.78f,cx+sx*a,cy);cubicTo(cx+sx*a*.70f,cy-sy*a*.20f,cx+sx*a*.42f,cy+sy*a*.04f,cx+sx*a*.30f,cy+sy*a*.22f)};drawPath(curl,ornamentDark,style=Stroke(3f));drawPath(curl,ornamentLight,style=Stroke(1.2f))}
-   cornerFlourish(playLeft+5f,oy,1f,1f);cornerFlourish(playRight-5f,oy,-1f,1f);cornerFlourish(playLeft+5f,size.height-oy,1f,-1f);cornerFlourish(playRight-5f,size.height-oy,-1f,-1f)
-  }
-  drawLine(Color.White.copy(.15f),Offset(5f,8f),Offset(5f,size.height-10f),2f);drawLine(p.frameDark.copy(.42f),Offset(size.width-6f,10f),Offset(size.width-6f,size.height-10f),3f)
-  for(i in 0..7){val y=(i+.5f)*size.height/8f;drawLine(Color.Black.copy(.10f),Offset(3f,y),Offset(rail*.9f,y+sin(i.toFloat())*6f),1.2f);drawLine(Color.White.copy(.07f),Offset(playRight,y),Offset(size.width-4f,y+cos(i.toFloat())*5f),1f)}
-  val trayX=playRight+size.width*.006f;val trayW=size.width-playRight-size.width*.012f;val trayH=size.height*.40f
-  fun DrawScope.bearOffWell(y:Float){
-   val wx=trayX+trayW*.08f;val ww=trayW*.84f
-   // Raised wooden rim, sloped inner wall, and a recessed timber floor.
-   drawRoundRect(Color.Black.copy(.55f),Offset(wx+4f,y+7f),Size(ww,trayH),CornerRadius(9f))
-   if(isGlass)drawRoundRect(glass,Offset(wx,y),Size(ww,trayH),CornerRadius(9f))else drawRoundRect(materialBrush,Offset(wx,y),Size(ww,trayH),CornerRadius(9f));drawRoundRect(p.frame.copy(.52f),Offset(wx,y),Size(ww,trayH),CornerRadius(9f));drawRoundRect(p.frameDark.copy(.48f),Offset(wx+1f,y+1f),Size(ww-2f,trayH-2f),CornerRadius(8f),style=Stroke(2f))
-   drawRoundRect(Brush.horizontalGradient(listOf(p.frameDark.copy(.96f),p.frame.copy(.28f),p.frameDark.copy(.96f))),Offset(wx+3f,y+3f),Size(ww-6f,trayH-6f),CornerRadius(7f))
-   if(isGlass)drawRoundRect(Color(0xff102027).copy(.34f),Offset(wx+13f,y+13f),Size(ww-26f,trayH-26f),CornerRadius(4f))else drawRoundRect(materialBrush,Offset(wx+13f,y+13f),Size(ww-26f,trayH-26f),CornerRadius(4f));drawRoundRect(p.frameDark.copy(.31f),Offset(wx+13f,y+13f),Size(ww-26f,trayH-26f),CornerRadius(4f))
-   drawLine(Color.White.copy(.30f),Offset(wx+4f,y+4f),Offset(wx+ww-4f,y+4f),1.7f);drawLine(Color.Black.copy(.42f),Offset(wx+4f,y+trayH-4f),Offset(wx+ww-4f,y+trayH-4f),2.4f)
-   drawLine(Color.Black.copy(.42f),Offset(wx+12f,y+14f),Offset(wx+12f,y+trayH-14f),2f);drawLine(Color.White.copy(.14f),Offset(wx+14f,y+14f),Offset(wx+14f,y+trayH-14f),1f)
-   val step=(trayH-20f)/15f;for(i in 1..14){val sy=y+10f+i*step;drawLine(Color.Black.copy(.20f),Offset(wx+14f,sy),Offset(wx+ww-14f,sy),1.3f);drawLine(Color.White.copy(.07f),Offset(wx+15f,sy+1.2f),Offset(wx+ww-15f,sy+1.2f),.8f)}
-  }
-  val topWellY=rail*1.55f;val bottomWellY=size.height-rail*1.55f-trayH;bearOffWell(topWellY);bearOffWell(bottomWellY)
-  // A solid timber bridge separates black and white storage wells.
-  val bridgeTop=topWellY+trayH+5f;val bridgeBottom=bottomWellY-5f;if(isGlass)drawRect(glass,Offset(trayX,bridgeTop),Size(trayW,bridgeBottom-bridgeTop))else drawRect(materialBrush,Offset(trayX,bridgeTop),Size(trayW,bridgeBottom-bridgeTop));drawRect(p.frame.copy(.58f),Offset(trayX,bridgeTop),Size(trayW,bridgeBottom-bridgeTop));drawLine(Color.White.copy(.20f),Offset(trayX+3f,bridgeTop+2f),Offset(trayX+trayW-3f,bridgeTop+2f),1.5f);drawLine(p.frameDark.copy(.45f),Offset(trayX+3f,bridgeBottom-2f),Offset(trayX+trayW-3f,bridgeBottom-2f),2f)
-  drawLine(Color.White.copy(.12f),Offset(playLeft+2f,rail+2f),Offset(playRight-2f,rail+2f),1.5f)
-  drawLine(Color.White.copy(.12f),Offset(barLeft+4f,rail),Offset(barLeft+4f,size.height-rail),1.5f)
-  // The board picks up a restrained cast from the selected room instead of looking pasted over it.
-  val ambient=when(scene){TableScene.DARK_GRASS->Color(0xff6e9270);TableScene.STARRY_SKY->Color(0xff6f9ed2);TableScene.AUTUMN_SUNSET->Color(0xffffb268);TableScene.PERSIAN_RUG->Color(0xffd69a78);TableScene.DARK_RIVER->Color(0xff60a59c)}
-  drawRect(Brush.linearGradient(listOf(ambient.copy(.075f),Color.Transparent,ambient.copy(.035f)),Offset(playLeft,rail),Offset(playRight,size.height-rail)),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2),blendMode=BlendMode.Softlight)
-  for(c in 0..11){val x=if(c<6)playLeft+c*cw else barLeft+barW+(c-6)*cw;val color=if(c%2==0)p.pointA else p.pointB;val other=if(c%2==0)p.pointB else p.pointA;val top=Path().apply{moveTo(x+cw*.10f,rail);lineTo(x+cw*.90f,rail);lineTo(x+cw/2,size.height*.405f);close()};val bottom=Path().apply{moveTo(x+cw*.10f,size.height-rail);lineTo(x+cw*.90f,size.height-rail);lineTo(x+cw/2,size.height*.595f);close()};drawPath(top,Brush.verticalGradient(listOf(color.copy(.72f),color,color.copy(.76f)),rail,size.height*.43f));drawPath(bottom,Brush.verticalGradient(listOf(other.copy(.76f),other,other.copy(.72f)),size.height*.57f,size.height-rail));drawPath(top,Color.Black.copy(.18f),style=Stroke(1.3f));drawPath(bottom,Color.Black.copy(.18f),style=Stroke(1.3f));drawLine(Color.White.copy(.13f),Offset(x+cw*.10f,rail+1f),Offset(x+cw/2,size.height*.405f),1f);drawLine(Color.Black.copy(.13f),Offset(x+cw*.90f,rail+1f),Offset(x+cw/2,size.height*.405f),1f);drawLine(Color.White.copy(.10f),Offset(x+cw*.10f,size.height-rail-1f),Offset(x+cw/2,size.height*.595f),1f);drawLine(Color.Black.copy(.14f),Offset(x+cw*.90f,size.height-rail-1f),Offset(x+cw/2,size.height*.595f),1f)}
-  // One approved physical board is shared by every selectable material theme. Themes now style
-  // the live pieces and accessories only; no selection may reveal the retired procedural board.
-  // Controls, checkers, dice, guidance and hit geometry remain independent layers above this image.
-  drawImage(finalWoodBoard,dstSize=IntSize(size.width.roundToInt(),size.height.roundToInt()))
-  fun center(point:Int,index:Int):Offset{val col=if(point<12)11-point else point-12;val x=if(col<6)playLeft+(col+.5f)*cw else barLeft+barW+(col-5.5f)*cw;val r=cw*.262f;val gap=min(r*1.72f,(size.height*.37f)/5);return Offset(x,if(point>=12)rail+r+index.coerceAtMost(4)*gap else size.height-rail-r-index.coerceAtMost(4)*gap)}
+  fun center(point:Int,index:Int):Offset=geometry.checkerCenter(point,index)
   val checkerTheme=pieces.materialTheme()
   fun DrawScope.piece(c:Offset,r:Float,white:Boolean,on:Boolean=false,available:Boolean=false,variation:Float=0f){
    // Two-part luxury checker: a cast ornamental metal body around a deep fabric inset.
