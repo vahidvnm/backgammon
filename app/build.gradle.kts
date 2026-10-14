@@ -32,8 +32,8 @@ android {
         applicationId = "com.dara.backgammon"
         minSdk = 24
         targetSdk = 35
-        versionCode = 39
-        versionName = "1.3.3"
+        versionCode = 40
+        versionName = "1.3.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     flavorDimensions += "store"
