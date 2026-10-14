@@ -39,12 +39,14 @@ data class BoardGeometry private constructor(
     }
 
     companion object {
-        fun from(width: Float, height: Float): BoardGeometry {
+        fun from(width: Float, height: Float, themedMaster: Boolean = false): BoardGeometry {
             require(width > 0f && height > 0f)
             val rail = width * .032f
             val barWidth = width * .062f
-            val playLeft = rail
-            val playRight = width - width * .060f
+            // The new material masters have thicker outer walls than the approved walnut crop.
+            // Their independent inset keeps edge stacks inside the actual points, never on the frame.
+            val playLeft = width * if (themedMaster) .046f else .032f
+            val playRight = width * if (themedMaster) .934f else .940f
             val half = (playRight - playLeft - barWidth) / 2f
             return BoardGeometry(width, height, rail, barWidth, playLeft, playRight,
                 half, playLeft + half, half / 6f)
