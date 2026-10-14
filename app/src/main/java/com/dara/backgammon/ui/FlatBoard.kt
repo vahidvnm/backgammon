@@ -57,7 +57,7 @@ fun boardPalette(t:BoardTheme)=when(t){
   drawImage(boardSurface,dstSize=IntSize(size.width.roundToInt(),size.height.roundToInt()),alpha=if(theme==BoardTheme.CRYSTAL_GLASS).92f else 1f)
   // All material detail is baked into the calibrated master; no synthetic rails or colour washes are
   // drawn here, preventing bright seams and preserving the texture's natural local colour variation.
-  fun center(point:Int,index:Int):Offset=geometry.checkerCenter(point,index)
+  fun center(point:Int,index:Int):Offset{val base=geometry.checkerCenter(point,index);val verticalInset=cw*.22f;return base.copy(y=base.y+if(point>=12)verticalInset else -verticalInset)}
   val checkerTheme=pieces.materialTheme()
   fun DrawScope.piece(c:Offset,r:Float,white:Boolean,on:Boolean=false,available:Boolean=false,variation:Float=0f){
    // Two-part luxury checker: a cast ornamental metal body around a deep fabric inset.
