@@ -55,14 +55,8 @@ fun boardPalette(t:BoardTheme)=when(t){
   // Theme-specific masters preserve one calibrated physical geometry while restoring each material identity.
   // The retired procedural chassis is deliberately not rendered underneath: this saves substantial Canvas work.
   drawImage(boardSurface,dstSize=IntSize(size.width.roundToInt(),size.height.roundToInt()),alpha=if(theme==BoardTheme.CRYSTAL_GLASS).92f else 1f)
-  // Restrained material cues sit inside the field only, so the approved clean rails remain untouched.
-  when(theme){
-   BoardTheme.BRUSHED_METAL->for(i in 1..18){val y=rail+(size.height-rail*2)*i/19f;drawLine(if(i%3==0)Color.White.copy(.10f)else Color.Black.copy(.055f),Offset(playLeft+4f,y),Offset(playRight-4f,y),.7f)}
-   BoardTheme.OBSIDIAN_IVORY->for(i in 1..5){val x=playLeft+(playRight-playLeft)*i/6f;val vein=Path().apply{moveTo(x,rail+5f);cubicTo(x-22f,size.height*.34f,x+28f,size.height*.66f,x-7f,size.height-rail-5f)};drawPath(vein,Color.White.copy(.065f),style=Stroke(1f))}
-   BoardTheme.CRYSTAL_GLASS->{for(i in 0..5){val x=playLeft+i*(playRight-playLeft)/5f;drawLine(Color.White.copy(.12f),Offset(x,rail+3f),Offset(x+size.width*.15f,size.height-rail-3f),1.2f)};drawRect(Color(0xff8debf5).copy(.055f),Offset(playLeft,rail),Size(playRight-playLeft,size.height-rail*2))}
-   BoardTheme.ROYAL_SAPPHIRE->{drawLine(Color(0xffffd878).copy(.32f),Offset(playLeft+5f,rail+4f),Offset(playRight-5f,rail+4f),1.2f);drawLine(Color(0xffffd878).copy(.22f),Offset(playLeft+5f,size.height-rail-4f),Offset(playRight-5f,size.height-rail-4f),1.2f)}
-   BoardTheme.PREMIUM_WOOD->Unit
-  }
+  // All material detail is baked into the calibrated master; no synthetic rails or colour washes are
+  // drawn here, preventing bright seams and preserving the texture's natural local colour variation.
   fun center(point:Int,index:Int):Offset=geometry.checkerCenter(point,index)
   val checkerTheme=pieces.materialTheme()
   fun DrawScope.piece(c:Offset,r:Float,white:Boolean,on:Boolean=false,available:Boolean=false,variation:Float=0f){
