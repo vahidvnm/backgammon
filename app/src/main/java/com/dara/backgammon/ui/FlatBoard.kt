@@ -60,7 +60,7 @@ fun boardPalette(t:BoardTheme)=when(t){
   // Calibrated against the visible inner rail in the 1160x684 masters: walnut needs only a
   // 1 mm optical clearance; the four thicker material frames need 2.2% of the rendered height.
   // This is deliberately symmetric so top and bottom stacks touch their point bases equally.
-  fun center(point:Int,index:Int):Offset{val base=geometry.checkerCenter(point,index);val verticalInset=size.height*(if(theme==BoardTheme.PREMIUM_WOOD).010f else .022f);return base.copy(y=base.y+(if(point>=12)verticalInset else -verticalInset))}
+  fun center(point:Int,index:Int):Offset{val base=geometry.checkerCenter(point,index);val verticalInset=size.height*(if(theme==BoardTheme.PREMIUM_WOOD).010f else .022f);val downShift=size.height*when(theme){BoardTheme.CRYSTAL_GLASS->.021f;BoardTheme.OBSIDIAN_IVORY,BoardTheme.BRUSHED_METAL->.012f;BoardTheme.ROYAL_SAPPHIRE->.006f;BoardTheme.PREMIUM_WOOD->0f};return base.copy(y=base.y+(if(point>=12)verticalInset else -verticalInset)+downShift)}
   val checkerTheme=pieces.materialTheme()
   fun DrawScope.piece(c:Offset,r:Float,white:Boolean,on:Boolean=false,available:Boolean=false,variation:Float=0f){
    // Two-part luxury checker: a cast ornamental metal body around a deep fabric inset.
