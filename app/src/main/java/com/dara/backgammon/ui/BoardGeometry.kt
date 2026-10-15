@@ -47,12 +47,12 @@ data class BoardCalibration(
 }
 
 private fun boardCalibration(theme: BoardTheme): BoardCalibration = when (theme) {
-    // Walnut master: thin rail, triangles start 0.148H; legacy tray kept for continuity.
+    // Walnut master: thin rail, triangles start 0.116H; legacy tray kept for continuity.
     BoardTheme.PREMIUM_WOOD -> BoardCalibration(
         leftOrigin = 0.0770f, leftPitch = 0.0690f,
         rightOrigin = 0.5539f, rightPitch = 0.0686f,
-        topBase = 0.148f, topApex = 0.422f,
-        botBase = 0.907f, botApex = 0.612f,
+        topBase = 0.116f, topApex = 0.422f,
+        botBase = 0.908f, botApex = 0.623f,
         trayLeft = 0.940f, trayWidth = 0.048f,
         topTrayTop = 0.084f, topTrayBottom = 0.484f,
         bottomTrayTop = 0.516f, bottomTrayBottom = 0.916f
@@ -61,8 +61,8 @@ private fun boardCalibration(theme: BoardTheme): BoardCalibration = when (theme)
     BoardTheme.BRUSHED_METAL -> BoardCalibration(
         leftOrigin = 0.0813f, leftPitch = 0.06844f,
         rightOrigin = 0.5543f, rightPitch = 0.06776f,
-        topBase = 0.090f, topApex = 0.446f,
-        botBase = 0.898f, botApex = 0.635f,
+        topBase = 0.155f, topApex = 0.452f,
+        botBase = 0.906f, botApex = 0.610f,
         trayLeft = 0.938f, trayWidth = 0.046f,
         topTrayTop = 0.197f, topTrayBottom = 0.526f,
         bottomTrayTop = 0.563f, bottomTrayBottom = 0.848f
@@ -71,8 +71,8 @@ private fun boardCalibration(theme: BoardTheme): BoardCalibration = when (theme)
     BoardTheme.OBSIDIAN_IVORY -> BoardCalibration(
         leftOrigin = 0.0828f, leftPitch = 0.0682f,
         rightOrigin = 0.5573f, rightPitch = 0.06715f,
-        topBase = 0.190f, topApex = 0.452f,
-        botBase = 0.886f, botApex = 0.623f,
+        topBase = 0.154f, topApex = 0.452f,
+        botBase = 0.889f, botApex = 0.621f,
         trayLeft = 0.953f, trayWidth = 0.032f,
         topTrayTop = 0.175f, topTrayBottom = 0.519f,
         bottomTrayTop = 0.570f, bottomTrayBottom = 0.840f
@@ -81,8 +81,8 @@ private fun boardCalibration(theme: BoardTheme): BoardCalibration = when (theme)
     BoardTheme.CRYSTAL_GLASS -> BoardCalibration(
         leftOrigin = 0.0842f, leftPitch = 0.0676f,
         rightOrigin = 0.5532f, rightPitch = 0.0678f,
-        topBase = 0.172f, topApex = 0.467f,
-        botBase = 0.903f, botApex = 0.643f,
+        topBase = 0.174f, topApex = 0.474f,
+        botBase = 0.895f, botApex = 0.633f,
         trayLeft = 0.952f, trayWidth = 0.033f,
         topTrayTop = 0.190f, topTrayBottom = 0.534f,
         bottomTrayTop = 0.563f, bottomTrayBottom = 0.877f
@@ -91,8 +91,8 @@ private fun boardCalibration(theme: BoardTheme): BoardCalibration = when (theme)
     BoardTheme.ROYAL_SAPPHIRE -> BoardCalibration(
         leftOrigin = 0.0797f, leftPitch = 0.0688f,
         rightOrigin = 0.5542f, rightPitch = 0.0679f,
-        topBase = 0.194f, topApex = 0.434f,
-        botBase = 0.887f, botApex = 0.634f,
+        topBase = 0.158f, topApex = 0.449f,
+        botBase = 0.890f, botApex = 0.622f,
         trayLeft = 0.939f, trayWidth = 0.046f,
         topTrayTop = 0.205f, topTrayBottom = 0.548f,
         bottomTrayTop = 0.570f, bottomTrayBottom = 0.862f

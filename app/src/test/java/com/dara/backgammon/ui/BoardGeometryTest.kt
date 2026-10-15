@@ -79,4 +79,32 @@ class BoardGeometryTest {
         val bottom = geometry.trayRect(false)
         assertTrue(bottom.top > 342f && bottom.bottom < 684f)
     }
+
+    /**
+     * Regression lock for the wedge-vs-gap scan of the 1160x684 masters: the twenty
+     * vertical anchors (topBase/topApex/botBase/botApex per theme) must not drift, so
+     * checkers stay seated on the baked triangles until the artwork itself changes.
+     */
+    @Test fun artworkTriangleVerticalAnchorsStayLockedToTheScannedMasters() {
+        val scanned = mapOf(
+            BoardTheme.PREMIUM_WOOD to listOf(0.116, 0.422, 0.908, 0.623),
+            BoardTheme.BRUSHED_METAL to listOf(0.155, 0.452, 0.906, 0.610),
+            BoardTheme.OBSIDIAN_IVORY to listOf(0.154, 0.452, 0.889, 0.621),
+            BoardTheme.CRYSTAL_GLASS to listOf(0.174, 0.474, 0.895, 0.633),
+            BoardTheme.ROYAL_SAPPHIRE to listOf(0.158, 0.449, 0.890, 0.622)
+        )
+        val tolerance = 0.0005
+        val labels = listOf("topBase", "topApex", "botBase", "botApex")
+        themes.forEach { theme ->
+            val calib = geometryFor(theme, 1160f, 684f).calib
+            val actual = listOf(
+                calib.topBase.toDouble(), calib.topApex.toDouble(),
+                calib.botBase.toDouble(), calib.botApex.toDouble()
+            )
+            val expected = scanned.getValue(theme)
+            labels.forEachIndexed { index, label ->
+                assertEquals("$theme $label", expected[index], actual[index], tolerance)
+            }
+        }
+    }
 }
