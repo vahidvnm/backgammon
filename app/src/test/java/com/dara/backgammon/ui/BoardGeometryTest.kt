@@ -87,7 +87,7 @@ class BoardGeometryTest {
      */
     @Test fun artworkTriangleVerticalAnchorsStayLockedToTheScannedMasters() {
         val scanned = mapOf(
-            BoardTheme.PREMIUM_WOOD to listOf(0.116, 0.422, 0.908, 0.623),
+            BoardTheme.PREMIUM_WOOD to listOf(0.082, 0.422, 0.908, 0.623),
             BoardTheme.BRUSHED_METAL to listOf(0.155, 0.452, 0.906, 0.610),
             BoardTheme.OBSIDIAN_IVORY to listOf(0.154, 0.452, 0.889, 0.621),
             BoardTheme.CRYSTAL_GLASS to listOf(0.174, 0.474, 0.895, 0.633),

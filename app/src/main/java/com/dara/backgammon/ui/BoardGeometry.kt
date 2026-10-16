@@ -47,11 +47,11 @@ data class BoardCalibration(
 }
 
 private fun boardCalibration(theme: BoardTheme): BoardCalibration = when (theme) {
-    // Walnut master: thin rail, triangles start 0.116H; legacy tray kept for continuity.
+    // Walnut master: thin rail, triangles start 0.082H; legacy tray kept for continuity.
     BoardTheme.PREMIUM_WOOD -> BoardCalibration(
         leftOrigin = 0.0770f, leftPitch = 0.0690f,
         rightOrigin = 0.5539f, rightPitch = 0.0686f,
-        topBase = 0.116f, topApex = 0.422f,
+        topBase = 0.082f, topApex = 0.422f,
         botBase = 0.908f, botApex = 0.623f,
         trayLeft = 0.940f, trayWidth = 0.048f,
         topTrayTop = 0.084f, topTrayBottom = 0.484f,
