@@ -75,13 +75,18 @@ import kotlin.math.roundToInt
 @Composable internal fun TopGameBar(level:Difficulty,clockOn:Boolean,status:String,settings:()->Unit,theme:BoardTheme,modifier:Modifier=Modifier){val material=boardPalette(theme);CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr){Row(modifier.fillMaxWidth().height(30.dp).background(Brush.verticalGradient(listOf(material.frame,material.frameDark))).border(BorderStroke(1.dp,Brush.verticalGradient(listOf(material.light.copy(.58f),material.frameDark.copy(.72f))))).padding(horizontal=if(clockOn)18.dp else 10.dp),verticalAlignment=Alignment.CenterVertically){IconButton(settings,Modifier.size(28.dp)){Text("⚙",color=material.accent,fontSize=16.sp)};if(!clockOn)Text("هوش مصنوعی • ${level.fa()} • سطح ${level.ordinal+1}",Modifier.padding(start=8.dp),color=material.light.copy(.82f),fontSize=10.sp,fontWeight=FontWeight.Bold);Spacer(Modifier.weight(1f));Text(if(clockOn)status.replace("YOUR ","") else status,color=material.accent,fontSize=10.sp,fontWeight=FontWeight.Black,letterSpacing=.6.sp)}}}
 
 @Composable internal fun SceneArrow(text:String,modifier:Modifier=Modifier,go:()->Unit){Box(modifier.size(38.dp,72.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xff17110e).copy(.64f)).border(1.dp,Color.White.copy(.38f),RoundedCornerShape(18.dp)).clickable(onClick=go),contentAlignment=Alignment.Center){Text(text,color=Color.White,fontSize=34.sp,fontWeight=FontWeight.Light)}}
-@Composable internal fun BarEngraving(text:String,modifier:Modifier=Modifier,go:()->Unit){
- val shape=RoundedCornerShape(6.dp)
- Box(modifier.size(90.dp,34.dp).semantics{role=Role.Button;contentDescription=text}.clip(shape).background(Color.Black.copy(.10f)).clickable(onClick=go),contentAlignment=Alignment.Center){
-  // Opposing one-pixel highlights create a recess cut into the existing board wood, not a plaque.
-  Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.TopCenter).background(Color.Black.copy(.28f)));Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.BottomCenter).background(Color.White.copy(.14f)))
-  Row(Modifier.offset(y=1.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)){Text("↶",color=Color.White.copy(.18f),fontSize=15.sp,fontWeight=FontWeight.Bold);Text(text,color=Color.White.copy(.16f),fontSize=11.sp,fontWeight=FontWeight.Black)}
-  Row(Modifier.offset(y=(-.5).dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)){Text("↶",color=Color(0xff29140d),fontSize=15.sp,fontWeight=FontWeight.Bold);Text(text,color=Color(0xff29140d),fontSize=11.sp,fontWeight=FontWeight.Black)}
+/** Raised wooden plaque with a carved-look gloss; the reference app's Undo button style. */
+@Composable internal fun WoodPlaqueButton(icon:String,label:String,enabled:Boolean=true,mark:Boolean?=null,modifier:Modifier=Modifier,go:()->Unit){
+ val shape=RoundedCornerShape(9.dp);val interaction=remember{MutableInteractionSource()};val pressed by interaction.collectIsPressedAsState()
+ val scale by animateFloatAsState(if(pressed&&enabled).94f else 1f,tween(110),label="plaqueScale")
+ val lift by animateDpAsState(if(pressed&&enabled)1.dp else 7.dp,tween(110),label="plaqueLift")
+ Box(modifier.graphicsLayer{scaleX=scale;scaleY=scale;shadowElevation=if(enabled)lift.toPx() else 0f;shape=shape;clip=false}.semantics{role=Role.Button;contentDescription=label}.clip(shape).background(Brush.verticalGradient(if(enabled)listOf(Color(0xff9c6a3c),Color(0xff5a3319),Color(0xff3a1f10))else listOf(Color(0xff37302a),Color(0xff221d18)))).border(if(enabled)1.2.dp else 1.dp,if(enabled)Color(0xffffd28b).copy(.66f)else Color.White.copy(.14f),shape).clickable(interactionSource=interaction,indication=null,enabled=enabled,onClick=go).padding(horizontal=12.dp,vertical=8.dp),contentAlignment=Alignment.Center){
+  Box(Modifier.matchParentSize().padding(2.dp).clip(RoundedCornerShape(7.dp)).background(Brush.verticalGradient(listOf(Color.White.copy(.18f),Color.Transparent,Color.Black.copy(.12f)))))
+  Row(Modifier.offset(y=(-.5).dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){
+   Text(icon,color=if(enabled)Color(0xffffdf9e)else Color.White.copy(.30f),fontSize=14.sp,fontWeight=FontWeight.Bold)
+   if(mark!=null)Text(if(mark)"●" else "○",color=if(mark)Color(0xff8fe38a)else Color.White.copy(.42f),fontSize=9.sp)
+   Text(label,color=if(enabled)Color(0xffffe9c0)else Color.White.copy(.30f),fontSize=11.sp,fontWeight=FontWeight.Black,letterSpacing=.3.sp)
+  }
  }
 }
 @Composable internal fun AxleDoublingCube(value:Int,owner:Player?,pending:Player?,enabled:Boolean,go:()->Unit,theme:BoardTheme,modifier:Modifier=Modifier){

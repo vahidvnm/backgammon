@@ -44,6 +44,13 @@ object GameEngine {
         return result
     }
 
+    /** True when [p] has every checker in its home board with none on the bar: the bearing-off phase. */
+    fun bearOffReady(pos: Position, p: Player): Boolean {
+        if (pos.bar(p) > 0) return false
+        val home = if (p == Player.WHITE) 0..5 else 18..23
+        return (0..23).none { it !in home && pos.points[it] * p.sign > 0 }
+    }
+
     private fun open(pos: Position, point: Int, p: Player) = pos.points[point] * p.sign >= -1
     private fun canBearOff(pos: Position, p: Player, from: Int, die: Int): Boolean {
         if (pos.bar(p) > 0) return false

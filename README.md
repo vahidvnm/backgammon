@@ -8,7 +8,7 @@ A polished, completely offline backgammon game built with native Kotlin and Jetp
 - Four on-device AI personalities and five difficulty levels
 - Local pass-and-play
 - Standard doubling cube with ownership, Take, Drop and Redouble
-- Optional coaching, match clocks, unlimited in-session Undo, automatic match restoration, sound and haptics
+- Optional coaching, auto bear-off, match clocks, unlimited in-session Undo, automatic match restoration, sound and haptics
 - Responsive landscape layouts, crafted themes, physical dice and polished checker animation
 - No account, ads, analytics, tracking or internet permission
 
