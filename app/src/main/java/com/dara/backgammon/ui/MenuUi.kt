@@ -20,6 +20,7 @@ import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.DialogProperties
+import androidx.activity.compose.BackHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dara.backgammon.R
 import com.dara.backgammon.ai.Difficulty
@@ -53,6 +54,8 @@ import com.dara.backgammon.data.*
 @Composable internal fun HomeIcon(icon:String,label:String,go:()->Unit){FilledTonalButton(go,contentPadding=PaddingValues(0.dp),modifier=Modifier.size(54.dp).semantics{contentDescription=label},shape=androidx.compose.foundation.shape.CircleShape,colors=ButtonDefaults.filledTonalButtonColors(containerColor=Color(0xdd2b332e),contentColor=Color.White)){Text(icon,fontSize=23.sp)}}
 @Composable internal fun SetupMenu(vm:GameViewModel){
  val s by vm.settings.collectAsStateWithLifecycle();var dialog by remember{mutableStateOf("")};val scene=when(s.tableScene){TableScene.DARK_GRASS->R.drawable.table_dark_grass;TableScene.STARRY_SKY->R.drawable.table_starry_sky;TableScene.AUTUMN_SUNSET->R.drawable.table_autumn_sunset;TableScene.PERSIAN_RUG->R.drawable.table_persian_rug;TableScene.DARK_RIVER->R.drawable.table_dark_river}
+ // The setup page points back at the main menu, matching the on-screen Back control.
+ BackHandler{vm.menu()}
  Box(Modifier.fillMaxSize().pointerInput(Unit){var drag=0f;detectHorizontalDragGestures(onDragEnd={if(drag>120f)vm.menu();drag=0f},onHorizontalDrag={_,amount->drag+=amount})}){
   Image(painterResource(scene),null,Modifier.fillMaxSize(),contentScale=ContentScale.Crop);Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(Color(0xb2454b4c),Color(0xee111618),Color(0xf4080b0d)))))
   Text(stringResource(R.string.new_game),Modifier.align(Alignment.TopCenter).padding(22.dp),fontSize=34.sp,fontWeight=FontWeight.Black,color=Color(0xffffdc83))

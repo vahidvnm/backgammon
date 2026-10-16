@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.activity.compose.BackHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
@@ -71,6 +72,15 @@ internal fun tabFa(key:String)=when(key){"GAME"->"بازی";"AUDIO"->"صدا";"C
  }
 }
 @Composable private fun GameScreen(vm:GameViewModel){val game by vm.game.collectAsStateWithLifecycle();val settings by vm.settings.collectAsStateWithLifecycle();val rolling by vm.rolling.collectAsStateWithLifecycle();val match by vm.match.collectAsStateWithLifecycle();val autoAssist by vm.autoAssist.collectAsStateWithLifecycle();val clock by vm.clock.collectAsStateWithLifecycle();var selected by remember(game.position,game.dice){mutableStateOf<Int?>(null)};var panel by remember{mutableStateOf("")};val legal=remember(game,match.thinking){if(match.thinking||(vm.mode==Mode.AI&&game.position.turn==Player.BLACK))emptyList() else GameEngine.legalMoves(game.position,game.dice)};val context=LocalContext.current
+ // Back never drops the player out of a live match: it first clears the board
+ // selection, then closes an open panel, and only then opens the match menu.
+ BackHandler{
+  when{
+   panel.isNotEmpty()->panel=""
+   selected!=null->selected=null
+   else->panel="menu"
+  }
+ }
  fun haptic(){if(settings.vibration){val v=context.getSystemService(android.os.Vibrator::class.java);if(Build.VERSION.SDK_INT>=26)v?.vibrate(VibrationEffect.createOneShot(22,70))else @Suppress("DEPRECATION")v?.vibrate(22)}}
  val palette=boardPalette(settings.theme);val background=when(settings.tableScene){TableScene.DARK_GRASS->R.drawable.table_dark_grass;TableScene.STARRY_SKY->R.drawable.table_starry_sky;TableScene.AUTUMN_SUNSET->R.drawable.table_autumn_sunset;TableScene.DARK_RIVER->R.drawable.table_dark_river;TableScene.PERSIAN_RUG->when(settings.theme){BoardTheme.PREMIUM_WOOD->R.drawable.table_persian_rug;BoardTheme.BRUSHED_METAL->R.drawable.table_theme_metal;BoardTheme.OBSIDIAN_IVORY->R.drawable.table_theme_obsidian;BoardTheme.CRYSTAL_GLASS->R.drawable.table_theme_ice;BoardTheme.ROYAL_SAPPHIRE->R.drawable.table_theme_ruby}}
  fun cycleScene(step:Int){val all=TableScene.entries;val next=all[(all.indexOf(settings.tableScene)+step+all.size)%all.size];vm.update(settings.copy(tableScene=next))}
