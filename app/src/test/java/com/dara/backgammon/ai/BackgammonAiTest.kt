@@ -58,6 +58,83 @@ class BackgammonAiTest {
         assertEquals(Move(6, 5, 1), sequence.single())
     }
 
+    /**
+     * A contested midgame sample used as a fixture for the personality styles. No checker is
+     * on the bar, so the roll has real choices instead of a forced entry.
+     */
+    private fun contestedPosition() = Position(
+        points = intArrayOf(0, 3, 0, -1, 0, 4, 0, 1, 0, 0, 0, -3, 3, -1, 2, 0, -2, -2, -2, 0, 0, 2, -2, -2),
+        barWhite = 0, barBlack = 0, offWhite = 0, offBlack = 0, turn = Player.WHITE
+    )
+
+    /** The styled personalities must reach the evaluation function, not just the signature. */
+    @Test fun personalityStylesChangeTheChosenMoveOnAContestedPosition() {
+        val position = contestedPosition()
+        val dice = listOf(3, 1)
+        fun pick(persona: AiPersona) =
+            BackgammonAi.chooseSequence(position, dice, Difficulty.HARD, persona, Random(5))
+
+        // BUILDER makes the point on 3, HUNTER pushes a checker into white's home board,
+        // RUNNER and MASTER keep the flexible outer split. Pinned so a style regression
+        // names itself instead of silently degrading the advertised personalities.
+        assertEquals(listOf(Move(7, 6, 1), Move(6, 3, 3)), pick(AiPersona.BUILDER))
+        assertEquals(listOf(Move(14, 13, 1), Move(5, 2, 3)), pick(AiPersona.HUNTER))
+        assertEquals(listOf(Move(14, 13, 1), Move(7, 4, 3)), pick(AiPersona.RUNNER))
+        assertEquals(listOf(Move(14, 13, 1), Move(7, 4, 3)), pick(AiPersona.MASTER))
+        assertTrue("styles must not be cosmetic", pick(AiPersona.BUILDER) != pick(AiPersona.HUNTER))
+        assertTrue("styles must not be cosmetic", pick(AiPersona.RUNNER) != pick(AiPersona.HUNTER))
+    }
+
+    /**
+     * The same roll must always produce the same answer. Before the search canonicalised the
+     * dice order, a warm cache filled from the mirrored roll could flip the tie between two
+     * equal-scoring routes, making an apparently pure function order-dependent.
+     */
+    @Test fun theSameRollAlwaysProducesTheSameChoiceRegardlessOfCacheOrder() {
+        val position = contestedPosition()
+        BackgammonAi.clearSequenceCache()
+        val rolledThreeFirst = BackgammonAi.chooseSequence(position, listOf(3, 1), Difficulty.HARD)
+        val rolledOneFirst = BackgammonAi.chooseSequence(position, listOf(1, 3), Difficulty.HARD)
+        assertEquals(rolledThreeFirst, rolledOneFirst)
+
+        BackgammonAi.clearSequenceCache()
+        val coldOneFirst = BackgammonAi.chooseSequence(position, listOf(1, 3), Difficulty.HARD)
+        val warmThreeFirst = BackgammonAi.chooseSequence(position, listOf(3, 1), Difficulty.HARD)
+        assertEquals(coldOneFirst, warmThreeFirst)
+    }
+
+    /** MASTER is the shipped opponent, so its choices may never drift from the default. */
+    @Test fun masterPersonalityIsTheUnchangedDefaultOpponent() {
+        (1..6).forEach { first ->
+            (first..6).forEach { second ->
+                val dice = GameEngine.rollValues(first, second)
+                val default = BackgammonAi.chooseSequence(contestedPosition(), dice, Difficulty.HARD, random = Random(1))
+                val explicit = BackgammonAi.chooseSequence(contestedPosition(), dice, Difficulty.HARD, AiPersona.MASTER, Random(1))
+                assertEquals("MASTER must behave exactly like the default opponent", default, explicit)
+            }
+        }
+    }
+
+    /** Every style must stay inside the rules engine on both sides of the board. */
+    @Test fun everyPersonalityPlaysLegalSequencesAsBlackToo() {
+        val random = Random(4242)
+        repeat(40) {
+            val position = Position(
+                points = intArrayOf(0, 3, 0, -1, 0, 4, 0, 1, 0, 0, 0, -3, 3, -1, 2, 0, -2, -2, -2, 0, 0, 2, -2, -2),
+                turn = Player.BLACK
+            )
+            val dice = GameEngine.rollValues(random.nextInt(1, 7), random.nextInt(1, 7))
+            AiPersona.entries.forEach { persona ->
+                val sequence = BackgammonAi.chooseSequence(position, dice, Difficulty.entries.random(random), persona, random)
+                var current = position
+                sequence.forEach { move ->
+                    assertTrue("$persona produced an illegal move $move", move in GameEngine.rawMoves(current, move.die))
+                    current = GameEngine.apply(current, move)
+                }
+            }
+        }
+    }
+
     @Test fun legalSequenceCacheReusesEquivalentDiceOrders() {
         BackgammonAi.clearSequenceCache()
         val first = BackgammonAi.chooseSequence(Position(), listOf(3, 1), Difficulty.HARD, random = Random(1))

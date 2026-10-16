@@ -51,6 +51,12 @@ internal fun Difficulty.fa()=when(this){Difficulty.BEGINNER->"تازه‌کار"
 internal fun BoardTheme.fa()=when(this){BoardTheme.PREMIUM_WOOD->"چوب ممتاز";BoardTheme.BRUSHED_METAL->"فلز برس‌خورده";BoardTheme.OBSIDIAN_IVORY->"ابسیدین و عاج";BoardTheme.CRYSTAL_GLASS->"یخ کریستالی";BoardTheme.ROYAL_SAPPHIRE->"یاقوت سلطنتی"}
 internal fun PieceStyle.fa()=when(this){PieceStyle.KHATAM->"خاتم";PieceStyle.METAL->"فلزی";PieceStyle.OBSIDIAN_IVORY->"ابسیدین و عاج";PieceStyle.CRYSTAL->"کریستالی";PieceStyle.SAPPHIRE->"یاقوتی"}
 internal fun Player.fa()=if(this==Player.WHITE)"سفید" else "سیاه"
+internal fun AiPersona.fa()=when(this){AiPersona.BUILDER->"معمار";AiPersona.RUNNER->"دونده";AiPersona.HUNTER->"شکارچی";AiPersona.MASTER->"استاد"}
+internal fun AiPersona.faHint()=when(this){
+ AiPersona.BUILDER->"خانه‌سازی و بلوک دفاعی بلند"
+ AiPersona.RUNNER->"مسابقه و فرار از درگیری"
+ AiPersona.HUNTER->"حمله به مهره‌های تک و نگه‌داشتن حریف روی بار"
+ else->"تعادل بین همه سبک‌ها"}
 internal fun DoublesRate.fa()=when(this){DoublesRate.NATURAL->"طبیعی";DoublesRate.REDUCED_20->"۲۰٪ کمتر";DoublesRate.REDUCED_50->"۵۰٪ کمتر";DoublesRate.NEVER->"بدون جفت"}
 internal fun tabFa(key:String)=when(key){"GAME"->"بازی";"AUDIO"->"صدا";"CONTROLS"->"کنترل‌ها";"APPEARANCE"->"ظاهر";"GUIDANCE"->"راهنما";"ABOUT"->"درباره";else->key}
 @Composable fun BackgammonApp(vm:GameViewModel=viewModel()){

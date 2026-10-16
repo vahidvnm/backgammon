@@ -15,7 +15,10 @@ object DicePolicy {
     fun roll(rate: DoublesRate, random: Random = Random.Default): List<Int> {
         val first = random.nextInt(1, 7)
         var second = random.nextInt(1, 7)
-        if (first == second && random.nextFloat() > doubleKeepProbability(rate)) {
+        // Inclusive comparison: nextFloat() can return exactly 0f, which used to let a double
+        // through even when the keep probability is zero. NATURAL stays safe because a
+        // probability of 1f can never satisfy "value >= 1f".
+        if (first == second && random.nextFloat() >= doubleKeepProbability(rate)) {
             second = random.nextInt(1, 6)
             if (second >= first) second++
         }
