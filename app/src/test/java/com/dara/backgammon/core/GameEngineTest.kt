@@ -110,4 +110,16 @@ class GameEngineTest {
         val state = TurnState(position(white = mapOf(0 to 1), offWhite = 14), listOf(1), rolled = true)
         assertEquals(Player.WHITE, GameEngine.afterMove(state, Move(0, Move.OFF, 1)).winner)
     }
+
+    @Test fun bearOffReadyWhenAllCheckersAreHomeAndBarEmpty() {
+        assertTrue(GameEngine.bearOffReady(position(white = mapOf(0 to 5, 1 to 5, 2 to 3, 3 to 2)), Player.WHITE))
+        assertTrue(GameEngine.bearOffReady(position(black = mapOf(23 to 15)), Player.BLACK))
+    }
+
+    @Test fun bearOffNotReadyWithOutsideCheckerOrBar() {
+        assertFalse(GameEngine.bearOffReady(position(white = mapOf(0 to 5, 1 to 5, 2 to 3, 3 to 1, 12 to 1)), Player.WHITE))
+        assertFalse(GameEngine.bearOffReady(position(white = mapOf(0 to 5, 1 to 5, 2 to 3, 3 to 2), barWhite = 1), Player.WHITE))
+        assertFalse(GameEngine.bearOffReady(position(black = mapOf(12 to 15)), Player.BLACK))
+        assertFalse(GameEngine.bearOffReady(position(black = mapOf(18 to 15), barBlack = 1), Player.BLACK))
+    }
 }
