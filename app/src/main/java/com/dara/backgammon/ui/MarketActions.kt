@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import com.dara.backgammon.BuildConfig
+import com.dara.backgammon.R
 
 object MarketActions {
     private fun open(context: Context, uri: String, action: String = Intent.ACTION_VIEW) {
@@ -13,7 +14,7 @@ object MarketActions {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         runCatching { context.startActivity(intent) }
-            .onFailure { Toast.makeText(context, "برای انجام این کار، ${BuildConfig.STORE_NAME} باید نصب باشد.", Toast.LENGTH_LONG).show() }
+            .onFailure { Toast.makeText(context, context.getString(R.string.store_unavailable, BuildConfig.STORE_NAME), Toast.LENGTH_LONG).show() }
     }
 
     fun checkUpdate(context: Context) = open(context, BuildConfig.UPDATE_URI)
@@ -25,11 +26,12 @@ object MarketActions {
     )
 
     fun support(context: Context) {
-        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:bahramiuan@gmail.com")).apply {
-            putExtra(Intent.EXTRA_SUBJECT, "پشتیبانی تخته نرد هوشمند")
+        val address = context.getString(R.string.support_email)
+        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$address")).apply {
+            putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.support_subject))
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         runCatching { context.startActivity(intent) }
-            .onFailure { Toast.makeText(context, "برنامه‌ای برای ارسال پیام پشتیبانی پیدا نشد.", Toast.LENGTH_LONG).show() }
+            .onFailure { Toast.makeText(context, R.string.support_unavailable, Toast.LENGTH_LONG).show() }
     }
 }

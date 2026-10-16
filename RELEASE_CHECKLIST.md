@@ -1,4 +1,7 @@
-# AI Backgammon 1.0.0 release checklist
+# AI Backgammon release checklist
+
+The current version comes from `versionName`/`versionCode` in `app/build.gradle.kts`; the steps
+below are version independent, so the same checklist covers every release.
 
 ## Automated — completed in CI
 

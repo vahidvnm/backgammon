@@ -4,6 +4,10 @@
     <string name="about_version_store">نسخه %1$s • ویژه %2$s</string>
     <string name="support_title">پشتیبانی</string>
     <string name="support_description">ارسال پیام به پشتیبانی؛ نشانی ایمیل در برنامه نمایش داده نمی‌شود</string>
+    <string name="support_email">bahramiuan@gmail.com</string>
+    <string name="support_subject">پشتیبانی تخته نرد هوشمند</string>
+    <string name="support_unavailable">برنامه‌ای برای ارسال پیام پشتیبانی پیدا نشد.</string>
+    <string name="store_unavailable">برای انجام این کار، %1$s باید نصب باشد.</string>
     <string name="update_title">بررسی به‌روزرسانی</string>
     <string name="update_description">بررسی نسخه جدید در %1$s</string>
     <string name="store_page_title">صفحه برنامه در %1$s</string>
