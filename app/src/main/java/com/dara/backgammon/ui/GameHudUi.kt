@@ -78,7 +78,7 @@ import kotlin.math.roundToInt
  * Scene switcher. The touch target keeps the 48dp accessibility minimum while the visible
  * pill stays at its approved 38x72 size, so the board edges look unchanged.
  */
-@Composable internal fun SceneArrow(text:String,modifier:Modifier=Modifier,go:()->Unit){Box(modifier.size(48.dp,80.dp).semantics{role=Role.Button;contentDescription="تغییر پس‌زمینه"}.clickable(onClick=go),contentAlignment=Alignment.Center){Box(Modifier.size(38.dp,72.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xff17110e).copy(.64f)).border(1.dp,Color.White.copy(.38f),RoundedCornerShape(18.dp)),contentAlignment=Alignment.Center){Text(text,color=Color.White,fontSize=34.sp,fontWeight=FontWeight.Light)}}}
+@Composable internal fun SceneArrow(text:String,modifier:Modifier=Modifier,go:()->Unit){Box(modifier.size(48.dp,80.dp).semantics{role=Role.Button;contentDescription=if(text=="‹")"پس‌زمینه قبلی" else "پس‌زمینه بعدی"}.clickable(onClick=go),contentAlignment=Alignment.Center){Box(Modifier.size(38.dp,72.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xff17110e).copy(.64f)).border(1.dp,Color.White.copy(.38f),RoundedCornerShape(18.dp)),contentAlignment=Alignment.Center){Text(text,color=Color.White,fontSize=34.sp,fontWeight=FontWeight.Light)}}}
 @Composable internal fun BarEngraving(text:String,modifier:Modifier=Modifier,go:()->Unit){
  val shape=RoundedCornerShape(6.dp)
  // The pressable area is padded to the 48dp accessibility minimum; the engraving keeps its
@@ -155,10 +155,12 @@ import kotlin.math.roundToInt
  }
 }
 
-@Composable internal fun VictoryCelebration(winner:Player,whiteScore:Int,blackScore:Int,modifier:Modifier=Modifier){
+@Composable internal fun VictoryCelebration(winner:Player,whiteScore:Int,blackScore:Int,modifier:Modifier=Modifier,animations:Boolean=true){
  val progress by rememberInfiniteTransition(label="victory").animateFloat(0f,1f,infiniteRepeatable(tween(2200,easing=LinearEasing)),label="victoryBurst")
  Box(modifier.semantics{contentDescription="تابلوی پایان بازی؛ ${winner.fa()} برنده؛ امتیاز $whiteScore به $blackScore"},contentAlignment=Alignment.TopCenter){
-  Canvas(Modifier.fillMaxSize()){
+  // The confetti is a continuous 60 fps effect: players who switch animations off for
+  // accessibility or battery reasons still get the result card, just without the loop.
+  if(animations)Canvas(Modifier.fillMaxSize()){
    drawRect(Brush.radialGradient(listOf(Color.Transparent,Color.Black.copy(.70f)),Offset(size.width/2,size.height/2),size.maxDimension*.72f))
    repeat(54){i->val seed=(i*47%101)/101f;val lane=(i*83%97)/97f;val y=((seed+progress)%1f)*size.height;val x=lane*size.width+sin((progress*6.28f+i))*18f;val color=listOf(Color(0xffffd15c),Color(0xfff6eee0),Color(0xff63d59a),Color(0xffd97872))[i%4];rotate((i*29f+progress*260f),Offset(x,y)){drawRoundRect(color.copy(.88f),Offset(x-3f,y-6f),Size(6f,12f),CornerRadius(2f))}}
   }
