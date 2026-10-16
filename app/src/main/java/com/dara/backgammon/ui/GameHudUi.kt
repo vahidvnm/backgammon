@@ -72,16 +72,24 @@ import kotlin.math.roundToInt
 }
 @Composable internal fun ScoreDrum(score:Int){Box(Modifier.size(26.dp,29.dp).clip(RoundedCornerShape(3.dp)).background(Brush.verticalGradient(listOf(Color(0xff080808),Color(0xff242424),Color.Black))).border(.5.dp,Color.White.copy(.28f),RoundedCornerShape(3.dp)),contentAlignment=Alignment.Center){Text((score%10).toString(),color=Color.White,fontSize=17.sp,fontWeight=FontWeight.Medium)}}
 @Composable internal fun ClockSettingsButton(go:()->Unit,modifier:Modifier=Modifier){val shape=RoundedCornerShape(9.dp);Box(modifier.size(48.dp).semantics{role=Role.Button;contentDescription="تنظیمات مسابقه"}.clickable(onClick=go),contentAlignment=Alignment.Center){Box(Modifier.size(32.dp,28.dp).clip(shape).background(Brush.verticalGradient(listOf(Color(0xff94603e),Color(0xff3b1b11)))).border(1.dp,Color(0xffffce88).copy(.58f),shape),contentAlignment=Alignment.Center){Text("⚙",color=Color(0xffffe0aa),fontSize=15.sp)}}}
-@Composable internal fun TopGameBar(level:Difficulty,clockOn:Boolean,status:String,settings:()->Unit,theme:BoardTheme,modifier:Modifier=Modifier){val material=boardPalette(theme);CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr){Row(modifier.fillMaxWidth().height(30.dp).background(Brush.verticalGradient(listOf(material.frame,material.frameDark))).border(BorderStroke(1.dp,Brush.verticalGradient(listOf(material.light.copy(.58f),material.frameDark.copy(.72f))))).padding(horizontal=if(clockOn)18.dp else 10.dp),verticalAlignment=Alignment.CenterVertically){IconButton(settings,Modifier.size(28.dp)){Text("⚙",color=material.accent,fontSize=16.sp)};if(!clockOn)Text("هوش مصنوعی • ${level.fa()} • سطح ${level.ordinal+1}",Modifier.padding(start=8.dp),color=material.light.copy(.82f),fontSize=10.sp,fontWeight=FontWeight.Bold);Spacer(Modifier.weight(1f));Text(if(clockOn)status.replace("YOUR ","") else status,color=material.accent,fontSize=10.sp,fontWeight=FontWeight.Black,letterSpacing=.6.sp)}}}
+@Composable internal fun TopGameBar(level:Difficulty,clockOn:Boolean,status:String,settings:()->Unit,theme:BoardTheme,modifier:Modifier=Modifier){val material=boardPalette(theme);CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr){Row(modifier.fillMaxWidth().height(30.dp).background(Brush.verticalGradient(listOf(material.frame,material.frameDark))).border(BorderStroke(1.dp,Brush.verticalGradient(listOf(material.light.copy(.58f),material.frameDark.copy(.72f))))).padding(horizontal=if(clockOn)18.dp else 10.dp),verticalAlignment=Alignment.CenterVertically){IconButton(settings,Modifier.size(28.dp)){Text("⚙",color=material.accent,fontSize=16.sp)};if(!clockOn)Text("هوش مصنوعی • ${level.fa()} • سطح ${level.ordinal+1}",Modifier.padding(start=8.dp),color=material.light.copy(.82f),fontSize=10.sp,fontWeight=FontWeight.Bold);Spacer(Modifier.weight(1f));Text(status,color=material.accent,fontSize=10.sp,fontWeight=FontWeight.Black,letterSpacing=.6.sp)}}}
 
-@Composable internal fun SceneArrow(text:String,modifier:Modifier=Modifier,go:()->Unit){Box(modifier.size(38.dp,72.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xff17110e).copy(.64f)).border(1.dp,Color.White.copy(.38f),RoundedCornerShape(18.dp)).clickable(onClick=go),contentAlignment=Alignment.Center){Text(text,color=Color.White,fontSize=34.sp,fontWeight=FontWeight.Light)}}
+/**
+ * Scene switcher. The touch target keeps the 48dp accessibility minimum while the visible
+ * pill stays at its approved 38x72 size, so the board edges look unchanged.
+ */
+@Composable internal fun SceneArrow(text:String,modifier:Modifier=Modifier,go:()->Unit){Box(modifier.size(48.dp,80.dp).semantics{role=Role.Button;contentDescription="تغییر پس‌زمینه"}.clickable(onClick=go),contentAlignment=Alignment.Center){Box(Modifier.size(38.dp,72.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xff17110e).copy(.64f)).border(1.dp,Color.White.copy(.38f),RoundedCornerShape(18.dp)),contentAlignment=Alignment.Center){Text(text,color=Color.White,fontSize=34.sp,fontWeight=FontWeight.Light)}}}
 @Composable internal fun BarEngraving(text:String,modifier:Modifier=Modifier,go:()->Unit){
  val shape=RoundedCornerShape(6.dp)
- Box(modifier.size(90.dp,34.dp).semantics{role=Role.Button;contentDescription=text}.clip(shape).background(Color.Black.copy(.10f)).clickable(onClick=go),contentAlignment=Alignment.Center){
-  // Opposing one-pixel highlights create a recess cut into the existing board wood, not a plaque.
-  Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.TopCenter).background(Color.Black.copy(.28f)));Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.BottomCenter).background(Color.White.copy(.14f)))
-  Row(Modifier.offset(y=1.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)){Text("↶",color=Color.White.copy(.18f),fontSize=15.sp,fontWeight=FontWeight.Bold);Text(text,color=Color.White.copy(.16f),fontSize=11.sp,fontWeight=FontWeight.Black)}
-  Row(Modifier.offset(y=(-.5).dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)){Text("↶",color=Color(0xff29140d),fontSize=15.sp,fontWeight=FontWeight.Bold);Text(text,color=Color(0xff29140d),fontSize=11.sp,fontWeight=FontWeight.Black)}
+ // The pressable area is padded to the 48dp accessibility minimum; the engraving keeps its
+ // 34dp visual height so the board layout is untouched.
+ Box(modifier.size(90.dp,48.dp).semantics{role=Role.Button;contentDescription=text}.clickable(onClick=go),contentAlignment=Alignment.Center){
+  Box(Modifier.size(90.dp,34.dp).clip(shape).background(Color.Black.copy(.10f)),contentAlignment=Alignment.Center){
+   // Opposing one-pixel highlights create a recess cut into the existing board wood, not a plaque.
+   Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.TopCenter).background(Color.Black.copy(.28f)));Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.BottomCenter).background(Color.White.copy(.14f)))
+   Row(Modifier.offset(y=1.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)){Text("↶",color=Color.White.copy(.18f),fontSize=15.sp,fontWeight=FontWeight.Bold);Text(text,color=Color.White.copy(.16f),fontSize=11.sp,fontWeight=FontWeight.Black)}
+   Row(Modifier.offset(y=(-.5).dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)){Text("↶",color=Color(0xff29140d),fontSize=15.sp,fontWeight=FontWeight.Bold);Text(text,color=Color(0xff29140d),fontSize=11.sp,fontWeight=FontWeight.Black)}
+  }
  }
 }
 @Composable internal fun AxleDoublingCube(value:Int,owner:Player?,pending:Player?,enabled:Boolean,go:()->Unit,theme:BoardTheme,modifier:Modifier=Modifier){
@@ -93,12 +101,18 @@ import kotlin.math.roundToInt
   Box(Modifier.size(36.dp).graphicsLayer{rotationY=rotation.value;cameraDistance=10f*density;shadowElevation=8.dp.toPx();shape=octagon;clip=false}.clip(octagon).background(Brush.linearGradient(listOf(material.light,material.accent,material.frameDark))).border(if(enabled||pending!=null||accepted)2.dp else 1.dp,glow.copy(glowAlpha),octagon),contentAlignment=Alignment.Center){Canvas(Modifier.fillMaxSize()){val c=Offset(size.width/2,size.height/2);for(i in 0 until 8){val a=Math.toRadians((i*45.0-90));val b=Math.toRadians((i*45.0-67.5));val p1=Offset(c.x+cos(a).toFloat()*size.width*.46f,c.y+sin(a).toFloat()*size.height*.46f);val p2=Offset(c.x+cos(b).toFloat()*size.width*.35f,c.y+sin(b).toFloat()*size.height*.35f);drawLine(Color(0xff5d3822).copy(.28f),p1,p2,1f)}};Text("${shown}x",color=if(accepted)Color(0xff176b2d)else Color(0xff342015),fontSize=12.sp,fontWeight=FontWeight.Black,style=androidx.compose.ui.text.TextStyle(shadow=androidx.compose.ui.graphics.Shadow(Color.White.copy(.42f),Offset(-1f,-1f),1f)))}
  }
 }
-@Composable internal fun EngravedWoodAction(text:String,modifier:Modifier=Modifier,go:()->Unit){
- val shape=RoundedCornerShape(6.dp);val enabled=text.contains("روشن");val mark=if(enabled)"●" else "○"
- Box(modifier.size(104.dp,34.dp).semantics{role=Role.Button;contentDescription=text}.clip(shape).background(Color.Black.copy(.10f)).clickable(onClick=go),contentAlignment=Alignment.Center){
-  Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.TopCenter).background(Color.Black.copy(.28f)));Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.BottomCenter).background(Color.White.copy(.14f)))
-  Row(Modifier.offset(y=1.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){Text(mark,color=Color.White.copy(.17f),fontSize=10.sp);Text(text,color=Color.White.copy(.16f),fontSize=11.sp,fontWeight=FontWeight.Black)}
-  Row(Modifier.offset(y=(-.5).dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){Text(mark,color=Color(0xff29140d),fontSize=10.sp);Text(text,color=Color(0xff29140d),fontSize=11.sp,fontWeight=FontWeight.Black)}
+/**
+ * Auto-assist switch. [enabled] is a real parameter: the indicator used to be inferred from
+ * the Persian label text, which would silently break the moment the wording changed.
+ */
+@Composable internal fun EngravedWoodAction(text:String,enabled:Boolean,modifier:Modifier=Modifier,go:()->Unit){
+ val shape=RoundedCornerShape(6.dp);val mark=if(enabled)"●" else "○"
+ Box(modifier.size(104.dp,48.dp).semantics{role=Role.Button;contentDescription=text}.clickable(onClick=go),contentAlignment=Alignment.Center){
+  Box(Modifier.size(104.dp,34.dp).clip(shape).background(Color.Black.copy(.10f)),contentAlignment=Alignment.Center){
+   Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.TopCenter).background(Color.Black.copy(.28f)));Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.BottomCenter).background(Color.White.copy(.14f)))
+   Row(Modifier.offset(y=1.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){Text(mark,color=Color.White.copy(.17f),fontSize=10.sp);Text(text,color=Color.White.copy(.16f),fontSize=11.sp,fontWeight=FontWeight.Black)}
+   Row(Modifier.offset(y=(-.5).dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){Text(mark,color=Color(0xff29140d),fontSize=10.sp);Text(text,color=Color(0xff29140d),fontSize=11.sp,fontWeight=FontWeight.Black)}
+  }
  }
 }
 

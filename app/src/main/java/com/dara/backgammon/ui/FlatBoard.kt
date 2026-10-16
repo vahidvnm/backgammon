@@ -10,6 +10,10 @@ import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.*
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.contentDescription
@@ -31,7 +35,7 @@ fun boardPalette(t:BoardTheme)=when(t){
 
 /** Precise top-down board inspired by classic mobile layouts, drawn entirely with original vector assets. */
 @Composable fun FlatBoard(state:TurnState,theme:BoardTheme,pieces:PieceStyle,selected:Int?,legal:List<Move>,select:(Int)->Unit,move:(Move)->Unit,combine:(Int,Int)->Boolean={_,_->false},modifier:Modifier=Modifier,scene:TableScene=TableScene.DARK_GRASS,guidance:GuidanceMode=GuidanceMode.SIMPLE,animations:Boolean=true){
- val p=boardPalette(theme);val boardSurface=ImageBitmap.imageResource(when(theme){BoardTheme.PREMIUM_WOOD->R.drawable.empty_board_final_surface;BoardTheme.BRUSHED_METAL->R.drawable.empty_board_brushed_metal;BoardTheme.OBSIDIAN_IVORY->R.drawable.empty_board_obsidian_ivory;BoardTheme.CRYSTAL_GLASS->R.drawable.empty_board_crystal_glass;BoardTheme.ROYAL_SAPPHIRE->R.drawable.empty_board_royal_sapphire});val animatedPulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse");val pulse=if(animations)animatedPulse else 1f
+ val p=boardPalette(theme);val textMeasurer=rememberTextMeasurer();val boardSurface=ImageBitmap.imageResource(when(theme){BoardTheme.PREMIUM_WOOD->R.drawable.empty_board_final_surface;BoardTheme.BRUSHED_METAL->R.drawable.empty_board_brushed_metal;BoardTheme.OBSIDIAN_IVORY->R.drawable.empty_board_obsidian_ivory;BoardTheme.CRYSTAL_GLASS->R.drawable.empty_board_crystal_glass;BoardTheme.ROYAL_SAPPHIRE->R.drawable.empty_board_royal_sapphire});val animatedPulse by rememberInfiniteTransition(label="legal").animateFloat(.58f,1f,infiniteRepeatable(tween(650),RepeatMode.Reverse),label="pulse");val pulse=if(animations)animatedPulse else 1f
  val plans=if(selected==null)emptyList() else GameEngine.movePlans(state.position,state.dice,selected)
  val visiblePlans=plans
  val displayPlans=visiblePlans.groupBy{it.to}.values.mapNotNull{routes->routes.maxByOrNull{it.moves.size}}
@@ -132,7 +136,19 @@ fun boardPalette(t:BoardTheme)=when(t){
    if(available&&!on){drawCircle(Brush.radialGradient(listOf(Color(0xffc8ff9c).copy(.48f+.28f*pulse),Color(0xff55e879).copy(.28f),Color.Transparent),topC,r*1.12f),r*1.02f,topC);drawCircle(Color(0xff9aff91).copy(.76f+.22f*pulse),r*.86f,topC,style=Stroke(r*.075f));drawArc(Color.White.copy(.36f),205f,125f,false,Offset(topC.x-r*.70f,topC.y-r*.70f),Size(r*1.40f,r*1.40f),style=Stroke(r*.032f))};if(on){drawCircle(Color.Black.copy(.30f),r*1.10f,c,style=Stroke(5f));drawCircle(p.accent,r*1.08f,c,style=Stroke(3f))}
   }
   val active=motion;val drawn=if(active==null)previous else state.position
-  for(pt in 0..23){val n=abs(drawn.points[pt]);for(i in 0 until min(n,5)){if(active?.to==pt&&i==min(n,5)-1)continue;piece(center(pt,i),cw*.262f,drawn.points[pt]>0,selected==pt&&i==min(n,5)-1,legal.any{it.from==pt}&&i==min(n,5)-1,(((pt*7+i*3)%7)-3)/3f)};if(n>5)drawCircle(p.accent,cw*.18f,center(pt,4))}
+  for(pt in 0..23){
+   val n=abs(drawn.points[pt])
+   for(i in 0 until min(n,5)){if(active?.to==pt&&i==min(n,5)-1)continue;piece(center(pt,i),cw*.262f,drawn.points[pt]>0,selected==pt&&i==min(n,5)-1,legal.any{it.from==pt}&&i==min(n,5)-1,(((pt*7+i*3)%7)-3)/3f)}
+   if(n>5){
+    // Only five checkers fit in a triangle, so the exact count is badged past the last one
+    // instead of being silently capped: a player can always read how many checkers are stacked.
+    val last=geometry.checkerCenter(pt,4);val step=last.y-geometry.checkerCenter(pt,3).y
+    val badge=Offset(last.x,(last.y+step*1.15f).coerceIn(cw*.34f,size.height-cw*.34f));val radius=cw*.20f
+    drawCircle(Color.Black.copy(.62f),radius,badge);drawCircle(p.accent,radius,badge,style=Stroke(cw*.035f))
+    val label=textMeasurer.measure(n.toString(),style=TextStyle(color=Color(0xfffff3d6),fontSize=(radius*.95f).toSp(),fontWeight=FontWeight.Black))
+    drawText(label,topLeft=badge-Offset(label.size.width/2f,label.size.height/2f))
+   }
+  }
   if(active?.to!=Move.BAR){val br=cw*.238f;for(i in 0 until min(drawn.barWhite,8))piece(Offset(barLeft+barW/2,size.height*.57f+i*br*.48f),br,true,selected==Move.BAR&&i==min(drawn.barWhite,8)-1,legal.any{it.from==Move.BAR}&&i==min(drawn.barWhite,8)-1,((i*5)%7-3)/3f);for(i in 0 until min(drawn.barBlack,8))piece(Offset(barLeft+barW/2,size.height*.43f-i*br*.48f),br,false,selected==Move.BAR&&i==min(drawn.barBlack,8)-1,legal.any{it.from==Move.BAR}&&i==min(drawn.barBlack,8)-1,((i*4+2)%7-3)/3f)}
   // Borne-off checkers keep their material identity and slide into genuine full-width grooves.
   fun DrawScope.offChip(tray:Rect,y:Float,white:Boolean,step:Float){val chipW=tray.width*.86f;val chipH=step*.84f;val base=when(checkerTheme){BoardTheme.OBSIDIAN_IVORY->if(white)Color(0xffe7e1d3)else Color(0xff1b2024);BoardTheme.CRYSTAL_GLASS->if(white)Color(0xffa9edf1)else Color(0xff16475c);BoardTheme.ROYAL_SAPPHIRE->if(white)Color(0xffffe5a5)else Color(0xff9f0734);else->if(white)Color(0xffeee5cf)else Color(0xff211719)};val edge=if(white)Color(0xff8b7659)else Color(0xff050506);val x=tray.left+(tray.width-chipW)/2;drawRoundRect(Color.Black.copy(.48f),Offset(x+1.5f,y+2.2f),Size(chipW,chipH),CornerRadius(chipH/2));drawRoundRect(edge,Offset(x,y+chipH*.14f),Size(chipW,chipH*.86f),CornerRadius(chipH/2));drawRoundRect(Brush.verticalGradient(listOf(Color.White.copy(if(white).68f else .25f),base,edge)),Offset(x,y),Size(chipW,chipH*.82f),CornerRadius(chipH/2));drawLine(Color.White.copy(if(white).42f else .20f),Offset(x+chipH*.45f,y+chipH*.18f),Offset(x+chipW-chipH*.45f,y+chipH*.18f),1.2f)};val topChipStep=(topTray.height-16f)/15f;val bottomChipStep=(bottomTray.height-16f)/15f;for(i in 0 until drawn.offBlack)offChip(topTray,topTray.top+8f+i*topChipStep,false,topChipStep);for(i in 0 until drawn.offWhite)offChip(bottomTray,bottomTray.bottom-8f-(i+1)*bottomChipStep,true,bottomChipStep)
