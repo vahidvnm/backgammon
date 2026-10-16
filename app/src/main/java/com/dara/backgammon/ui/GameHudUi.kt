@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.semantics.*
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
@@ -79,19 +80,43 @@ import kotlin.math.roundToInt
  * pill stays at its approved 38x72 size, so the board edges look unchanged.
  */
 @Composable internal fun SceneArrow(text:String,modifier:Modifier=Modifier,go:()->Unit){Box(modifier.size(48.dp,80.dp).semantics{role=Role.Button;contentDescription=if(text=="‹")"پس‌زمینه قبلی" else "پس‌زمینه بعدی"}.clickable(onClick=go),contentAlignment=Alignment.Center){Box(Modifier.size(38.dp,72.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xff17110e).copy(.64f)).border(1.dp,Color.White.copy(.38f),RoundedCornerShape(18.dp)),contentAlignment=Alignment.Center){Text(text,color=Color.White,fontSize=34.sp,fontWeight=FontWeight.Light)}}}
-@Composable internal fun BarEngraving(text:String,modifier:Modifier=Modifier,go:()->Unit){
- val shape=RoundedCornerShape(6.dp)
- // The pressable area is padded to the 48dp accessibility minimum; the engraving keeps its
- // 34dp visual height so the board layout is untouched.
- Box(modifier.size(90.dp,48.dp).semantics{role=Role.Button;contentDescription=text}.clickable(onClick=go),contentAlignment=Alignment.Center){
-  Box(Modifier.size(90.dp,34.dp).clip(shape).background(Color.Black.copy(.10f)),contentAlignment=Alignment.Center){
-   // Opposing one-pixel highlights create a recess cut into the existing board wood, not a plaque.
-   Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.TopCenter).background(Color.Black.copy(.28f)));Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.BottomCenter).background(Color.White.copy(.14f)))
-   Row(Modifier.offset(y=1.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)){Text("↶",color=Color.White.copy(.18f),fontSize=15.sp,fontWeight=FontWeight.Bold);Text(text,color=Color.White.copy(.16f),fontSize=11.sp,fontWeight=FontWeight.Black)}
-   Row(Modifier.offset(y=(-.5).dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)){Text("↶",color=Color(0xff29140d),fontSize=15.sp,fontWeight=FontWeight.Bold);Text(text,color=Color(0xff29140d),fontSize=11.sp,fontWeight=FontWeight.Black)}
+/**
+ * A carved plaque that rests *on* the board instead of being engraved into it: a cast shadow on
+ * the wood, a warm face with a lit top edge and a shaded bottom edge, a thin accent rim catching
+ * the light, and lettering stamped in gold with a dark offset under it. Pressing the plaque sinks
+ * it towards the board, so the control feels like the physical checkers around it.
+ *
+ * The visible plaque stays slim (34dp) inside the 48dp touch target, and the caller supplies the
+ * semantics label so screen readers keep announcing the same action as before.
+ */
+@Composable internal fun WoodPlaque(label:String,mark:String?,width:Dp,enabled:Boolean=true,theme:BoardTheme=BoardTheme.PREMIUM_WOOD,modifier:Modifier=Modifier,go:()->Unit){
+ val palette=boardPalette(theme)
+ val interaction=remember{MutableInteractionSource()}
+ val pressed by interaction.collectIsPressedAsState()
+ val shape=RoundedCornerShape(9.dp)
+ val face=when{
+  !enabled->Brush.verticalGradient(listOf(Color(0xff4b3a2c),Color(0xff231812)))
+  pressed->Brush.verticalGradient(listOf(palette.frameDark,Color(0xff150a05)))
+  else->Brush.verticalGradient(listOf(palette.frame,Color(0xff33190e),palette.frameDark))
+ }
+ val rim=if(enabled)palette.accent.copy(.62f) else Color.White.copy(.10f)
+ val ink=if(enabled)palette.light else Color.White.copy(.30f)
+ val stamp=TextStyle(shadow=Shadow(Color(0xff1b0d06).copy(.85f),Offset(0f,1.1f)))
+ Box(modifier.width(width).height(48.dp).semantics{role=Role.Button;contentDescription=label;if(!enabled)disabled()}.clickable(interactionSource=interaction,indication=null,enabled=enabled,onClick=go),contentAlignment=Alignment.Center){
+  // the plaque is a physical object, so it casts a soft shadow onto the wood under it
+  Box(Modifier.width(width-10.dp).height(30.dp).offset(y=5.dp).clip(RoundedCornerShape(50)).background(Color.Black.copy(if(enabled).44f else .24f)))
+  Box(Modifier.width(width).height(34.dp).offset(y=if(pressed)1.5.dp else 0.dp).clip(shape).background(face).border(1.dp,rim,shape),contentAlignment=Alignment.Center){
+   Box(Modifier.fillMaxWidth().height(1.5.dp).align(Alignment.TopCenter).background(Color.White.copy(if(enabled).30f else .13f)))
+   Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.BottomCenter).background(Color.Black.copy(.50f)))
+   Box(Modifier.matchParentSize().padding(3.dp).clip(RoundedCornerShape(6.dp)).border(1.dp,Color.Black.copy(.20f),RoundedCornerShape(6.dp)))
+   Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){
+    if(mark!=null)Text(mark,color=ink,fontSize=11.sp,fontWeight=FontWeight.Bold,style=stamp)
+    Text(label,color=ink,fontSize=11.sp,fontWeight=FontWeight.Black,letterSpacing=.4.sp,style=stamp)
+   }
   }
  }
 }
+
 @Composable internal fun AxleDoublingCube(value:Int,owner:Player?,pending:Player?,enabled:Boolean,go:()->Unit,theme:BoardTheme,modifier:Modifier=Modifier){
  val material=boardPalette(theme);val pulse by rememberInfiniteTransition(label="cubeOffer").animateFloat(.52f,1f,infiniteRepeatable(tween(850),RepeatMode.Reverse),label="cubePulse");val rotation=remember{Animatable(0f)};var lastValue by remember{mutableIntStateOf(value)};var accepted by remember{mutableStateOf(false)}
  LaunchedEffect(value,pending){val changed=value!=lastValue;if(changed){accepted=true;lastValue=value};rotation.snapTo(0f);rotation.animateTo(360f,tween(720,easing=FastOutSlowInEasing));if(changed){delay(1350);accepted=false}}
@@ -105,19 +130,6 @@ import kotlin.math.roundToInt
  * Auto-assist switch. [enabled] is a real parameter: the indicator used to be inferred from
  * the Persian label text, which would silently break the moment the wording changed.
  */
-@Composable internal fun EngravedWoodAction(text:String,enabled:Boolean,modifier:Modifier=Modifier,go:()->Unit){
- val shape=RoundedCornerShape(6.dp);val mark=if(enabled)"●" else "○"
- Box(modifier.size(104.dp,48.dp).semantics{role=Role.Button;contentDescription=text}.clickable(onClick=go),contentAlignment=Alignment.Center){
-  Box(Modifier.size(104.dp,34.dp).clip(shape).background(Color.Black.copy(.10f)),contentAlignment=Alignment.Center){
-   Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.TopCenter).background(Color.Black.copy(.28f)));Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.BottomCenter).background(Color.White.copy(.14f)))
-   Row(Modifier.offset(y=1.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){Text(mark,color=Color.White.copy(.17f),fontSize=10.sp);Text(text,color=Color.White.copy(.16f),fontSize=11.sp,fontWeight=FontWeight.Black)}
-   Row(Modifier.offset(y=(-.5).dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){Text(mark,color=Color(0xff29140d),fontSize=10.sp);Text(text,color=Color(0xff29140d),fontSize=11.sp,fontWeight=FontWeight.Black)}
-  }
- }
-}
-
-
-
 @Composable internal fun AnimatedDice(finalDice:List<Int>,style:DiceStyle,rolling:Boolean,onThrow:()->Unit,modifier:Modifier=Modifier){
  var drag by remember{mutableStateOf(Offset.Zero)};var throwVector by remember{mutableStateOf(Offset.Zero)}
  val x1=remember{Animatable(-90f)};val y1=remember{Animatable(-45f)};val r1=remember{Animatable(0f)}

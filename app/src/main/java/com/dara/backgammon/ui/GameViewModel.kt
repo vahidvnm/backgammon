@@ -19,14 +19,14 @@ private data class GameSnapshot(val game:TurnState,val match:MatchInfo,val clock
 private data class PendingSave(val seq:Long,val session:SavedSession)
 class GameViewModel(app:Application):AndroidViewModel(app) {
  private val prefs=Preferences(app);private val savedMatches=SavedMatchStore(app);private val audio=GameAudio(app)
- private val _settings=MutableStateFlow(prefs.load());val settings=_settings.asStateFlow();private val _screen=MutableStateFlow(Screen.MENU);val screen=_screen.asStateFlow();private val _game=MutableStateFlow(TurnState());val game=_game.asStateFlow();private val _rolling=MutableStateFlow(false);val rolling=_rolling.asStateFlow();private val _match=MutableStateFlow(MatchInfo());val match=_match.asStateFlow();private val _autoAssist=MutableStateFlow(false);val autoAssist=_autoAssist.asStateFlow();private val _clock=MutableStateFlow(newClock());val clock=_clock.asStateFlow();private val _hasSaved=MutableStateFlow(false);val hasSaved=_hasSaved.asStateFlow()
+ private val _settings=MutableStateFlow(prefs.load());val settings=_settings.asStateFlow();private val _screen=MutableStateFlow(Screen.MENU);val screen=_screen.asStateFlow();private val _game=MutableStateFlow(TurnState());val game=_game.asStateFlow();private val _rolling=MutableStateFlow(false);val rolling=_rolling.asStateFlow();private val _match=MutableStateFlow(MatchInfo());val match=_match.asStateFlow();private val _autoAssist=MutableStateFlow(false);val autoAssist=_autoAssist.asStateFlow();private val _clock=MutableStateFlow(newClock());val clock=_clock.asStateFlow();private val _hasSaved=MutableStateFlow(false);val hasSaved=_hasSaved.asStateFlow();private val _canUndo=MutableStateFlow(false);val canUndo=_canUndo.asStateFlow()
  private val history=ArrayDeque<GameSnapshot>();private val pendingSave=MutableStateFlow<PendingSave?>(null);private var turnJob:Job?=null;private var clockTurn=Player.WHITE;private var appInForeground=true
  // Orders the two writers (the IO collector and onCleared) so an in-flight async write can
  // never finish after a newer synchronous one and restore an outdated match.
  private val saves=SaveOrderGate()
  private fun cancelActiveTurn(){turnJob?.cancel();turnJob=null;_rolling.value=false;if(!_game.value.rolled&&_game.value.dice.isNotEmpty())_game.value=_game.value.copy(dice=emptyList());_match.value=_match.value.copy(thinking=false)}
  private fun snapshot()=GameSnapshot(_game.value.copy(position=_game.value.position.copyDeep()),_match.value.copy(thinking=false),_clock.value,_autoAssist.value)
- private fun rememberState(){history.addLast(snapshot())}
+ private fun rememberState(){history.addLast(snapshot());_canUndo.value=true}
  private fun restore(s:GameSnapshot){_game.value=s.game.copy(position=s.game.position.copyDeep());_match.value=s.match.copy(thinking=false);_clock.value=s.clock;_autoAssist.value=s.autoAssist;clockTurn=_game.value.position.turn}
  init{loadSession();
   // Autosave is published to a conflated flow and written on the IO dispatcher: the engine
@@ -94,11 +94,11 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
  }
  fun continueGame(){if(_hasSaved.value){clockTurn=_game.value.position.turn;_screen.value=Screen.GAME;ensureAiProgress()}}
  fun setup(){_screen.value=Screen.SETUP}
- fun start(m:Mode){cancelActiveTurn();mode=m;history.clear();_match.value=MatchInfo(target=_settings.value.matchTarget);_game.value=TurnState();resetClock();_screen.value=Screen.GAME;saveSession()}
+ fun start(m:Mode){cancelActiveTurn();mode=m;history.clear();_canUndo.value=false;_match.value=MatchInfo(target=_settings.value.matchTarget);_game.value=TurnState();resetClock();_screen.value=Screen.GAME;saveSession()}
  fun menu(){cancelActiveTurn();if(_screen.value==Screen.GAME)saveSession();_screen.value=Screen.MENU}
  fun matchWinner():Player?=MatchRules.winner(_match.value.whiteScore,_match.value.blackScore,_match.value.target)
  fun restart(){
-  history.clear();cancelActiveTurn()
+  history.clear();_canUndo.value=false;cancelActiveTurn()
   val m=_match.value
   _match.value=if(matchWinner()!=null)MatchInfo(target=m.target)else{
    val crawford=MatchRules.nextIsCrawford(m.whiteScore,m.blackScore,m.target,m.crawfordUsed)
@@ -120,7 +120,7 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
    while(history.isNotEmpty()&&!UndoPolicy.isHumanRolledState(restored.game))restored=history.removeLast()
    if(UndoPolicy.isHumanRolledState(restored.game))while(history.lastOrNull()?.game?.let(UndoPolicy::isHumanRolledState)==true)restored=history.removeLast()
   }
-  restore(restored);saveSession()
+  restore(restored);_canUndo.value=history.isNotEmpty();saveSession()
  }
  private fun playDiceSound()=audio.playDice(settings.value.sound)
  private fun playCheckerSound()=audio.playChecker(settings.value.sound,settings.value.theme)
