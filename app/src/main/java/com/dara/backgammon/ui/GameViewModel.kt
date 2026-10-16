@@ -15,10 +15,15 @@ enum class Screen { MENU, SETUP, GAME }
 /** Single source of truth for which interactions are safe at any instant. */
 enum class InteractionPhase { WAITING_FOR_ROLL, ROLLING, WAITING_FOR_MOVE, ANIMATING_MOVE, AI_THINKING, DOUBLE_OFFER, GAME_OVER }
 private data class GameSnapshot(val game:TurnState,val match:MatchInfo,val clock:ClockState,val autoAssist:Boolean)
+/** A snapshot queued for the writer thread, carrying the order in which it was captured. */
+private data class PendingSave(val seq:Long,val session:SavedSession)
 class GameViewModel(app:Application):AndroidViewModel(app) {
  private val prefs=Preferences(app);private val savedMatches=SavedMatchStore(app);private val audio=GameAudio(app)
  private val _settings=MutableStateFlow(prefs.load());val settings=_settings.asStateFlow();private val _screen=MutableStateFlow(Screen.MENU);val screen=_screen.asStateFlow();private val _game=MutableStateFlow(TurnState());val game=_game.asStateFlow();private val _rolling=MutableStateFlow(false);val rolling=_rolling.asStateFlow();private val _match=MutableStateFlow(MatchInfo());val match=_match.asStateFlow();private val _autoAssist=MutableStateFlow(false);val autoAssist=_autoAssist.asStateFlow();private val _clock=MutableStateFlow(newClock());val clock=_clock.asStateFlow();private val _hasSaved=MutableStateFlow(false);val hasSaved=_hasSaved.asStateFlow()
- private val history=ArrayDeque<GameSnapshot>();private val pendingSave=MutableStateFlow<SavedSession?>(null);private var turnJob:Job?=null;private var clockTurn=Player.WHITE;private var appInForeground=true
+ private val history=ArrayDeque<GameSnapshot>();private val pendingSave=MutableStateFlow<PendingSave?>(null);private var turnJob:Job?=null;private var clockTurn=Player.WHITE;private var appInForeground=true
+ // Orders the two writers (the IO collector and onCleared) so an in-flight async write can
+ // never finish after a newer synchronous one and restore an outdated match.
+ private val saves=SaveOrderGate()
  private fun cancelActiveTurn(){turnJob?.cancel();turnJob=null;_rolling.value=false;if(!_game.value.rolled&&_game.value.dice.isNotEmpty())_game.value=_game.value.copy(dice=emptyList());_match.value=_match.value.copy(thinking=false)}
  private fun snapshot()=GameSnapshot(_game.value.copy(position=_game.value.position.copyDeep()),_match.value.copy(thinking=false),_clock.value,_autoAssist.value)
  private fun rememberState(){history.addLast(snapshot())}
@@ -28,7 +33,7 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
   // tick, every move and the 750 ms autosave used to block the UI thread on a synchronous
   // SharedPreferences commit. Conflation keeps only the newest snapshot, so a burst of moves
   // can never queue up obsolete writes.
-  viewModelScope.launch{pendingSave.collect{it?.let{session->if(withContext(Dispatchers.IO){savedMatches.save(session)})_hasSaved.value=true}}}
+  viewModelScope.launch{pendingSave.collect{it?.let{save->withContext(Dispatchers.IO){writeSave(save)}}}}
   viewModelScope.launch{var last=android.os.SystemClock.elapsedRealtime();while(isActive){delay(100);val now=android.os.SystemClock.elapsedRealtime();val delta=(now-last).coerceAtMost(250);last=now;tickClock(delta)}};viewModelScope.launch{while(isActive){delay(750);if(_screen.value==Screen.GAME&&!_rolling.value&&!_match.value.thinking&&turnJob?.isActive!=true)saveSession()}}}
  var mode=Mode.AI;private set
  private fun newClock():ClockState{val c=_settings.value.clockPreset;return ClockState(c.bankMillis,c.bankMillis,c.turnMillis,c!=ClockPreset.OFF)}
@@ -63,7 +68,10 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
  private fun humanCanMove()=interactionPhase()==InteractionPhase.WAITING_FOR_MOVE
  private fun humanCanRoll()=interactionPhase()==InteractionPhase.WAITING_FOR_ROLL
  private fun currentSession()=SavedSession(_game.value.copy(position=_game.value.position.copyDeep()),_match.value.copy(thinking=false),_clock.value,mode,_autoAssist.value)
- private fun saveSession(){pendingSave.value=currentSession()}
+ private fun saveSession(){pendingSave.value=PendingSave(saves.next(),currentSession())}
+ private fun writeSave(save:PendingSave){if(saves.write(save.seq){savedMatches.save(save.session)})_hasSaved.value=true}
+ /** onCleared runs after the view-model scope is cancelled, so it writes the newest snapshot itself. */
+ private fun saveSessionBlocking(){writeSave(PendingSave(saves.next(),currentSession()))}
  private fun loadSession(){
   val saved=savedMatches.load(newClock())?:return
   _game.value=saved.game;_match.value=saved.match;_clock.value=saved.clock.copy(active=_settings.value.clockPreset!=ClockPreset.OFF);clockTurn=saved.game.position.turn
@@ -154,5 +162,5 @@ class GameViewModel(app:Application):AndroidViewModel(app) {
   }
   if(_autoAssist.value&&_game.value.winner==null)viewModelScope.launch{delay(120);turnJob=null;autoRollWhite()}
  }
- override fun onCleared(){cancelActiveTurn();if(_screen.value==Screen.GAME)savedMatches.save(currentSession());audio.release()}
+ override fun onCleared(){cancelActiveTurn();if(_screen.value==Screen.GAME)saveSessionBlocking();audio.release()}
 }
