@@ -28,6 +28,22 @@ import com.dara.backgammon.data.*
 @Composable internal fun SettingToggle(title:String,sub:String,value:Boolean,set:(Boolean)->Unit){Row(Modifier.fillMaxWidth().height(58.dp).clip(RoundedCornerShape(8.dp)).background(Color.White.copy(.035f)).border(1.dp,Color.White.copy(.08f),RoundedCornerShape(8.dp)).clickable{set(!value)}.padding(horizontal=13.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text(title,color=Color.White.copy(.88f),fontSize=10.sp,fontWeight=FontWeight.Bold);Text(sub,color=Color.White.copy(.40f),fontSize=10.sp)};Switch(value,set,colors=SwitchDefaults.colors(checkedThumbColor=Color(0xffffe0a0),checkedTrackColor=Color(0xffa3693d)))}}
 @Composable internal fun Choice(t:String,on:Boolean=false,go:()->Unit){val shape=RoundedCornerShape(10.dp);Row(Modifier.fillMaxWidth().padding(vertical=3.dp).heightIn(min=48.dp).semantics{selected=on;role=Role.RadioButton;contentDescription=t}.clip(shape).background(if(on)Brush.horizontalGradient(listOf(Color(0xff555b5d),Color(0xff24282b)))else Brush.horizontalGradient(listOf(Color(0xff241915),Color(0xff1c1513)))).border(if(on)1.4.dp else .8.dp,if(on)Gold.copy(.78f)else Color.White.copy(.13f),shape).clickable(onClick=go).padding(horizontal=14.dp,vertical=9.dp),verticalAlignment=Alignment.CenterVertically){Text(if(on)"◆" else "◇",color=if(on)Gold else Color.White.copy(.28f),fontSize=10.sp);Spacer(Modifier.width(10.dp));Text(t,Modifier.weight(1f),color=if(on)Color(0xffffdda0)else Color.White.copy(.84f),fontSize=11.sp,fontWeight=if(on)FontWeight.Black else FontWeight.SemiBold);Text("›",color=if(on)Gold else Color.White.copy(.25f),fontSize=18.sp)}}
 
+/**
+ * One compact row of equal-width chips. Long option lists (personas, table sizes, clock presets)
+ * stay inside the dialog height even on a short landscape screen, where full-width rows used to
+ * push the primary choice below the fold.
+ */
+@Composable internal fun ChoiceChips(labels:List<String>,selected:Int,go:(Int)->Unit){
+ Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(6.dp)){
+  labels.forEachIndexed{i,label->
+   val on=i==selected;val shape=RoundedCornerShape(9.dp)
+   Box(Modifier.weight(1f).heightIn(min=48.dp).semantics{this.selected=on;role=Role.RadioButton;contentDescription=label}.clip(shape).background(if(on)Brush.horizontalGradient(listOf(Color(0xff555b5d),Color(0xff24282b)))else Brush.horizontalGradient(listOf(Color(0xff241915),Color(0xff1c1513)))).border(if(on)1.4.dp else .8.dp,if(on)Gold.copy(.78f)else Color.White.copy(.13f),shape).clickable(onClick={go(i)}).padding(horizontal=5.dp,vertical=8.dp),contentAlignment=Alignment.Center){
+    Text(label,color=if(on)Color(0xffffdda0)else Color.White.copy(.80f),fontSize=11.sp,fontWeight=if(on)FontWeight.Black else FontWeight.SemiBold,maxLines=1)
+   }
+  }
+ }
+}
+
 @Composable internal fun InGameSettingsStudio(s:Settings,match:MatchInfo,vm:GameViewModel,close:()->Unit){
  var tab by remember{mutableStateOf("GAME")};val interaction=remember{MutableInteractionSource()};val context=LocalContext.current
  Box(Modifier.fillMaxSize().background(Color.Black.copy(.48f)).clickable(onClick=close),contentAlignment=Alignment.Center){
