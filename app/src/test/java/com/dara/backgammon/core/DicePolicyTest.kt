@@ -26,4 +26,24 @@ class DicePolicyTest {
         val random = Random(7)
         repeat(20_000) { assertEquals(2, DicePolicy.roll(DoublesRate.NEVER, random).size) }
     }
+
+    /**
+     * Regression lock for an adversarial source: [Random.nextFloat] can legitimately return
+     * exactly 0f, and the old strictly-greater comparison let a double through even when the
+     * keep probability was zero. A source whose bits are all zero reproduces that case.
+     */
+    @Test fun neverPolicySurvivesARandomSourceThatCanReturnZero() {
+        val adversarial = object : Random() {
+            override fun nextBits(bitCount: Int): Int = 0
+        }
+        assertEquals(0f, adversarial.nextFloat())
+        assertEquals(2, DicePolicy.roll(DoublesRate.NEVER, adversarial).size)
+    }
+
+    @Test fun naturalPolicyStillKeepsEveryDoubleWithTheSameAdversarialSource() {
+        val adversarial = object : Random() {
+            override fun nextBits(bitCount: Int): Int = 0
+        }
+        assertEquals(4, DicePolicy.roll(DoublesRate.NATURAL, adversarial).size)
+    }
 }

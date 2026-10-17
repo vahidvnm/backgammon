@@ -15,6 +15,13 @@ import org.json.JSONObject
 class SavedMatchStore(context: Context) {
     private val preferences = context.getSharedPreferences("saved_match", Context.MODE_PRIVATE)
 
+    /**
+     * Durable write of one match snapshot. The commit is deliberately synchronous so a match
+     * survives an immediate process death, which means callers must stay off the main thread:
+     * [com.dara.backgammon.ui.GameViewModel] publishes snapshots to a conflated flow and
+     * writes them on `Dispatchers.IO`, and only the final write during teardown is performed
+     * inline because the view-model scope is already cancelled at that point.
+     */
     fun save(session: SavedSession): Boolean = runCatching {
         val game = session.game
         val match = session.match

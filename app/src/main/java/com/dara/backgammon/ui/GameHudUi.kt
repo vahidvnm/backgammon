@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -24,6 +25,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.semantics.*
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
@@ -72,18 +74,72 @@ import kotlin.math.roundToInt
 }
 @Composable internal fun ScoreDrum(score:Int){Box(Modifier.size(26.dp,29.dp).clip(RoundedCornerShape(3.dp)).background(Brush.verticalGradient(listOf(Color(0xff080808),Color(0xff242424),Color.Black))).border(.5.dp,Color.White.copy(.28f),RoundedCornerShape(3.dp)),contentAlignment=Alignment.Center){Text((score%10).toString(),color=Color.White,fontSize=17.sp,fontWeight=FontWeight.Medium)}}
 @Composable internal fun ClockSettingsButton(go:()->Unit,modifier:Modifier=Modifier){val shape=RoundedCornerShape(9.dp);Box(modifier.size(48.dp).semantics{role=Role.Button;contentDescription="تنظیمات مسابقه"}.clickable(onClick=go),contentAlignment=Alignment.Center){Box(Modifier.size(32.dp,28.dp).clip(shape).background(Brush.verticalGradient(listOf(Color(0xff94603e),Color(0xff3b1b11)))).border(1.dp,Color(0xffffce88).copy(.58f),shape),contentAlignment=Alignment.Center){Text("⚙",color=Color(0xffffe0aa),fontSize=15.sp)}}}
-@Composable internal fun TopGameBar(level:Difficulty,clockOn:Boolean,status:String,settings:()->Unit,theme:BoardTheme,modifier:Modifier=Modifier){val material=boardPalette(theme);CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr){Row(modifier.fillMaxWidth().height(30.dp).background(Brush.verticalGradient(listOf(material.frame,material.frameDark))).border(BorderStroke(1.dp,Brush.verticalGradient(listOf(material.light.copy(.58f),material.frameDark.copy(.72f))))).padding(horizontal=if(clockOn)18.dp else 10.dp),verticalAlignment=Alignment.CenterVertically){IconButton(settings,Modifier.size(28.dp)){Text("⚙",color=material.accent,fontSize=16.sp)};if(!clockOn)Text("هوش مصنوعی • ${level.fa()} • سطح ${level.ordinal+1}",Modifier.padding(start=8.dp),color=material.light.copy(.82f),fontSize=10.sp,fontWeight=FontWeight.Bold);Spacer(Modifier.weight(1f));Text(if(clockOn)status.replace("YOUR ","") else status,color=material.accent,fontSize=10.sp,fontWeight=FontWeight.Black,letterSpacing=.6.sp)}}}
+@Composable internal fun TopGameBar(level:Difficulty,clockOn:Boolean,status:String,settings:()->Unit,theme:BoardTheme,modifier:Modifier=Modifier){val material=boardPalette(theme);CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr){Row(modifier.fillMaxWidth().height(30.dp).background(Brush.verticalGradient(listOf(material.frame,material.frameDark))).border(BorderStroke(1.dp,Brush.verticalGradient(listOf(material.light.copy(.58f),material.frameDark.copy(.72f))))).padding(horizontal=if(clockOn)18.dp else 10.dp),verticalAlignment=Alignment.CenterVertically){IconButton(settings,Modifier.size(28.dp)){Text("⚙",color=material.accent,fontSize=16.sp)};if(!clockOn)Text("هوش مصنوعی • ${level.fa()} • سطح ${level.ordinal+1}",Modifier.padding(start=8.dp),color=material.light.copy(.82f),fontSize=10.sp,fontWeight=FontWeight.Bold);Spacer(Modifier.weight(1f));Text(status,color=material.accent,fontSize=10.sp,fontWeight=FontWeight.Black,letterSpacing=.6.sp)}}}
 
-@Composable internal fun SceneArrow(text:String,modifier:Modifier=Modifier,go:()->Unit){Box(modifier.size(38.dp,72.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xff17110e).copy(.64f)).border(1.dp,Color.White.copy(.38f),RoundedCornerShape(18.dp)).clickable(onClick=go),contentAlignment=Alignment.Center){Text(text,color=Color.White,fontSize=34.sp,fontWeight=FontWeight.Light)}}
-@Composable internal fun BarEngraving(text:String,modifier:Modifier=Modifier,go:()->Unit){
- val shape=RoundedCornerShape(6.dp)
- Box(modifier.size(90.dp,34.dp).semantics{role=Role.Button;contentDescription=text}.clip(shape).background(Color.Black.copy(.10f)).clickable(onClick=go),contentAlignment=Alignment.Center){
-  // Opposing one-pixel highlights create a recess cut into the existing board wood, not a plaque.
-  Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.TopCenter).background(Color.Black.copy(.28f)));Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.BottomCenter).background(Color.White.copy(.14f)))
-  Row(Modifier.offset(y=1.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)){Text("↶",color=Color.White.copy(.18f),fontSize=15.sp,fontWeight=FontWeight.Bold);Text(text,color=Color.White.copy(.16f),fontSize=11.sp,fontWeight=FontWeight.Black)}
-  Row(Modifier.offset(y=(-.5).dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)){Text("↶",color=Color(0xff29140d),fontSize=15.sp,fontWeight=FontWeight.Bold);Text(text,color=Color(0xff29140d),fontSize=11.sp,fontWeight=FontWeight.Black)}
+/**
+ * Scene switcher. The touch target keeps the 48dp accessibility minimum while the visible
+ * pill stays at its approved 38x72 size, so the board edges look unchanged.
+ */
+@Composable internal fun SceneArrow(text:String,modifier:Modifier=Modifier,go:()->Unit){Box(modifier.size(48.dp,80.dp).semantics{role=Role.Button;contentDescription=if(text=="‹")"پس‌زمینه قبلی" else "پس‌زمینه بعدی"}.clickable(onClick=go),contentAlignment=Alignment.Center){Box(Modifier.size(38.dp,72.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xff17110e).copy(.64f)).border(1.dp,Color.White.copy(.38f),RoundedCornerShape(18.dp)),contentAlignment=Alignment.Center){Text(text,color=Color.White,fontSize=34.sp,fontWeight=FontWeight.Light)}}}
+/** Mixes two colours; used so every theme derives its own plaque material instead of hardcoded brown. */
+private fun blend(a:Color,b:Color,t:Float)=Color(
+ red=a.red+(b.red-a.red)*t,green=a.green+(b.green-a.green)*t,blue=a.blue+(b.blue-a.blue)*t,alpha=a.alpha+(b.alpha-a.alpha)*t)
+
+/**
+ * A raised plaque of dark lacquer with a metal rim, sitting *on* the board.
+ *
+ * The face is deliberately darker than every board surface (walnut, sapphire, ice, obsidian and
+ * brushed steel all stay lighter or equally dark), while the rim, the bevel highlights and the
+ * lettering stay bright. That combination keeps the control legible on a pale ice board and on a
+ * near-black obsidian board alike - colour alone could never do both. The face still takes a tint
+ * from the active theme's accent, so it belongs to its board instead of looking pasted on.
+ *
+ * [on] is the toggle state; [enabled] only mutes the plaque when the action cannot run at all.
+ * Keeping them apart matters: a switch must stay tappable while it is off.
+ */
+@Composable internal fun WoodPlaque(label:String,mark:String?,width:Dp,on:Boolean=true,enabled:Boolean=true,theme:BoardTheme=BoardTheme.PREMIUM_WOOD,modifier:Modifier=Modifier,go:()->Unit){
+ val palette=boardPalette(theme)
+ val interaction=remember{MutableInteractionSource()}
+ val pressed by interaction.collectIsPressedAsState()
+ val lift by animateDpAsState(if(!enabled)1.5.dp else if(pressed)2.dp else 8.dp,animationSpec=tween(120),label="plaqueLift")
+ val shape=RoundedCornerShape(10.dp)
+ // Dark lacquer, tinted by the theme accent: always darker than the board underneath.
+ val base=blend(blend(palette.frameDark,Color.Black,.38f),palette.accent,.10f)
+ val faceTop=blend(base,Color.White,if(pressed).06f else .20f)
+ val faceLow=blend(base,Color.Black,.32f)
+ val face=Brush.verticalGradient(listOf(faceTop,base,faceLow))
+ val rimAlpha=when{!enabled->.30f;on->.95f;else->.62f}
+ val rim=palette.accent.copy(rimAlpha)
+ val ink=when{!enabled->Color.White.copy(.38f);on->blend(palette.light,Color.White,.30f);else->Color.White.copy(.82f)}
+ val sheen=Brush.verticalGradient(listOf(Color.White.copy(if(enabled).16f else .06f),Color.Transparent),startY=0f,endY=90f)
+ val stamp=TextStyle(shadow=Shadow(Color.Black.copy(if(enabled).85f else .40f),Offset(0f,1.2f)))
+ Box(
+  modifier.width(width).height(48.dp)
+   .semantics{role=Role.Button;contentDescription=label;if(!enabled)disabled()}
+   .clickable(interactionSource=interaction,indication=null,enabled=enabled,onClick=go),
+  contentAlignment=Alignment.Center
+ ){
+  // the shadow belongs to the visible plaque, not to the invisible 48dp touch target
+  Box(
+   Modifier.width(width).height(34.dp)
+    .shadow(elevation=lift,shape=shape,clip=false,ambientColor=Color.Black,spotColor=Color.Black)
+    .clip(shape).background(face)
+    // dark hairline first: separates from pale boards; gold rim inside: separates from dark ones
+    .border(1.4.dp,Color.Black.copy(if(enabled).55f else .30f),shape)
+    .padding(1.3.dp).clip(RoundedCornerShape(9.dp)).border(1.dp,rim,RoundedCornerShape(9.dp)),
+   contentAlignment=Alignment.Center
+  ){
+   Box(Modifier.matchParentSize().background(sheen))                       // lacquer sheen on the top half
+   Box(Modifier.fillMaxWidth().height(1.4.dp).align(Alignment.TopCenter).background(Color.White.copy(if(enabled).48f else .14f)))
+   Box(Modifier.fillMaxWidth().height(2.2.dp).align(Alignment.BottomCenter).background(Color.Black.copy(.72f)))
+   Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(7.dp)){
+    if(mark!=null)Text(mark,color=ink,fontSize=11.sp,fontWeight=FontWeight.Bold,style=stamp)
+    Text(label,color=ink,fontSize=11.5.sp,fontWeight=FontWeight.Black,letterSpacing=0.sp,maxLines=1,softWrap=false,style=stamp)
+   }
+  }
  }
 }
+
 @Composable internal fun AxleDoublingCube(value:Int,owner:Player?,pending:Player?,enabled:Boolean,go:()->Unit,theme:BoardTheme,modifier:Modifier=Modifier){
  val material=boardPalette(theme);val pulse by rememberInfiniteTransition(label="cubeOffer").animateFloat(.52f,1f,infiniteRepeatable(tween(850),RepeatMode.Reverse),label="cubePulse");val rotation=remember{Animatable(0f)};var lastValue by remember{mutableIntStateOf(value)};var accepted by remember{mutableStateOf(false)}
  LaunchedEffect(value,pending){val changed=value!=lastValue;if(changed){accepted=true;lastValue=value};rotation.snapTo(0f);rotation.animateTo(360f,tween(720,easing=FastOutSlowInEasing));if(changed){delay(1350);accepted=false}}
@@ -93,17 +149,10 @@ import kotlin.math.roundToInt
   Box(Modifier.size(36.dp).graphicsLayer{rotationY=rotation.value;cameraDistance=10f*density;shadowElevation=8.dp.toPx();shape=octagon;clip=false}.clip(octagon).background(Brush.linearGradient(listOf(material.light,material.accent,material.frameDark))).border(if(enabled||pending!=null||accepted)2.dp else 1.dp,glow.copy(glowAlpha),octagon),contentAlignment=Alignment.Center){Canvas(Modifier.fillMaxSize()){val c=Offset(size.width/2,size.height/2);for(i in 0 until 8){val a=Math.toRadians((i*45.0-90));val b=Math.toRadians((i*45.0-67.5));val p1=Offset(c.x+cos(a).toFloat()*size.width*.46f,c.y+sin(a).toFloat()*size.height*.46f);val p2=Offset(c.x+cos(b).toFloat()*size.width*.35f,c.y+sin(b).toFloat()*size.height*.35f);drawLine(Color(0xff5d3822).copy(.28f),p1,p2,1f)}};Text("${shown}x",color=if(accepted)Color(0xff176b2d)else Color(0xff342015),fontSize=12.sp,fontWeight=FontWeight.Black,style=androidx.compose.ui.text.TextStyle(shadow=androidx.compose.ui.graphics.Shadow(Color.White.copy(.42f),Offset(-1f,-1f),1f)))}
  }
 }
-@Composable internal fun EngravedWoodAction(text:String,modifier:Modifier=Modifier,go:()->Unit){
- val shape=RoundedCornerShape(6.dp);val enabled=text.contains("روشن");val mark=if(enabled)"●" else "○"
- Box(modifier.size(104.dp,34.dp).semantics{role=Role.Button;contentDescription=text}.clip(shape).background(Color.Black.copy(.10f)).clickable(onClick=go),contentAlignment=Alignment.Center){
-  Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.TopCenter).background(Color.Black.copy(.28f)));Box(Modifier.fillMaxWidth().height(1.dp).align(Alignment.BottomCenter).background(Color.White.copy(.14f)))
-  Row(Modifier.offset(y=1.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){Text(mark,color=Color.White.copy(.17f),fontSize=10.sp);Text(text,color=Color.White.copy(.16f),fontSize=11.sp,fontWeight=FontWeight.Black)}
-  Row(Modifier.offset(y=(-.5).dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){Text(mark,color=Color(0xff29140d),fontSize=10.sp);Text(text,color=Color(0xff29140d),fontSize=11.sp,fontWeight=FontWeight.Black)}
- }
-}
-
-
-
+/**
+ * Auto-assist switch. [enabled] is a real parameter: the indicator used to be inferred from
+ * the Persian label text, which would silently break the moment the wording changed.
+ */
 @Composable internal fun AnimatedDice(finalDice:List<Int>,style:DiceStyle,rolling:Boolean,onThrow:()->Unit,modifier:Modifier=Modifier){
  var drag by remember{mutableStateOf(Offset.Zero)};var throwVector by remember{mutableStateOf(Offset.Zero)}
  val x1=remember{Animatable(-90f)};val y1=remember{Animatable(-45f)};val r1=remember{Animatable(0f)}
@@ -141,10 +190,12 @@ import kotlin.math.roundToInt
  }
 }
 
-@Composable internal fun VictoryCelebration(winner:Player,whiteScore:Int,blackScore:Int,modifier:Modifier=Modifier){
+@Composable internal fun VictoryCelebration(winner:Player,whiteScore:Int,blackScore:Int,modifier:Modifier=Modifier,animations:Boolean=true){
  val progress by rememberInfiniteTransition(label="victory").animateFloat(0f,1f,infiniteRepeatable(tween(2200,easing=LinearEasing)),label="victoryBurst")
  Box(modifier.semantics{contentDescription="تابلوی پایان بازی؛ ${winner.fa()} برنده؛ امتیاز $whiteScore به $blackScore"},contentAlignment=Alignment.TopCenter){
-  Canvas(Modifier.fillMaxSize()){
+  // The confetti is a continuous 60 fps effect: players who switch animations off for
+  // accessibility or battery reasons still get the result card, just without the loop.
+  if(animations)Canvas(Modifier.fillMaxSize()){
    drawRect(Brush.radialGradient(listOf(Color.Transparent,Color.Black.copy(.70f)),Offset(size.width/2,size.height/2),size.maxDimension*.72f))
    repeat(54){i->val seed=(i*47%101)/101f;val lane=(i*83%97)/97f;val y=((seed+progress)%1f)*size.height;val x=lane*size.width+sin((progress*6.28f+i))*18f;val color=listOf(Color(0xffffd15c),Color(0xfff6eee0),Color(0xff63d59a),Color(0xffd97872))[i%4];rotate((i*29f+progress*260f),Offset(x,y)){drawRoundRect(color.copy(.88f),Offset(x-3f,y-6f),Size(6f,12f),CornerRadius(2f))}}
   }

@@ -11,8 +11,8 @@ AI Backgammon is completely offline: no account, no ads, no tracking and no inte
 KEY FEATURES
 
 • Complete standard backgammon movement rules
-• Four AI personalities: Builder, Runner, Hunter and Master
-• Five difficulty levels
+• Four selectable AI personalities: Builder (points and primes), Runner (racing), Hunter (attacks and blitzes) and Master (balanced)
+• Five difficulty levels with a measured strength gap, including a beginner level for new players
 • Standard doubling cube with Take, Drop and Redouble
 • Direct compound checker moves using two dice or doubles
 • Optional Coach guidance and simple play mode
@@ -28,5 +28,8 @@ Every match is rendered with polished checkers, physical dice, carved storage we
 
 Classic strategy. Intelligent play.
 
-## Release notes — 1.0.0
+## Release notes
+Each version keeps its own notes in `store-listing/release-notes-fa-v<versionCode>.txt` so the store copy and the repository cannot diverge. The entry below is kept for reference only.
+
+### 1.0.0 — first public release
 Welcome to the first public release of AI Backgammon: offline AI opponents, local play, doubling cube, coaching, match clocks, automatic match restoration, crafted themes and polished board interaction.

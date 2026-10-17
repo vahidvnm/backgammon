@@ -25,6 +25,7 @@ import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
+import com.dara.backgammon.ai.AiPersona
 import com.dara.backgammon.ai.Difficulty
 import com.dara.backgammon.core.*
 import com.dara.backgammon.data.*
@@ -38,18 +39,19 @@ import kotlin.math.roundToInt
  Box(Modifier.fillMaxSize().background(Color.Black.copy(.24f)).clickable(onClick=close)){
   AnimatedContent(kind,modifier=Modifier.align(Alignment.CenterEnd).widthIn(min=340.dp,max=400.dp).padding(end=18.dp),transitionSpec={slideInHorizontally(tween(330)){it}+fadeIn() togetherWith slideOutHorizontally(tween(250)){it}+fadeOut()},label="woodMenu"){page->
    Column(Modifier.heightIn(max=530.dp).clip(RoundedCornerShape(16.dp)).background(Brush.verticalGradient(listOf(Color(0xee272c2f),Color(0xf2111518)))).border(1.dp,Color.White.copy(.16f),RoundedCornerShape(16.dp)).verticalScroll(rememberScrollState()).padding(12.dp),horizontalAlignment=Alignment.End,verticalArrangement=Arrangement.spacedBy(7.dp)){
-    val nested=page in listOf("themes","pieces","difficulty","sound","dice","clock","guidance")
+    val nested=page in listOf("themes","pieces","difficulty","persona","sound","dice","clock","guidance")
     WoodMenuPlank(if(nested)"‹  SETTINGS" else when(page){"menu"->"منوی مسابقه";else->"تنظیمات بازی"},"امتیاز ${match.whiteScore} — ${match.blackScore}",large=true){if(nested)switch("settings")else close()}
     when(page){
      "menu"->{WoodMenuPlank("ادامه","بازگشت به تخته",go=close);WoodMenuPlank("بازگردانی حرکت","بازگرداندن وضعیت قبلی"){vm.undo();close()};WoodMenuPlank("منوی اصلی","خروج از مسابقه"){vm.menu()}}
      "themes"->BoardTheme.entries.forEach{t->WoodMenuPlank(t.fa(),if(t==s.theme)"◆  انتخاب‌شده — تاس و مهره هماهنگ" else "مجموعه تخته، تاس و مهره پیش‌فرض"){vm.update(s.copy(theme=t,pieces=t.defaultPieces()))}}
      "pieces"->PieceStyle.entries.forEach{piece->WoodMenuPlank(piece.fa(),if(piece==s.pieces)"◆  انتخاب‌شده" else "مجموعه مهره‌ها"){vm.update(s.copy(pieces=piece))}}
      "difficulty"->Difficulty.entries.forEach{d->WoodMenuPlank(d.fa(),if(d==s.difficulty)"◆  انتخاب‌شده" else "قدرت هوش مصنوعی"){vm.update(s.copy(difficulty=d))}}
+     "persona"->AiPersona.entries.forEach{persona->WoodMenuPlank(persona.fa(),if(persona==s.aiPersona)"◆  انتخاب‌شده — ${persona.faHint()}" else persona.faHint()){vm.update(s.copy(aiPersona=persona))}}
      "sound"->{WoodTogglePlank("افکت‌های صوتی",s.sound){vm.update(s.copy(sound=it))};WoodTogglePlank("بازخورد لرزشی",s.vibration){vm.update(s.copy(vibration=it))};WoodTogglePlank("پویانمایی نرم",s.animations){vm.update(s.copy(animations=it))}}
      "dice"->{val labels=mapOf(DoublesRate.NATURAL to "طبیعی واقعی • ۱۶٫۷٪",DoublesRate.REDUCED_20 to "۲۰٪ کمتر • ۱۳٫۳٪",DoublesRate.REDUCED_50 to "۵۰٪ کمتر • ۸٫۳٪",DoublesRate.NEVER to "بدون جفت • ۰٪");DoublesRate.entries.forEach{rate->WoodMenuPlank(labels[rate]!!,if(rate==s.doublesRate)"◆  انتخاب‌شده — برای هر دو بازیکن یکسان" else "قانون یکسان برای بازیکن و هوش مصنوعی"){vm.update(s.copy(doublesRate=rate))}}}
      "clock"->{val labels=mapOf(ClockPreset.OFF to ("ساعت خاموش" to "بازی آزاد بدون محدودیت زمان"),ClockPreset.RAPID_60 to ("سریع • ذخیره ۱ دقیقه" to "۱۰ ثانیه در هر نوبت"),ClockPreset.STANDARD_180 to ("استاندارد • ذخیره ۳ دقیقه" to "۲۰ ثانیه در هر نوبت"));ClockPreset.entries.forEach{preset->val text=labels[preset]!!;WoodMenuPlank(text.first,if(preset==s.clockPreset)"◆  انتخاب‌شده — ${text.second}" else text.second){vm.update(s.copy(clockPreset=preset))}}}
      "guidance"->{WoodMenuPlank("راهنمای ساده",if(s.guidanceMode==GuidanceMode.SIMPLE)"◆  انتخاب‌شده — فقط حرکت مستقیم" else "نمایش یک گام مجاز"){vm.update(s.copy(guidanceMode=GuidanceMode.SIMPLE))};WoodMenuPlank("راهنمای مربی",if(s.guidanceMode==GuidanceMode.COACH)"◆  انتخاب‌شده — مسیرهای کامل" else "مسیرهای ترکیبی آموزشی"){vm.update(s.copy(guidanceMode=GuidanceMode.COACH))}}
-     else->{WoodMenuPlank("صدا و حس بازی",if(s.sound)"صدا روشن" else "صدا خاموش"){switch("sound")};WoodMenuPlank("ساعت مسابقه",when(s.clockPreset){ClockPreset.OFF->"خاموش";ClockPreset.RAPID_60->"ذخیره ۱ دقیقه • نوبت ۱۰ ثانیه";ClockPreset.STANDARD_180->"ذخیره ۳ دقیقه • نوبت ۲۰ ثانیه"}){switch("clock")};WoodMenuPlank("راهنمای حرکت",if(s.guidanceMode==GuidanceMode.SIMPLE)"ساده • فقط حرکت بعدی" else "مربی • مسیرهای کامل"){switch("guidance")};WoodMenuPlank("تاس — جفت‌ها",when(s.doublesRate){DoublesRate.NATURAL->"طبیعی واقعی • ۱۶٫۷٪";DoublesRate.REDUCED_20->"۲۰٪ کمتر • ۱۳٫۳٪";DoublesRate.REDUCED_50->"۵۰٪ کمتر • ۸٫۳٪";DoublesRate.NEVER->"جفت غیرفعال"}){switch("dice")};WoodMenuPlank("پوسته تخته",s.theme.fa()){switch("themes")};WoodMenuPlank("مجموعه مهره‌ها",s.pieces.fa()){switch("pieces")};WoodMenuPlank("قدرت هوش مصنوعی",s.difficulty.fa()){switch("difficulty")}}
+     else->{WoodMenuPlank("صدا و حس بازی",if(s.sound)"صدا روشن" else "صدا خاموش"){switch("sound")};WoodMenuPlank("ساعت مسابقه",when(s.clockPreset){ClockPreset.OFF->"خاموش";ClockPreset.RAPID_60->"ذخیره ۱ دقیقه • نوبت ۱۰ ثانیه";ClockPreset.STANDARD_180->"ذخیره ۳ دقیقه • نوبت ۲۰ ثانیه"}){switch("clock")};WoodMenuPlank("راهنمای حرکت",if(s.guidanceMode==GuidanceMode.SIMPLE)"ساده • فقط حرکت بعدی" else "مربی • مسیرهای کامل"){switch("guidance")};WoodMenuPlank("تاس — جفت‌ها",when(s.doublesRate){DoublesRate.NATURAL->"طبیعی واقعی • ۱۶٫۷٪";DoublesRate.REDUCED_20->"۲۰٪ کمتر • ۱۳٫۳٪";DoublesRate.REDUCED_50->"۵۰٪ کمتر • ۸٫۳٪";DoublesRate.NEVER->"جفت غیرفعال"}){switch("dice")};WoodMenuPlank("پوسته تخته",s.theme.fa()){switch("themes")};WoodMenuPlank("مجموعه مهره‌ها",s.pieces.fa()){switch("pieces")};WoodMenuPlank("قدرت هوش مصنوعی",s.difficulty.fa()){switch("difficulty")};if(vm.mode==Mode.AI)WoodMenuPlank("سبک حریف",s.aiPersona.fa()){switch("persona")}}
     }
    }
   }

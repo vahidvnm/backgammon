@@ -17,14 +17,38 @@ private data class StyleWeights(
     val blot:Double,val bar:Double,val hit:Double,val safety:Double
 )
 
+/**
+ * Personality multipliers applied on top of the position-derived weights.
+ * MASTER is deliberately neutral, so the default opponent keeps playing the exact
+ * strength that shipped in 1.3.9 while the three styled personalities diverge.
+ */
+private fun AiPersona.bias():StyleWeights=when(this){
+    AiPersona.MASTER->StyleWeights(1.0,1.0,1.0,1.0,1.0,1.0,1.0)
+    AiPersona.BUILDER->StyleWeights(.88,1.30,1.30,1.18,.80,.70,1.10)
+    AiPersona.RUNNER->StyleWeights(1.35,.90,.95,1.15,.70,.55,1.12)
+    AiPersona.HUNTER->StyleWeights(.95,1.00,1.15,.78,1.35,1.70,.72)
+}
+
+private fun StyleWeights.scaledBy(bias:StyleWeights)=StyleWeights(
+    race*bias.race,madePoint*bias.madePoint,homePoint*bias.homePoint,
+    blot*bias.blot,bar*bias.bar,hit*bias.hit,safety*bias.safety
+)
+
 object BackgammonAi {
     private data class SequenceKey(val points:List<Int>,val barWhite:Int,val barBlack:Int,val offWhite:Int,val offBlack:Int,val turn:Player,val dice:List<Int>)
     private val sequenceCache=object:LinkedHashMap<SequenceKey,List<List<Move>>>(256,.75f,true){
         override fun removeEldestEntry(eldest:MutableMap.MutableEntry<SequenceKey,List<List<Move>>>?)=size>4096
     }
+    /**
+     * The search always enumerates the roll in ascending order, so [sequences] is a pure
+     * function of the position and the dice *set*, never of the order the player happened to
+     * roll or of whichever order filled the cache first. Equal-scoring routes therefore always
+     * break their tie the same way, and the same roll can never produce two different answers.
+     */
     private fun sequences(position:Position,dice:List<Int>):List<List<Move>>{
-        val key=SequenceKey(position.points.toList(),position.barWhite,position.barBlack,position.offWhite,position.offBlack,position.turn,dice.sorted())
-        return synchronized(sequenceCache){sequenceCache[key]}?:GameEngine.sequences(position,dice).also{computed->synchronized(sequenceCache){sequenceCache[key]=computed}}
+        val ordered=dice.sorted()
+        val key=SequenceKey(position.points.toList(),position.barWhite,position.barBlack,position.offWhite,position.offBlack,position.turn,ordered)
+        return synchronized(sequenceCache){sequenceCache[key]}?:GameEngine.sequences(position,ordered).also{computed->synchronized(sequenceCache){sequenceCache[key]=computed}}
     }
     internal fun clearSequenceCache()=synchronized(sequenceCache){sequenceCache.clear()}
     internal fun sequenceCacheSize()=synchronized(sequenceCache){sequenceCache.size}
@@ -32,15 +56,9 @@ object BackgammonAi {
     fun chooseSequence(position:Position,dice:List<Int>,level:Difficulty,persona:AiPersona=AiPersona.MASTER,random:Random=Random.Default):List<Move>{
         val choices=sequences(position,dice).filter{it.isNotEmpty()}
         if(choices.isEmpty())return emptyList()
-        if(level==Difficulty.BEGINNER)return choices.random(random)
-        val scored=choices.map{seq->seq to evaluate(play(position,seq),position.turn,position)}.sortedByDescending{it.second}
-        return when(level){
-            Difficulty.EASY->scored.take(minOf(4,scored.size)).random(random).first
-            Difficulty.MEDIUM->scored.take(minOf(2,scored.size)).random(random).first
-            Difficulty.HARD->scored.first().first
-            Difficulty.EXPERT->scored.maxBy{(seq,score)->score+replySafety(play(position,seq),position.turn)}.first
-            else->choices.first()
-        }
+        val scored=choices.map{seq->seq to evaluate(play(position,seq),position.turn,persona)}.sortedByDescending{it.second}
+        if(level==Difficulty.EXPERT)return scored.maxBy{(seq,score)->score+replySafety(play(position,seq),position.turn,persona)}.first
+        return DifficultyPolicy.choose(scored.map{it.first},level,random) ?: choices.first()
     }
 
     /** Lightweight cube intelligence: positive values favour [me]. */
@@ -89,8 +107,15 @@ object BackgammonAi {
         return equity(position,taker)>threshold
     }
 
-    /** Chooses strategy from the position itself instead of forcing a personality. */
-    private fun weights(p:Position,me:Player):StyleWeights {
+    /**
+     * Reads the strategy from the position itself, then applies the personality multipliers.
+     * The positional read decides whether this is a race, a priming game or a blitz; the
+     * personality decides how aggressively that plan is pursued.
+     */
+    private fun weights(p:Position,me:Player,persona:AiPersona):StyleWeights =
+        baseWeights(p,me).scaledBy(persona.bias())
+
+    private fun baseWeights(p:Position,me:Player):StyleWeights {
         val myPip=pip(p,me);val theirPip=pip(p,me.other());val race=(0..23).none{i->p.points[i]*me.sign>0&&(0..23).any{j->p.points[j]*me.other().sign>0&&if(me==Player.WHITE)j<i else j>i}}
         val bearing=p.off(me)>0||p.off(me.other())>0
         val pressure=p.bar(me.other())>0
@@ -125,8 +150,8 @@ object BackgammonAi {
     }
     private fun stackWaste(p:Position,player:Player):Int=(0..23).sumOf{(p.points[it]*player.sign-3).coerceAtLeast(0)}
     private fun play(start:Position,moves:List<Move>)=moves.fold(start){p,m->GameEngine.apply(p,m)}
-    private fun evaluate(p:Position,me:Player,before:Position=p):Double{
-        val w=weights(p,me)
+    private fun evaluate(p:Position,me:Player,persona:AiPersona=AiPersona.MASTER,before:Position=p):Double{
+        val w=weights(p,me,persona)
         var score=(pip(p,me.other())-pip(p,me))*w.race+(p.off(me)-p.off(me.other()))*45
         for(i in 0..23){
             val mine=p.points[i]*me.sign
@@ -145,15 +170,15 @@ object BackgammonAi {
         if(p.off(me)>0&&p.off(me.other())==0)score+=8.0
         return score
     }
-    private fun replySafety(p:Position,me:Player):Double{
-        val opponent=p.copy(turn=me.other());val baseline=evaluate(p,me,p);var replyDelta=0.0
+    private fun replySafety(p:Position,me:Player,persona:AiPersona=AiPersona.MASTER):Double{
+        val opponent=p.copy(turn=me.other());val baseline=evaluate(p,me,persona,p);var replyDelta=0.0
         for(a in 1..6)for(b in a..6){
             val replies=sequences(opponent,GameEngine.rollValues(a,b))
-            val worst=replies.minOfOrNull{evaluate(play(opponent,it),me,p)}?:baseline
+            val worst=replies.minOfOrNull{evaluate(play(opponent,it),me,persona,p)}?:baseline
             // Only the damage or benefit of the reply belongs here; adding the full board score
             // would count the same static position twice and distort Expert decisions.
             replyDelta+=(worst-baseline)*if(a==b)1.0 else 2.0
         }
-        return replyDelta/36.0*weights(p,me).safety
+        return replyDelta/36.0*weights(p,me,persona).safety
     }
 }

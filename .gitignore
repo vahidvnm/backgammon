@@ -5,3 +5,11 @@ local.properties
 *.iml
 .DS_Store
 captures/
+
+# Signing material must never be committed. The only exception is the public,
+# intentionally non-production debug key used by CI debug builds.
+*.jks
+*.keystore
+*.p12
+keystore.properties
+!app/ci-debug.p12

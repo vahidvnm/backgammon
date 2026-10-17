@@ -4,14 +4,13 @@ on:
   workflow_dispatch:
   push:
     tags: ['v*']
-    branches: ['arena/01a0b377-backgammon']
 
 permissions:
   contents: read
 
 jobs:
   release:
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') || startsWith(github.event.head_commit.message, '[release]')
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
@@ -36,16 +35,20 @@ jobs:
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Restore release signing key when configured
+        id: signing
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
           if [ -n "$KEYSTORE_BASE64" ]; then
             printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
+            echo "configured=true" >> "$GITHUB_OUTPUT"
           else
-            echo 'Signing secrets are not configured; producing unsigned validation binaries.'
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo '::warning::Signing secrets are not configured; this run can only produce unsigned validation binaries.'
           fi
 
       - name: Validate release signing key
+        if: steps.signing.outputs.configured == 'true'
         run: |
           test -s "$ANDROID_KEYSTORE_PATH" || {
             echo 'ERROR: ANDROID_KEYSTORE_BASE64 is missing or decoded to an empty file.'
@@ -63,20 +66,26 @@ jobs:
 
       - name: Verify signing status
         run: |
-          if find app/build/outputs/apk/{myket,bazaar}/release -name '*.apk' -print0 | xargs -0 -n1 "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose; then
+          set +e
+          if find app/build/outputs/apk/{myket,bazaar}/release -name '*.apk' -print0 | xargs -0 -n1 "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose 2>/dev/null; then
             echo '### ✅ Production-signed release generated' >> "$GITHUB_STEP_SUMMARY"
+          elif [ "${{ steps.signing.outputs.configured }}" = "true" ]; then
+            echo '### ❌ Signing key was configured but no APK verifies as signed' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
           else
             echo '### ⚠️ Unsigned release generated' >> "$GITHUB_STEP_SUMMARY"
             echo 'Configure ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, and ANDROID_KEY_PASSWORD repository secrets before publishing.' >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Download Cafe Bazaar Bundle Signer 0.1.13
+        if: steps.signing.outputs.configured == 'true'
         run: |
           curl -fL --retry 3 --retry-all-errors \
             -o bundle-signer-0.1.13.jar \
             https://github.com/cafebazaar/bundle-signer/releases/download/v0.1.13/bundlesigner-0.1.13.jar
 
       - name: Generate Cafe Bazaar BIN
+        if: steps.signing.outputs.configured == 'true'
         run: |
           set -euo pipefail
           test -s "$ANDROID_KEYSTORE_PATH" || {
@@ -123,7 +132,9 @@ jobs:
             app/build/outputs/apk/myket/release/*.apk
             app/build/outputs/apk/bazaar/release/*.apk
             app/build/outputs/cafebazaar/*.bin
-          if-no-files-found: error
+          # The Cafe Bazaar BIN and signed binaries are absent on unsigned
+          # validation runs; the log step below still reports what happened.
+          if-no-files-found: warn
 
       - name: Upload release diagnostics
         if: always()

@@ -1,5 +1,10 @@
 # AI Backgammon Privacy Policy
 
+> Source of truth for this policy. `docs/index.html` is the published page and
+> `privacy-policy.html` in the repository root is kept for the URL that store listings may
+> already reference. Change the wording here first, then mirror it into both HTML pages so
+> the three copies cannot drift apart.
+
 **Effective date:** September 24, 2026
 
 AI Backgammon is an offline board game. We designed it to work without an account, advertising identifier, analytics SDK, or network connection.

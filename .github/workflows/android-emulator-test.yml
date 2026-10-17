@@ -1,8 +1,10 @@
 name: Android Emulator Game Journeys
 
 on:
+  pull_request:
+    branches: [main]
   push:
-    branches: [arena/01a0b377-backgammon]
+    branches: [main]
   workflow_dispatch:
 
 permissions:

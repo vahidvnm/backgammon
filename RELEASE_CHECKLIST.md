@@ -1,4 +1,7 @@
-# AI Backgammon 1.0.0 release checklist
+# AI Backgammon release checklist
+
+The current version comes from `versionName`/`versionCode` in `app/build.gradle.kts`; the steps
+below are version independent, so the same checklist covers every release.
 
 ## Automated — completed in CI
 
@@ -30,6 +33,19 @@
 - [ ] Large font/display scaling
 - [ ] Sound disabled and enabled
 - [ ] Haptics disabled and enabled
+
+## AI strength validation
+
+The five levels are a ranking window over the engine's legal sequences, locked by
+`DifficultyPolicyTest`, with a strength floor in `DifficultyLadderTest`. Re-measure before a
+release whenever the evaluation function or the windows change:
+
+- [ ] 200 games per adjacent pairing, weaker level on White, shared seeded dice stream
+- [ ] BEGINNER stays playable (before the ladder it lost 198 of 200 games to EASY)
+- [ ] EASY / MEDIUM / HARD stay clearly separated (before the ladder MEDIUM vs HARD was 85 : 115)
+- [ ] EXPERT keeps its edge over HARD through the reply search
+- [ ] Each personality (BUILDER, RUNNER, HUNTER, MASTER) picks different moves on contested
+      positions and MASTER still matches the shipped default opponent
 
 ## Gameplay smoke test
 

@@ -20,8 +20,10 @@ import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.DialogProperties
+import androidx.activity.compose.BackHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dara.backgammon.R
+import com.dara.backgammon.ai.AiPersona
 import com.dara.backgammon.ai.Difficulty
 import com.dara.backgammon.core.Mode
 import com.dara.backgammon.data.*
@@ -53,6 +55,8 @@ import com.dara.backgammon.data.*
 @Composable internal fun HomeIcon(icon:String,label:String,go:()->Unit){FilledTonalButton(go,contentPadding=PaddingValues(0.dp),modifier=Modifier.size(54.dp).semantics{contentDescription=label},shape=androidx.compose.foundation.shape.CircleShape,colors=ButtonDefaults.filledTonalButtonColors(containerColor=Color(0xdd2b332e),contentColor=Color.White)){Text(icon,fontSize=23.sp)}}
 @Composable internal fun SetupMenu(vm:GameViewModel){
  val s by vm.settings.collectAsStateWithLifecycle();var dialog by remember{mutableStateOf("")};val scene=when(s.tableScene){TableScene.DARK_GRASS->R.drawable.table_dark_grass;TableScene.STARRY_SKY->R.drawable.table_starry_sky;TableScene.AUTUMN_SUNSET->R.drawable.table_autumn_sunset;TableScene.PERSIAN_RUG->R.drawable.table_persian_rug;TableScene.DARK_RIVER->R.drawable.table_dark_river}
+ // The setup page points back at the main menu, matching the on-screen Back control.
+ BackHandler{vm.menu()}
  Box(Modifier.fillMaxSize().pointerInput(Unit){var drag=0f;detectHorizontalDragGestures(onDragEnd={if(drag>120f)vm.menu();drag=0f},onHorizontalDrag={_,amount->drag+=amount})}){
   Image(painterResource(scene),null,Modifier.fillMaxSize(),contentScale=ContentScale.Crop);Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(Color(0xb2454b4c),Color(0xee111618),Color(0xf4080b0d)))))
   Text(stringResource(R.string.new_game),Modifier.align(Alignment.TopCenter).padding(22.dp),fontSize=34.sp,fontWeight=FontWeight.Black,color=Color(0xffffdc83))
@@ -76,9 +80,9 @@ import com.dara.backgammon.data.*
       "AUDIO"->{SettingToggle("افکت‌های صوتی","صدای طبیعی تاس و مهره",s.sound){vm.update(s.copy(sound=it))};SettingToggle("بازخورد لرزشی","واکنش لمسی هنگام بازی",s.vibration){vm.update(s.copy(vibration=it))};SettingToggle("پویانمایی کامل","حرکت کامل و نرم مهره و تاس",s.animations){vm.update(s.copy(animations=it))}}
       "APPEARANCE"->{Text("پوسته تخته",fontSize=10.sp,color=Gold);BoardTheme.entries.forEach{Choice(it.fa(),it==s.theme){vm.update(s.copy(theme=it,pieces=it.defaultPieces()))}};Text("مجموعه مهره‌ها",fontSize=10.sp,color=Gold);PieceStyle.entries.forEach{Choice(it.fa(),it==s.pieces){vm.update(s.copy(pieces=it))}}}
       "GUIDANCE"->GuidanceMode.entries.forEach{Choice(if(it==GuidanceMode.SIMPLE)"ساده — مقصدهای مستقیم" else "مربی — مسیرهای ترکیبی کامل",it==s.guidanceMode){vm.update(s.copy(guidanceMode=it))}}
-      else->{Text("قدرت هوش مصنوعی",fontSize=10.sp,color=Gold);Difficulty.entries.forEach{Choice(it.fa(),it==s.difficulty){vm.update(s.copy(difficulty=it))}};Text("هدف مسابقه بعدی",fontSize=10.sp,color=Gold);listOf(3,5,7,9,11).forEach{target->Choice("$target امتیازی",target==s.matchTarget){vm.update(s.copy(matchTarget=target))}};Text("ساعت مسابقه",fontSize=10.sp,color=Gold);ClockPreset.entries.forEach{Choice(when(it){ClockPreset.OFF->"خاموش";ClockPreset.RAPID_60->"سریع — ۱ دقیقه ذخیره / ۱۰ ثانیه هر نوبت";ClockPreset.STANDARD_180->"استاندارد — ۳ دقیقه ذخیره / ۲۰ ثانیه هر نوبت"},it==s.clockPreset){vm.update(s.copy(clockPreset=it))}}}
+      else->{Text("قدرت هوش مصنوعی",fontSize=10.sp,color=Gold);Difficulty.entries.forEach{Choice(it.fa(),it==s.difficulty){vm.update(s.copy(difficulty=it))}};if(vm.mode==Mode.AI){Text("سبک حریف — ${s.aiPersona.fa()}",fontSize=10.sp,color=Gold);ChoiceChips(AiPersona.entries.map{it.fa()},AiPersona.entries.indexOf(s.aiPersona)){p->vm.update(s.copy(aiPersona=AiPersona.entries[p]))}};Text("هدف مسابقه بعدی",fontSize=10.sp,color=Gold);listOf(3,5,7,9,11).forEach{target->Choice("$target امتیازی",target==s.matchTarget){vm.update(s.copy(matchTarget=target))}};Text("ساعت مسابقه",fontSize=10.sp,color=Gold);ClockPreset.entries.forEach{Choice(when(it){ClockPreset.OFF->"خاموش";ClockPreset.RAPID_60->"سریع — ۱ دقیقه ذخیره / ۱۰ ثانیه هر نوبت";ClockPreset.STANDARD_180->"استاندارد — ۳ دقیقه ذخیره / ۲۰ ثانیه هر نوبت"},it==s.clockPreset){vm.update(s.copy(clockPreset=it))}}}
      }
     }
-   }else Column(Modifier.heightIn(max=420.dp).verticalScroll(rememberScrollState())){when(kind){"ai"->{Text("برای شروع یک سطح را انتخاب کنید",fontSize=10.sp,color=Gold);Difficulty.entries.forEach{Choice(it.fa(),it==s.difficulty){vm.update(s.copy(difficulty=it));vm.start(Mode.AI)}}};"themes"->BoardTheme.entries.forEach{Choice(it.fa(),it==s.theme){vm.update(s.copy(theme=it,pieces=it.defaultPieces()))}};"stats"->Text("آمار مسابقه فقط روی دستگاه ذخیره می‌شود.",color=Color.White.copy(.7f));else->Text("یک تجربه کاملاً آفلاین و اختصاصی از تخته‌نرد.")}}},
+   }else Column(Modifier.heightIn(max=420.dp).verticalScroll(rememberScrollState())){when(kind){"ai"->{Text("قدرت هوش مصنوعی",fontSize=10.sp,color=Gold);Difficulty.entries.forEach{Choice(it.fa(),it==s.difficulty){vm.update(s.copy(difficulty=it));vm.start(Mode.AI)}};Spacer(Modifier.height(8.dp));Text("سبک حریف — ${s.aiPersona.fa()}",fontSize=10.sp,color=Gold);ChoiceChips(AiPersona.entries.map{it.fa()},AiPersona.entries.indexOf(s.aiPersona)){p->vm.update(s.copy(aiPersona=AiPersona.entries[p]))};Text(s.aiPersona.faHint(),fontSize=9.sp,color=Color.White.copy(.55f),maxLines=2)};"themes"->BoardTheme.entries.forEach{Choice(it.fa(),it==s.theme){vm.update(s.copy(theme=it,pieces=it.defaultPieces()))}};else->Text("یک تجربه کاملاً آفلاین و اختصاصی از تخته‌نرد.")}}},
   confirmButton={if(kind!="settings")TextButton(close){Text("بستن",color=Color(0xffffd99a))}})
 }
