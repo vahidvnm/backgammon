@@ -65,10 +65,15 @@ fun boardPalette(t:BoardTheme)=when(t){
   // triangles on any device aspect, so no per-theme height corrections are needed here.
   // The masters carry a lot of ornament near the rails. A soft inner vignette (stronger on the
   // busiest themes) keeps the eye on the playfield without touching the artwork's centre.
-  val vignette=when(theme){BoardTheme.ROYAL_SAPPHIRE->.34f;BoardTheme.OBSIDIAN_IVORY->.30f;BoardTheme.CRYSTAL_GLASS->.22f;BoardTheme.BRUSHED_METAL->.20f;else->.12f}
-  // android.graphics.RadialGradient rejects a radius of zero, and a canvas can briefly measure 0
-  // while the game screen is being laid out - so the vignette only draws once there is a size.
-  if(size.minDimension>1f)drawRect(Brush.radialGradient(0f to Color.Transparent,.62f to Color.Transparent,.88f to Color.Black.copy(vignette*.55f),1f to Color.Black.copy(vignette),radius=(size.minDimension*.78f).coerceAtLeast(1f)))
+  // The masters carry a lot of ornament near the rails; a plain dark edge keeps the eye on the
+  // playfield. It is two solid strips rather than a radial shader: the emulator's software GPU
+  // (and a low-end phone) should not pay for a full-screen gradient every frame.
+  val vignette=when(theme){BoardTheme.ROYAL_SAPPHIRE->.30f;BoardTheme.OBSIDIAN_IVORY->.26f;BoardTheme.CRYSTAL_GLASS->.18f;BoardTheme.BRUSHED_METAL->.16f;else->.10f}
+  if(size.minDimension>1f){
+   val band=size.minDimension*.055f
+   drawRect(Brush.verticalGradient(listOf(Color.Black.copy(vignette),Color.Transparent)),topLeft=Offset.Zero,size=Size(size.width,band))
+   drawRect(Brush.verticalGradient(listOf(Color.Transparent,Color.Black.copy(vignette))),topLeft=Offset(0f,size.height-band),size=Size(size.width,band))
+  }
   fun center(point:Int,index:Int):Offset=geometry.checkerCenter(point,index)
   val checkerTheme=pieces.materialTheme()
   /**

@@ -119,7 +119,9 @@ internal fun tabFa(key:String)=when(key){"GAME"->"بازی";"AUDIO"->"صدا";"C
   val sceneFilter=remember(sceneMute){ColorFilter.colorMatrix(ColorMatrix(mutedSceneMatrix(sceneMute)))}
   Image(painterResource(background),null,Modifier.fillMaxSize().graphicsLayer{alpha=.88f},contentScale=ContentScale.Crop,colorFilter=sceneFilter)
   Box(Modifier.fillMaxSize().background(Color.Black.copy(sceneDim)))
-  Box(Modifier.fillMaxSize().background(Brush.radialGradient(0f to Color.Transparent,.52f to Color.Black.copy(sceneDim*.30f),1f to Color.Black.copy(sceneDim*1.35f))))
+  // top/bottom shading rather than a full-screen radial shader: same effect on the eye, far
+  // cheaper on a software renderer
+  Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Black.copy(sceneDim*.9f),Color.Transparent,Color.Black.copy(sceneDim*1.2f)))))
   Box(Modifier.align(Alignment.Center).fillMaxWidth(layout.widthFraction).fillMaxHeight(layout.heightFraction).absoluteOffset(y=16.dp).clip(RoundedCornerShape(15.dp)).background(Color.Black.copy(.78f)).border(2.dp,Color.Black.copy(.82f),RoundedCornerShape(15.dp)))
   Box(Modifier.align(Alignment.Center).fillMaxWidth(layout.widthFraction).fillMaxHeight(layout.heightFraction).absoluteOffset(y=7.dp).clip(RoundedCornerShape(14.dp)).background(Brush.verticalGradient(listOf(shell.frame,shell.frameDark))))
   BoxWithConstraints(Modifier.align(Alignment.Center).fillMaxWidth(layout.widthFraction).fillMaxHeight(layout.heightFraction).graphicsLayer{shadowElevation=42.dp.toPx();shape=RoundedCornerShape(13.dp);clip=false}.clip(RoundedCornerShape(13.dp)).background(Brush.verticalGradient(listOf(shell.frame.copy(.92f),shell.frameDark))).border(1.dp,shell.light.copy(.52f),RoundedCornerShape(13.dp))){
