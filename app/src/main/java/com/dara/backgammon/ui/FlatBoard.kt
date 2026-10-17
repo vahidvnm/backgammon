@@ -66,7 +66,9 @@ fun boardPalette(t:BoardTheme)=when(t){
   // The masters carry a lot of ornament near the rails. A soft inner vignette (stronger on the
   // busiest themes) keeps the eye on the playfield without touching the artwork's centre.
   val vignette=when(theme){BoardTheme.ROYAL_SAPPHIRE->.34f;BoardTheme.OBSIDIAN_IVORY->.30f;BoardTheme.CRYSTAL_GLASS->.22f;BoardTheme.BRUSHED_METAL->.20f;else->.12f}
-  drawRect(Brush.radialGradient(0f to Color.Transparent,.62f to Color.Transparent,.88f to Color.Black.copy(vignette*.55f),1f to Color.Black.copy(vignette),radius=size.minDimension*.78f))
+  // android.graphics.RadialGradient rejects a radius of zero, and a canvas can briefly measure 0
+  // while the game screen is being laid out - so the vignette only draws once there is a size.
+  if(size.minDimension>1f)drawRect(Brush.radialGradient(0f to Color.Transparent,.62f to Color.Transparent,.88f to Color.Black.copy(vignette*.55f),1f to Color.Black.copy(vignette),radius=(size.minDimension*.78f).coerceAtLeast(1f)))
   fun center(point:Int,index:Int):Offset=geometry.checkerCenter(point,index)
   val checkerTheme=pieces.materialTheme()
   /**
@@ -76,6 +78,7 @@ fun boardPalette(t:BoardTheme)=when(t){
    * before the piece body, so only its outer half stays visible and it reads as a rim, not a sticker.
    */
   fun DrawScope.separate(c:Offset,r:Float,white:Boolean){
+   if(r<=0f)return
    val halo=if(white)Color(0xff0d0806).copy(.58f) else Color.White.copy(.46f)
    val inner=if(white)Color.Black.copy(.24f) else Color.Black.copy(.38f)
    drawCircle(halo,r*1.02f,c,style=Stroke(r*.13f))
