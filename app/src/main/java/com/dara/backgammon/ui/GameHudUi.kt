@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -80,38 +81,53 @@ import kotlin.math.roundToInt
  * pill stays at its approved 38x72 size, so the board edges look unchanged.
  */
 @Composable internal fun SceneArrow(text:String,modifier:Modifier=Modifier,go:()->Unit){Box(modifier.size(48.dp,80.dp).semantics{role=Role.Button;contentDescription=if(text=="‹")"پس‌زمینه قبلی" else "پس‌زمینه بعدی"}.clickable(onClick=go),contentAlignment=Alignment.Center){Box(Modifier.size(38.dp,72.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xff17110e).copy(.64f)).border(1.dp,Color.White.copy(.38f),RoundedCornerShape(18.dp)),contentAlignment=Alignment.Center){Text(text,color=Color.White,fontSize=34.sp,fontWeight=FontWeight.Light)}}}
+/** Mixes two colours; used so every theme derives its own plaque material instead of hardcoded brown. */
+private fun blend(a:Color,b:Color,t:Float)=Color(
+ red=a.red+(b.red-a.red)*t,green=a.green+(b.green-a.green)*t,blue=a.blue+(b.blue-a.blue)*t,alpha=a.alpha+(b.alpha-a.alpha)*t)
+
 /**
- * A carved plaque that rests *on* the board instead of being engraved into it: a cast shadow on
- * the wood, a warm face with a lit top edge and a shaded bottom edge, a thin accent rim catching
- * the light, and lettering stamped in gold with a dark offset under it. Pressing the plaque sinks
- * it towards the board, so the control feels like the physical checkers around it.
+ * A raised plaque carved from the board's own material.
  *
- * The visible plaque stays slim (34dp) inside the 48dp touch target, and the caller supplies the
- * semantics label so screen readers keep announcing the same action as before.
+ * Everything is derived from the active [theme] palette - face, rim and lettering - so the
+ * control belongs to walnut, sapphire, ice, obsidian and brushed steel alike. A real elevation
+ * shadow (soft, not a hard blob) lifts it off the wood, a lit top edge and a shaded bottom edge
+ * give it thickness, and the label is stamped with a dark offset. Pressing sinks the plaque by
+ * animating the elevation down, so it answers the finger like the checkers do.
+ *
+ * [on] is the toggle state; [enabled] only dims the plaque when the action cannot run at all.
+ * Keeping them apart matters: a switch must stay tappable while it is off.
  */
-@Composable internal fun WoodPlaque(label:String,mark:String?,width:Dp,enabled:Boolean=true,theme:BoardTheme=BoardTheme.PREMIUM_WOOD,modifier:Modifier=Modifier,go:()->Unit){
+@Composable internal fun WoodPlaque(label:String,mark:String?,width:Dp,on:Boolean=true,enabled:Boolean=true,theme:BoardTheme=BoardTheme.PREMIUM_WOOD,modifier:Modifier=Modifier,go:()->Unit){
  val palette=boardPalette(theme)
  val interaction=remember{MutableInteractionSource()}
  val pressed by interaction.collectIsPressedAsState()
- val shape=RoundedCornerShape(9.dp)
- val face=when{
-  !enabled->Brush.verticalGradient(listOf(Color(0xff4b3a2c),Color(0xff231812)))
-  pressed->Brush.verticalGradient(listOf(palette.frameDark,Color(0xff150a05)))
-  else->Brush.verticalGradient(listOf(palette.frame,Color(0xff33190e),palette.frameDark))
- }
- val rim=if(enabled)palette.accent.copy(.62f) else Color.White.copy(.10f)
- val ink=if(enabled)palette.light else Color.White.copy(.30f)
- val stamp=TextStyle(shadow=Shadow(Color(0xff1b0d06).copy(.85f),Offset(0f,1.1f)))
- Box(modifier.width(width).height(48.dp).semantics{role=Role.Button;contentDescription=label;if(!enabled)disabled()}.clickable(interactionSource=interaction,indication=null,enabled=enabled,onClick=go),contentAlignment=Alignment.Center){
-  // the plaque is a physical object, so it casts a soft shadow onto the wood under it
-  Box(Modifier.width(width-10.dp).height(30.dp).offset(y=5.dp).clip(RoundedCornerShape(50)).background(Color.Black.copy(if(enabled).44f else .24f)))
-  Box(Modifier.width(width).height(34.dp).offset(y=if(pressed)1.5.dp else 0.dp).clip(shape).background(face).border(1.dp,rim,shape),contentAlignment=Alignment.Center){
-   Box(Modifier.fillMaxWidth().height(1.5.dp).align(Alignment.TopCenter).background(Color.White.copy(if(enabled).30f else .13f)))
-   Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.BottomCenter).background(Color.Black.copy(.50f)))
-   Box(Modifier.matchParentSize().padding(3.dp).clip(RoundedCornerShape(6.dp)).border(1.dp,Color.Black.copy(.20f),RoundedCornerShape(6.dp)))
-   Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){
-    if(mark!=null)Text(mark,color=ink,fontSize=11.sp,fontWeight=FontWeight.Bold,style=stamp)
-    Text(label,color=ink,fontSize=11.sp,fontWeight=FontWeight.Black,letterSpacing=.4.sp,style=stamp)
+ val lift by animateDpAsState(if(!enabled)2.dp else if(pressed)1.5.dp else 7.dp,animationSpec=tween(120),label="plaqueLift")
+ val shape=RoundedCornerShape(10.dp)
+ // Three stops, all from the palette: the two hardcoded browns used to turn crystal and sapphire plaques brown.
+ val topStop=if(enabled)palette.frame else blend(palette.frameDark,palette.field,.30f)
+ val midStop=blend(palette.frame,palette.frameDark,.62f)
+ val lowStop=palette.frameDark
+ val face=if(pressed)Brush.verticalGradient(listOf(lowStop,midStop)) else Brush.verticalGradient(listOf(topStop,midStop,lowStop))
+ val rimAlpha=when{!enabled->.18f;on->.78f;else->.42f}
+ val rim=palette.accent.copy(rimAlpha)
+ val inkAlpha=when{!enabled->.34f;on->1f;else->.78f}
+ val ink=palette.light.copy(inkAlpha)
+ val stamp=TextStyle(shadow=Shadow(Color.Black.copy(if(enabled).72f else .30f),Offset(0f,1f)))
+ Box(
+  modifier.width(width).height(48.dp)
+   .semantics{role=Role.Button;contentDescription=label;if(!enabled)disabled()}
+   .clickable(interactionSource=interaction,indication=null,enabled=enabled,onClick=go),
+  contentAlignment=Alignment.Center
+ ){
+  // the shadow belongs to the visible plaque, not to the invisible 48dp touch target
+  Box(Modifier.width(width).height(34.dp).shadow(elevation=lift,shape=shape,clip=false,ambientColor=Color.Black,spotColor=Color.Black).clip(shape).background(face).border(1.dp,rim,shape),contentAlignment=Alignment.Center){
+   // lit top edge + shaded bottom edge = thickness; the inner line reads as the carved bevel
+   Box(Modifier.fillMaxWidth().height(1.5.dp).align(Alignment.TopCenter).background(Color.White.copy(if(enabled).34f else .10f)))
+   Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.BottomCenter).background(Color.Black.copy(.55f)))
+   Box(Modifier.matchParentSize().padding(2.5.dp).clip(RoundedCornerShape(7.dp)).border(.8.dp,if(on&&enabled)Color.Black.copy(.28f) else Color.Black.copy(.16f),RoundedCornerShape(7.dp)))
+   Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(7.dp)){
+    if(mark!=null)Text(mark,color=ink,fontSize=12.sp,fontWeight=FontWeight.Bold,style=stamp)
+    Text(label,color=ink,fontSize=11.5.sp,fontWeight=FontWeight.Black,letterSpacing=0.sp,maxLines=1,softWrap=false,style=stamp)
    }
   }
  }
