@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.*
@@ -93,7 +94,14 @@ internal fun tabFa(key:String)=when(key){"GAME"->"بازی";"AUDIO"->"صدا";"C
  fun cycleScene(step:Int){val all=TableScene.entries;val next=all[(all.indexOf(settings.tableScene)+step+all.size)%all.size];vm.update(settings.copy(tableScene=next))}
  BoxWithConstraints(Modifier.fillMaxSize()){
   val layout=boardLayoutProfile(maxWidth.value,maxHeight.value);val shell=boardPalette(settings.theme);val boardAxisOffset=boardAxisOffsetDp(maxWidth.value,layout.widthFraction).dp
-  Image(painterResource(background),null,Modifier.fillMaxSize(),contentScale=ContentScale.Crop);Box(Modifier.fillMaxSize().background(Color.Black.copy(.06f)))
+  // The table scene is a photograph full of fine pattern, and on the richer boards it competes
+  // with the playfield for attention. A gentle blur (Android 12+; a no-op below that), a wash and
+  // a vignette throw it out of focus so the board and its checkers keep the eye. The playfield
+  // itself is untouched.
+  val sceneDim=when(settings.theme){BoardTheme.PREMIUM_WOOD->.14f;BoardTheme.BRUSHED_METAL->.24f;BoardTheme.CRYSTAL_GLASS->.30f;BoardTheme.OBSIDIAN_IVORY->.30f;BoardTheme.ROYAL_SAPPHIRE->.30f}
+  Image(painterResource(background),null,Modifier.fillMaxSize().blur(7.dp),contentScale=ContentScale.Crop)
+  Box(Modifier.fillMaxSize().background(Color.Black.copy(sceneDim)))
+  Box(Modifier.fillMaxSize().background(Brush.radialGradient(0f to Color.Transparent,.52f to Color.Black.copy(sceneDim*.30f),1f to Color.Black.copy(sceneDim*1.35f))))
   Box(Modifier.align(Alignment.Center).fillMaxWidth(layout.widthFraction).fillMaxHeight(layout.heightFraction).absoluteOffset(y=16.dp).clip(RoundedCornerShape(15.dp)).background(Color.Black.copy(.78f)).border(2.dp,Color.Black.copy(.82f),RoundedCornerShape(15.dp)))
   Box(Modifier.align(Alignment.Center).fillMaxWidth(layout.widthFraction).fillMaxHeight(layout.heightFraction).absoluteOffset(y=7.dp).clip(RoundedCornerShape(14.dp)).background(Brush.verticalGradient(listOf(shell.frame,shell.frameDark))))
   BoxWithConstraints(Modifier.align(Alignment.Center).fillMaxWidth(layout.widthFraction).fillMaxHeight(layout.heightFraction).graphicsLayer{shadowElevation=42.dp.toPx();shape=RoundedCornerShape(13.dp);clip=false}.clip(RoundedCornerShape(13.dp)).background(Brush.verticalGradient(listOf(shell.frame.copy(.92f),shell.frameDark))).border(1.dp,shell.light.copy(.52f),RoundedCornerShape(13.dp))){

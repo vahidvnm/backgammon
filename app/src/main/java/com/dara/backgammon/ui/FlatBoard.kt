@@ -57,15 +57,32 @@ fun boardPalette(t:BoardTheme)=when(t){
   val geometry=BoardGeometry.from(size.width,size.height,theme);val barW=geometry.barWidth;val barLeft=geometry.barLeft;val cw=geometry.columnWidth;val topTray=geometry.trayRect(true);val bottomTray=geometry.trayRect(false)
   // Theme-specific masters preserve one calibrated physical geometry while restoring each material identity.
   // The retired procedural chassis is deliberately not rendered underneath: this saves substantial Canvas work.
-  drawImage(boardSurface,dstSize=IntSize(size.width.roundToInt(),size.height.roundToInt()),alpha=if(theme==BoardTheme.CRYSTAL_GLASS).92f else 1f)
+  drawImage(boardSurface,dstSize=IntSize(size.width.roundToInt(),size.height.roundToInt()),alpha=1f)
   // All material detail is baked into the calibrated master; no synthetic rails or colour washes are
   // drawn here, preventing bright seams and preserving the texture's natural local colour variation.
   // Every anchor now lives in BoardCalibration, measured from the artwork itself: because the
   // master is stretched to fill the canvas, fractional positions stay welded to the baked
   // triangles on any device aspect, so no per-theme height corrections are needed here.
+  // The masters carry a lot of ornament near the rails. A soft inner vignette (stronger on the
+  // busiest themes) keeps the eye on the playfield without touching the artwork's centre.
+  val vignette=when(theme){BoardTheme.ROYAL_SAPPHIRE->.34f;BoardTheme.OBSIDIAN_IVORY->.30f;BoardTheme.CRYSTAL_GLASS->.22f;BoardTheme.BRUSHED_METAL->.20f;else->.12f}
+  drawRect(Brush.radialGradient(0f to Color.Transparent,.62f to Color.Transparent,.88f to Color.Black.copy(vignette*.55f),1f to Color.Black.copy(vignette),radius=size.minDimension*.78f))
   fun center(point:Int,index:Int):Offset=geometry.checkerCenter(point,index)
   val checkerTheme=pieces.materialTheme()
+  /**
+   * The board art is dense - inlaid gold, faceted jewels, cracked ice - and a checker that simply
+   * sits on top of it disappears. Every piece therefore gets its own outline: a dark edge around a
+   * pale checker, a pale edge around a dark one, plus a tight inner shadow. The ring is drawn
+   * before the piece body, so only its outer half stays visible and it reads as a rim, not a sticker.
+   */
+  fun DrawScope.separate(c:Offset,r:Float,white:Boolean){
+   val halo=if(white)Color(0xff0d0806).copy(.58f) else Color.White.copy(.46f)
+   val inner=if(white)Color.Black.copy(.24f) else Color.Black.copy(.38f)
+   drawCircle(halo,r*1.02f,c,style=Stroke(r*.13f))
+   drawCircle(inner,r*.99f,c,style=Stroke(r*.06f))
+  }
   fun DrawScope.piece(c:Offset,r:Float,white:Boolean,on:Boolean=false,available:Boolean=false,variation:Float=0f){
+   separate(c,r,white)
    // Two-part luxury checker: a cast ornamental metal body around a deep fabric inset.
    val gold=when(checkerTheme){BoardTheme.OBSIDIAN_IVORY->if(white)Color(0xffdddcd5)else Color(0xff52606a);BoardTheme.CRYSTAL_GLASS->if(white)Color(0xff8edee5)else Color(0xff174b61);else->if(white)Color(0xffc6a15d)else Color(0xff765238)};val goldLight=when(checkerTheme){BoardTheme.OBSIDIAN_IVORY->if(white)Color.White else Color(0xffa7bac4);BoardTheme.CRYSTAL_GLASS->if(white)Color(0xffd6ffff)else Color(0xff5eb3ca);else->if(white)Color(0xffffe3a0)else Color(0xffc18a5b)};val goldDark=when(checkerTheme){BoardTheme.OBSIDIAN_IVORY->if(white)Color(0xff777a7d)else Color(0xff182127);BoardTheme.CRYSTAL_GLASS->if(white)Color(0xff276c78)else Color(0xff071a25);else->if(white)Color(0xff68431f)else Color(0xff29170f)}
    val inset=when(checkerTheme){BoardTheme.OBSIDIAN_IVORY->if(white)Color(0xffeadfc7)else Color(0xff17191b);BoardTheme.CRYSTAL_GLASS->if(white)Color(0xffd9ffff)else Color(0xff111b27);BoardTheme.ROYAL_SAPPHIRE->if(white)Color(0xfffff2d4)else Color(0xffa80738);else->if(white)Color(0xff741f2d)else Color(0xff21191a)};val insetLight=when(checkerTheme){BoardTheme.OBSIDIAN_IVORY->if(white)Color.White else Color(0xff54575a);BoardTheme.CRYSTAL_GLASS->if(white)Color.White else Color(0xff556477);BoardTheme.ROYAL_SAPPHIRE->if(white)Color.White else Color(0xffff4776);else->if(white)Color(0xffa74450)else Color(0xff574044)};val topC=c-Offset(0f,r*.070f)
