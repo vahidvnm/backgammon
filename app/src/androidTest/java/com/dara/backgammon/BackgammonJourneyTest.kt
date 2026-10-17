@@ -76,6 +76,24 @@ class BackgammonJourneyTest {
         }
     }
 
+    /**
+     * Regression guard: the auto-assist plaque used to be rendered with enabled = its own state,
+     * so once it was off it could never be switched back on. A switch must stay tappable while
+     * it is off - that is the whole point of a switch.
+     */
+    @Test fun autoAssistSwitchCanBeTurnedOnAndOff() {
+        compose.onNodeWithText("بازی با هوش مصنوعی").performClick()
+        compose.onNodeWithText("بازی با هوش مصنوعی").performClick()
+        compose.onNodeWithText("تازه‌کار").performClick()
+        compose.waitForIdle()
+        compose.onNodeWithContentDescription("خودکار خاموش").assertExists().performClick()
+        compose.waitForIdle()
+        compose.onNodeWithContentDescription("خودکار روشن").assertExists()
+        compose.onNodeWithContentDescription("خودکار روشن").performClick()
+        compose.waitForIdle()
+        compose.onNodeWithContentDescription("خودکار خاموش").assertExists()
+    }
+
     @Test fun clockSettingsBackgroundAndForegroundRemainUsable() {
         compose.onNode(hasText("شروع بازی") or hasText("بازی جدید")).performClick()
         compose.onNodeWithText("گزینه‌ها").performClick()

@@ -86,33 +86,33 @@ private fun blend(a:Color,b:Color,t:Float)=Color(
  red=a.red+(b.red-a.red)*t,green=a.green+(b.green-a.green)*t,blue=a.blue+(b.blue-a.blue)*t,alpha=a.alpha+(b.alpha-a.alpha)*t)
 
 /**
- * A raised plaque carved from the board's own material.
+ * A raised plaque of dark lacquer with a metal rim, sitting *on* the board.
  *
- * Everything is derived from the active [theme] palette - face, rim and lettering - so the
- * control belongs to walnut, sapphire, ice, obsidian and brushed steel alike. A real elevation
- * shadow (soft, not a hard blob) lifts it off the wood, a lit top edge and a shaded bottom edge
- * give it thickness, and the label is stamped with a dark offset. Pressing sinks the plaque by
- * animating the elevation down, so it answers the finger like the checkers do.
+ * The face is deliberately darker than every board surface (walnut, sapphire, ice, obsidian and
+ * brushed steel all stay lighter or equally dark), while the rim, the bevel highlights and the
+ * lettering stay bright. That combination keeps the control legible on a pale ice board and on a
+ * near-black obsidian board alike - colour alone could never do both. The face still takes a tint
+ * from the active theme's accent, so it belongs to its board instead of looking pasted on.
  *
- * [on] is the toggle state; [enabled] only dims the plaque when the action cannot run at all.
+ * [on] is the toggle state; [enabled] only mutes the plaque when the action cannot run at all.
  * Keeping them apart matters: a switch must stay tappable while it is off.
  */
 @Composable internal fun WoodPlaque(label:String,mark:String?,width:Dp,on:Boolean=true,enabled:Boolean=true,theme:BoardTheme=BoardTheme.PREMIUM_WOOD,modifier:Modifier=Modifier,go:()->Unit){
  val palette=boardPalette(theme)
  val interaction=remember{MutableInteractionSource()}
  val pressed by interaction.collectIsPressedAsState()
- val lift by animateDpAsState(if(!enabled)2.dp else if(pressed)1.5.dp else 7.dp,animationSpec=tween(120),label="plaqueLift")
+ val lift by animateDpAsState(if(!enabled)1.5.dp else if(pressed)2.dp else 8.dp,animationSpec=tween(120),label="plaqueLift")
  val shape=RoundedCornerShape(10.dp)
- // Three stops, all from the palette: the two hardcoded browns used to turn crystal and sapphire plaques brown.
- val topStop=if(enabled)palette.frame else blend(palette.frameDark,palette.field,.30f)
- val midStop=blend(palette.frame,palette.frameDark,.62f)
- val lowStop=palette.frameDark
- val face=if(pressed)Brush.verticalGradient(listOf(lowStop,midStop)) else Brush.verticalGradient(listOf(topStop,midStop,lowStop))
- val rimAlpha=when{!enabled->.18f;on->.78f;else->.42f}
+ // Dark lacquer, tinted by the theme accent: always darker than the board underneath.
+ val base=blend(blend(palette.frameDark,Color.Black,.38f),palette.accent,.10f)
+ val faceTop=blend(base,Color.White,if(pressed).06f else .20f)
+ val faceLow=blend(base,Color.Black,.32f)
+ val face=Brush.verticalGradient(listOf(faceTop,base,faceLow))
+ val rimAlpha=when{!enabled->.30f;on->.95f;else->.62f}
  val rim=palette.accent.copy(rimAlpha)
- val inkAlpha=when{!enabled->.34f;on->1f;else->.78f}
- val ink=palette.light.copy(inkAlpha)
- val stamp=TextStyle(shadow=Shadow(Color.Black.copy(if(enabled).72f else .30f),Offset(0f,1f)))
+ val ink=when{!enabled->Color.White.copy(.38f);on->blend(palette.light,Color.White,.30f);else->Color.White.copy(.82f)}
+ val sheen=Brush.verticalGradient(listOf(Color.White.copy(if(enabled).16f else .06f),Color.Transparent),startY=0f,endY=90f)
+ val stamp=TextStyle(shadow=Shadow(Color.Black.copy(if(enabled).85f else .40f),Offset(0f,1.2f)))
  Box(
   modifier.width(width).height(48.dp)
    .semantics{role=Role.Button;contentDescription=label;if(!enabled)disabled()}
@@ -120,13 +120,20 @@ private fun blend(a:Color,b:Color,t:Float)=Color(
   contentAlignment=Alignment.Center
  ){
   // the shadow belongs to the visible plaque, not to the invisible 48dp touch target
-  Box(Modifier.width(width).height(34.dp).shadow(elevation=lift,shape=shape,clip=false,ambientColor=Color.Black,spotColor=Color.Black).clip(shape).background(face).border(1.dp,rim,shape),contentAlignment=Alignment.Center){
-   // lit top edge + shaded bottom edge = thickness; the inner line reads as the carved bevel
-   Box(Modifier.fillMaxWidth().height(1.5.dp).align(Alignment.TopCenter).background(Color.White.copy(if(enabled).34f else .10f)))
-   Box(Modifier.fillMaxWidth().height(2.dp).align(Alignment.BottomCenter).background(Color.Black.copy(.55f)))
-   Box(Modifier.matchParentSize().padding(2.5.dp).clip(RoundedCornerShape(7.dp)).border(.8.dp,if(on&&enabled)Color.Black.copy(.28f) else Color.Black.copy(.16f),RoundedCornerShape(7.dp)))
+  Box(
+   Modifier.width(width).height(34.dp)
+    .shadow(elevation=lift,shape=shape,clip=false,ambientColor=Color.Black,spotColor=Color.Black)
+    .clip(shape).background(face)
+    // dark hairline first: separates from pale boards; gold rim inside: separates from dark ones
+    .border(1.4.dp,Color.Black.copy(if(enabled).55f else .30f),shape)
+    .padding(1.3.dp).clip(RoundedCornerShape(9.dp)).border(1.dp,rim,RoundedCornerShape(9.dp)),
+   contentAlignment=Alignment.Center
+  ){
+   Box(Modifier.matchParentSize().background(sheen))                       // lacquer sheen on the top half
+   Box(Modifier.fillMaxWidth().height(1.4.dp).align(Alignment.TopCenter).background(Color.White.copy(if(enabled).48f else .14f)))
+   Box(Modifier.fillMaxWidth().height(2.2.dp).align(Alignment.BottomCenter).background(Color.Black.copy(.72f)))
    Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(7.dp)){
-    if(mark!=null)Text(mark,color=ink,fontSize=12.sp,fontWeight=FontWeight.Bold,style=stamp)
+    if(mark!=null)Text(mark,color=ink,fontSize=11.sp,fontWeight=FontWeight.Bold,style=stamp)
     Text(label,color=ink,fontSize=11.5.sp,fontWeight=FontWeight.Black,letterSpacing=0.sp,maxLines=1,softWrap=false,style=stamp)
    }
   }
