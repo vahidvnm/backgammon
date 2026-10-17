@@ -19,7 +19,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.*
@@ -47,6 +46,22 @@ import kotlinx.coroutines.launch
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.roundToInt
+
+/**
+ * A 4x5 colour matrix that pulls a photograph back: [keep] is the share of colour that survives
+ * (0 = greyscale) and the luminance is scaled so the scene reads as background texture. Used for
+ * the table scene instead of a blur, because a colour matrix is a single cheap pass.
+ */
+private fun mutedSceneMatrix(keep:Float):FloatArray{
+ val inv=1f-keep
+ val lr=.213f;val lg=.715f;val lb=.072f
+ val k=.78f   // overall luminance scale
+ return floatArrayOf(
+  (lr*inv+keep)*k,(lg*inv)*k,(lb*inv)*k,0f,0f,
+  (lr*inv)*k,(lg*inv+keep)*k,(lb*inv)*k,0f,0f,
+  (lr*inv)*k,(lg*inv)*k,(lb*inv+keep)*k,0f,0f,
+  0f,0f,0f,1f,0f)
+}
 
 internal val Gold=Color(0xffffd274);internal val Glass=Color(0xcc11151b)
 internal fun Difficulty.fa()=when(this){Difficulty.BEGINNER->"تازه‌کار";Difficulty.EASY->"آسان";Difficulty.MEDIUM->"متوسط";Difficulty.HARD->"سخت";Difficulty.EXPERT->"حرفه‌ای"}
@@ -94,12 +109,15 @@ internal fun tabFa(key:String)=when(key){"GAME"->"بازی";"AUDIO"->"صدا";"C
  fun cycleScene(step:Int){val all=TableScene.entries;val next=all[(all.indexOf(settings.tableScene)+step+all.size)%all.size];vm.update(settings.copy(tableScene=next))}
  BoxWithConstraints(Modifier.fillMaxSize()){
   val layout=boardLayoutProfile(maxWidth.value,maxHeight.value);val shell=boardPalette(settings.theme);val boardAxisOffset=boardAxisOffsetDp(maxWidth.value,layout.widthFraction).dp
-  // The table scene is a photograph full of fine pattern, and on the richer boards it competes
-  // with the playfield for attention. A gentle blur (Android 12+; a no-op below that), a wash and
-  // a vignette throw it out of focus so the board and its checkers keep the eye. The playfield
-  // itself is untouched.
-  val sceneDim=when(settings.theme){BoardTheme.PREMIUM_WOOD->.14f;BoardTheme.BRUSHED_METAL->.24f;BoardTheme.CRYSTAL_GLASS->.30f;BoardTheme.OBSIDIAN_IVORY->.30f;BoardTheme.ROYAL_SAPPHIRE->.30f}
-  Image(painterResource(background),null,Modifier.fillMaxSize().blur(7.dp),contentScale=ContentScale.Crop)
+  // The table scene is a photograph full of fine pattern in the same palette as the board, so on
+  // the richer themes the two compete for attention. Rather than blurring it - a RenderEffect that
+  // costs frames on an emulator or a low-end phone - the scene is desaturated and darkened through
+  // a colour matrix, which is a single cheap pass on every API level, plus a wash and a vignette.
+  // The board and its checkers keep full contrast; only the photograph behind them recedes.
+  val sceneDim=when(settings.theme){BoardTheme.PREMIUM_WOOD->.16f;BoardTheme.BRUSHED_METAL->.26f;BoardTheme.CRYSTAL_GLASS->.32f;BoardTheme.OBSIDIAN_IVORY->.30f;BoardTheme.ROYAL_SAPPHIRE->.32f}
+  val sceneMute=when(settings.theme){BoardTheme.PREMIUM_WOOD->.72f;BoardTheme.BRUSHED_METAL->.52f;BoardTheme.CRYSTAL_GLASS->.42f;BoardTheme.OBSIDIAN_IVORY->.50f;BoardTheme.ROYAL_SAPPHIRE->.40f}
+  val sceneFilter=remember(sceneMute){ColorFilter.colorMatrix(ColorMatrix(mutedSceneMatrix(sceneMute)))}
+  Image(painterResource(background),null,Modifier.fillMaxSize().graphicsLayer{alpha=.88f},contentScale=ContentScale.Crop,colorFilter=sceneFilter)
   Box(Modifier.fillMaxSize().background(Color.Black.copy(sceneDim)))
   Box(Modifier.fillMaxSize().background(Brush.radialGradient(0f to Color.Transparent,.52f to Color.Black.copy(sceneDim*.30f),1f to Color.Black.copy(sceneDim*1.35f))))
   Box(Modifier.align(Alignment.Center).fillMaxWidth(layout.widthFraction).fillMaxHeight(layout.heightFraction).absoluteOffset(y=16.dp).clip(RoundedCornerShape(15.dp)).background(Color.Black.copy(.78f)).border(2.dp,Color.Black.copy(.82f),RoundedCornerShape(15.dp)))
