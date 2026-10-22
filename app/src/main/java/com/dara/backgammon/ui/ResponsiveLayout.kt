@@ -17,7 +17,7 @@ fun boardLayoutProfile(widthDp: Float, heightDp: Float): BoardLayoutProfile {
     require(widthDp > 0 && heightDp > 0)
     val ratio = widthDp / heightDp
     return when {
-        heightDp < 380f || ratio >= 2.25f -> BoardLayoutProfile(.88f, .94f, -108, 126, true)
+        heightDp < 380f || ratio >= 2.15f -> BoardLayoutProfile(.88f, .94f, -108, 126, true)
         widthDp >= 1100f -> BoardLayoutProfile(.72f, .84f, -150, 156, false)
         widthDp >= 800f -> BoardLayoutProfile(.76f, .86f, -140, 148, false)
         else -> BoardLayoutProfile(.80f, .88f, -130, 139, false)
